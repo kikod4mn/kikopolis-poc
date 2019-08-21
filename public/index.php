@@ -1,5 +1,6 @@
 <?php
 
+use Kikopolis\App\Config\Config as Config;
 use Kikopolis\Core\Router;
 
 /**
@@ -63,7 +64,9 @@ $router->add('GET', 'home/index', 'home.index');
 $router->add('GET', 'home/about', 'home.about');
 $router->add('POST', 'home/faq', 'home.faq');
 
-// var_dump($router->getRoutes());
+var_dump($router->getRoutes());
+var_dump(Config::getUrlRoot());
+var_dump(Config::getAppRoot());
 
 //Match the requested URL
 $router->dispatch($_SERVER['QUERY_STRING']);

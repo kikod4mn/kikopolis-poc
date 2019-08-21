@@ -2,6 +2,8 @@
 
 namespace Kikopolis\Core;
 
+use Kikopolis\App\Config\Config;
+
 class Router
 {
     /**
@@ -59,10 +61,17 @@ class Router
     {
         // Check for the method match.
         $url = $this->getUrl();
+
         var_dump($url);
-        // var_dump($_SERVER['QUERY_STRING']);
-        die();
-        $this->methodMatchCheck($method);
+
+        var_dump($this->validateController(ucwords($url[0])));
+
+        // $this->methodMatchCheck($method);
+
+
+        // $this->route = explode('.', $params);
+        // $this->currentController = $this->route[0];
+        // $this->currentMethod = $this->route[1];
     }
 
     protected function methodMatchCheck(string $method)
@@ -78,5 +87,11 @@ class Router
             $url = explode('/', $url);
             return $url;
         }
+    }
+
+    protected function validateController($controller)
+    {
+        var_dump(Config::getAppRoot() . '/App/Controllers/' . $controller . '.php');
+        return file_exists(Config::getAppRoot() . '/App/Controllers/' . $controller . '.php');
     }
 }
