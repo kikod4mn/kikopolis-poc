@@ -1,0 +1,18 @@
+{
+    "require": {
+        "ext-pdo": "*",
+        "ext-json": "*",
+        "mailgun/mailgun-php": "^2.8",
+        "guzzlehttp/psr7": "^1.5",
+        "php-http/guzzle6-adapter": "1.1.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Kikopolis\\Core\\": "Core/",
+            "Kikopolis\\App\\": "App/"
+        },
+        "files": [
+
+        ]
+    }
+}
