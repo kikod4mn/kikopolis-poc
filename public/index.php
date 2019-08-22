@@ -65,8 +65,8 @@ $router->add('GET', 'home/about', 'home.about');
 $router->add('POST', 'home/faq', 'home.faq');
 
 var_dump($router->getRoutes());
-var_dump(Config::getUrlRoot());
-var_dump(Config::getAppRoot());
+// var_dump(Config::getUrlRoot());
+// var_dump(Config::getAppRoot());
 
 //Match the requested URL
 $router->dispatch($_SERVER['QUERY_STRING']);
