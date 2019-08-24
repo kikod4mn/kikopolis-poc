@@ -20,7 +20,7 @@ class Router
      *
      * @var array
      */
-    protected $route;
+    protected $route = [];
 
     /**
      * The controller to route to.
@@ -42,7 +42,14 @@ class Router
      *
      * @var array
      */
-    protected $params;
+    protected $params = [];
+
+    /**
+     * Protected options array for the route.
+     *
+     * @var array
+     */
+    protected $options = [];
 
     /**
      * Add a route to the routing table.
@@ -56,6 +63,9 @@ class Router
      */
     public function add($method, string $route, string $params, array $options = [], string $namespace = '')
     {
+        // Assign the name of the route
+        $route_name = explode('.', $params);
+        $route_name = ucwords($route_name[0]) . '-' . ucwords($route_name[1]);
         // Convert the route to a regular expression: escape forward slashes
         $route = preg_replace('/\//', '\\/', $route);
 
@@ -68,15 +78,14 @@ class Router
         // Add start and end delimiters, and case insensitive flag
         $route = '/^' . $route . '$/i';
 
-        $this->routes[$route] = [
+        $this->routes[$route_name] = [
             'method' => $method,
             'route' => $route,
             'params' => $params,
             'options' => $options,
-            'namespace' => $namespace
+            'namespace' => $namespace,
+            'route_name' => $route_name
         ];
-
-        var_dump($this->routes[$route]);
     }
 
     /**
@@ -105,10 +114,13 @@ class Router
         // Match the url
         if ($this->match($url)) {
             // Check if controller file exists and require it
-            if (file_exists(Config::getAppRoot() . '/App/Controllers/' . $this->currentController . '.php')) {
-                require_once Config::getAppRoot() . '/App/Controllers/' . $this->currentController . '.php';
+            if (!empty($this->route['namespace'])) {
+                $namespace = $this->route['namespace'] . '/';
+            }
+            if (file_exists(Config::getAppRoot() . '/App/Controllers/' . $namespace . $this->currentController . '.php')) {
+                require_once Config::getAppRoot() . '/App/Controllers/' . $namespace . $this->currentController . '.php';
             } else {
-                throw new \Exception("Controller - '$this->currentController' - does not exist or file is not readable");
+                throw new \Exception("Controller - " . $this->route['route_name'] . " - does not exist or file is not readable");
             }
             // Set the correct full namespace for the controller
             $this->setNamespace();
@@ -121,7 +133,7 @@ class Router
                 $method = $this->currentMethod;
                 // If there are more parameters to the url, use them here
                 if (!empty($this->params)) {
-                    $this->params = array_values($this->params);
+                    $this->options = array_splice($this->params, 0, 0);
                     foreach ($this->params as $key => $value) {
                         echo $key . ' - ' . $value . '<br>';
                     }
@@ -283,7 +295,7 @@ class Router
         if (array_key_exists('namespace', $this->route)) {
             // If there is no namespace passed in then default namespace is used.
             // Check for an empty array value and set to default namespace if is empty.
-            if (empty($this->rount['namespace'])) {
+            if (empty($this->route['namespace'])) {
                 $this->route['namespace'] = $namespace;
             } else {
                 $this->route['namespace'] = $namespace . $this->route['namespace'] . '\\';

@@ -8,12 +8,6 @@ RewriteOptions InheritDownBefore
 # Protect the POST array from getting lost in redirects
 RewriteCond %{REQUEST_METHOD} !^POST$
 
-# Disable image hotlinking
-RewriteCond %{HTTP_REFERER} !^$
-RewriteCond %{HTTP_REFERER} !^http://(www\.)?kikopolis\.dev/.*$ [NC]
-RewriteRule .*\.(gif|jpe?g|png)$ http://www.cyberciti.biz/noop.jpg [R,NC,L]
-
-
 RewriteBase /kikopolis_poc/
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-f
