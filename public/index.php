@@ -37,8 +37,8 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
  * PHP Settings Development
  */
 ini_set('error_reporting', E_ALL);
-// set_error_handler('Core\Error::errorHandler');
-// set_exception_handler('Core\Error::exceptionHandler');
+set_error_handler('Kikopolis\Core\Error::errorHandler');
+set_exception_handler('Kikopolis\Core\Error::exceptionHandler');
 ini_set("xdebug.var_display_max_children", -1);
 ini_set("xdebug.var_display_max_data", -1);
 ini_set("xdebug.var_display_max_depth", -1);
@@ -60,9 +60,10 @@ session_start();
  */
 $router = new Router();
 
-$router->add(['GET', 'POST'], 'home/index', 'home.index');
+$router->add('GET', 'home/index', 'home.index.show.me.more.options');
 $router->add('GET', 'home/about', 'home.about');
-$router->add('POST', 'home/faq', 'home.faq');
+$router->add('GET', 'home/faq', 'home.faq');
+$router->add('GET', 'posts/show/{slug:\d+}', 'posts.show');
 
 // var_dump($router->getRoutes());
 // var_dump(Config::getUrlRoot());

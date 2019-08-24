@@ -56,6 +56,18 @@ class Router
      */
     public function add($method, string $route, string $params, array $options = [], string $namespace = '')
     {
+        // Convert the route to a regular expression: escape forward slashes
+        $route = preg_replace('/\//', '\\/', $route);
+
+        // Convert variables e.g. {controller}
+        $route = preg_replace('/\{([a-z]+)\}/', '(?P<\1>[a-z-]+)', $route);
+
+        // Convert variables with custom regular expressions e.g. {id:\d+}
+        $route = preg_replace('/\{([a-z]+):([^\}]+)\}/', '(?P<\1>\2)', $route);
+
+        // Add start and end delimiters, and case insensitive flag
+        $route = '/^' . $route . '$/i';
+
         $this->routes[$route] = [
             'method' => $method,
             'route' => $route,
@@ -63,6 +75,8 @@ class Router
             'options' => $options,
             'namespace' => $namespace
         ];
+
+        var_dump($this->routes[$route]);
     }
 
     /**
@@ -76,97 +90,88 @@ class Router
     }
 
     /**
-     * Divide the server query string up by /.
+     * Check if controller and method exist, require the controller file and route to the method.
      *
-     * @return array
+     * @throws \Exception
+     * 
+     * @param string $url
+     * 
+     * @return void
      */
-    // protected function getUrlAsArray($url)
-    // {
-    //     $url = rtrim($url, '/');
-    //     $url = filter_var($url, FILTER_SANITIZE_URL);
-    //     $url = explode('/', $url);
-    //     return $url;
-    // }
-
-    public function dispatch($url)
+    public function dispatch($uri)
     {
-        // Remove query string variables
-        $url = $this->removeQueryStringVariables($url);
-
+        // Check if the $uri isset and remove query string variables
+        $url = isset($uri) ? $this->removeQueryStringVariables(filter_var($uri, FILTER_SANITIZE_URL)) : '/';
+        // Match the url
         if ($this->match($url)) {
-            // if route matches
+            // Check if controller file exists and require it
+            if (file_exists(Config::getAppRoot() . '/App/Controllers/' . $this->currentController . '.php')) {
+                require_once Config::getAppRoot() . '/App/Controllers/' . $this->currentController . '.php';
+            } else {
+                throw new \Exception("Controller - '$this->currentController' - does not exist or file is not readable");
+            }
+            // Set the correct full namespace for the controller
+            $this->setNamespace();
+            // Set the namespace to instantiate the controller
+            $this->currentController = $this->route['namespace'] . $this->currentController;
+            // Instantiate the controller class
             $controller_object = new $this->currentController();
-            // var_dump($controller_object);
+            // Check if the method exists and route to the method
             if (method_exists($controller_object, $this->currentMethod)) {
-                // echo "method exists";
                 $method = $this->currentMethod;
-                $controller_object->$method();
+                // If there are more parameters to the url, use them here
+                if (!empty($this->params)) {
+                    $this->params = array_values($this->params);
+                    foreach ($this->params as $key => $value) {
+                        echo $key . ' - ' . $value . '<br>';
+                    }
+                }
+                // Check what?
+                if (preg_match('/method$/i', $method) == 0) {
+                    $controller_object->$method();
+                } else {
+                    throw new \Exception("Method - '$this->currentMethod' - in controller - '$this->currentController' - cannot be called directly - remove the Action suffix to call this method");
+                }
+            } else {
+                throw new \Exception("Method - '$this->currentMethod' - not found in class - '$this->currentController'");
             }
         } else {
-            // if route does not match
+            throw new \Exception('No route matched', 404);
         }
     }
 
+    /**
+     * Match the current url to the routing table.
+     * 
+     * @throws \Exception
+     *
+     * @param string $url
+     * 
+     * @return boolean
+     */
     public function match($url)
     {
         // Check if the route is in our array
-        if (!array_key_exists($url, $this->routes)) {
-            echo "No route found";
-            die();
+        foreach ($this->routes as $route) {
+            if (preg_match($route['route'], $url, $matches)) {
+                // echo $route['route'];
+                $this->route = $route;
+                // var_dump($this->route);
+            }
         }
-        // var_dump($this->routes[$url]);
-        $this->route = $this->routes[$url];
-        // var_dump($this->route);
-
         // Check the server query method against allowed route method
-        // var_dump($this->methodMatchCheck($_SERVER['REQUEST_METHOD'], $this->routes[$url]['method']));
-        if (!$this->methodMatchCheck($_SERVER['REQUEST_METHOD'], $this->routes[$url]['method'])) {
-            echo "REQUEST_METHOD does not match";
-            die();
+        if (!$this->methodMatchCheck($_SERVER['REQUEST_METHOD'], $this->route['method'])) {
+            throw new \Exception('Request method does not match the allowed method for the route.');
         }
-        // Get the url as an array. Divide the parts up to check if the Controller file and Methods exist
-        // $parts = $this->getUrlAsArray($url);
-        // Validate controller
-        // $controller = $this->convertToStudlyCase($parts[0]);
         // Set controller and method from the params of the url in the routing table
         $this->getParamsAsArray();
-        // Convert the name to StudlyCase
+        // Convert the name to StudlyCase and unset the value
         $this->currentController = $this->convertToStudlyCase($this->params[0]);
-        // Convert the name to camelCase
+        unset($this->params[0]);
+        // Convert the name to camelCase and unset the value
         $this->currentMethod = $this->convertToCamelCase($this->params[1]);
-        // Validate the controller file exists and if it does, will require the file
-        if (!$this->validateController($this->currentController)) {
-            echo "No controller found";
-            die();
-        } else {
-            // Set the correct full namespace for the controller
-            $this->setNamespace();
-            // var_dump($this);
-            // Instantiate the controller class
-            $this->currentController = $this->route['namespace'] . $this->currentController;
-        }
-        // Set the correct full namespace for the controller
-        // $this->setNamespace();
-        // var_dump($this->route['namespace'] . $this->currentController);
-        // $this->currentController = $this->route['namespace'] . $this->currentController;
-        // if (class_exists($this->currentController)) {
-        //     echo "class exists";
-        // }
-
-        // Require the controller file
-        // require_once Config::getAppRoot() . '/App/Controllers/' . $controller . '.php';
-
-        // var_dump($this->route);
-        // var_dump($controller);
-
-        // Validate method
-        // $method = $this->convertToCamelCase($parts[1]);
-        // $this->validateMethod(lcfirst($url[1]));
-
-        // var_dump($this->route);
-        // var_dump($url);
-        // var_dump($parts);
-        // var_dump($_SERVER["REQUEST_METHOD"]);
+        unset($this->params[1]);
+        // Return
         return true;
     }
 
@@ -222,26 +227,13 @@ class Router
     }
 
     /**
-     * Check if the controller file exists and require it.
+     * Divide the parameters to an array.
+     * Controller at index 0.
+     * Method at index 1.
+     * Rest of the url from index 2 and onwards if exist.
      *
-     * @throws Exception
-     * 
-     * @param string $controller
-     * 
-     * @return object
+     * @return array
      */
-    protected function validateController($controller)
-    {
-        if (file_exists(Config::getAppRoot() . '/App/Controllers/' . $controller . '.php')) {
-            // var_dump(Config::getAppRoot() . '/App/Controllers/' . $controller . '.php');
-            require_once Config::getAppRoot() . '/App/Controllers/' . $controller . '.php';
-            return true;
-        } else {
-            echo "Controller file not readable or does not exist";
-            die();
-        }
-    }
-
     protected function getParamsAsArray()
     {
         $this->params = explode('.', $this->route['params']);
@@ -282,7 +274,7 @@ class Router
      * However, should there be a need to divide controllers into folders and thus consequently different namespaces,
      * you can pass that namespace in as the last argument to the Route in the add() method.
      * 
-     * @return string The request URL
+     * @return void
      */
     protected function setNamespace()
     {
@@ -290,15 +282,12 @@ class Router
 
         if (array_key_exists('namespace', $this->route)) {
             // If there is no namespace passed in then default namespace is used.
-            // Check for an empty array value and set to default namespace if.
+            // Check for an empty array value and set to default namespace if is empty.
             if (empty($this->rount['namespace'])) {
                 $this->route['namespace'] = $namespace;
             } else {
                 $this->route['namespace'] = $namespace . $this->route['namespace'] . '\\';
-                // var_dump($this->route);
             }
         }
-
-        // return $namespace;
     }
 }
