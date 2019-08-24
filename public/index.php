@@ -60,11 +60,11 @@ session_start();
  */
 $router = new Router();
 
-$router->add('GET', 'home/index', 'home.index');
+$router->add(['GET', 'POST'], 'home/index', 'home.index');
 $router->add('GET', 'home/about', 'home.about');
 $router->add('POST', 'home/faq', 'home.faq');
 
-var_dump($router->getRoutes());
+// var_dump($router->getRoutes());
 // var_dump(Config::getUrlRoot());
 // var_dump(Config::getAppRoot());
 

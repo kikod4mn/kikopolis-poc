@@ -37,16 +37,24 @@ class Router
     protected $currentMethod;
 
     /**
-     * Add aroute to the routing table.
+     * The parameters of the route.
+     * Controller at 0 and Method at 1.
      *
-     * @param string $method
+     * @var array
+     */
+    protected $params;
+
+    /**
+     * Add a route to the routing table.
+     *
+     * @param string|array $method
      * @param string $route
      * @param string $params
      * @param array $options
      *
      * @return void
      */
-    public function add(string $method, string $route, string $params, array $options = [], string $namespace = '')
+    public function add($method, string $route, string $params, array $options = [], string $namespace = '')
     {
         $this->routes[$route] = [
             'method' => $method,
@@ -72,20 +80,31 @@ class Router
      *
      * @return array
      */
-    protected function getUrlAsArray($url)
-    {
-        $url = rtrim($url, '/');
-        $url = filter_var($url, FILTER_SANITIZE_URL);
-        $url = explode('/', $url);
-        return $url;
-    }
+    // protected function getUrlAsArray($url)
+    // {
+    //     $url = rtrim($url, '/');
+    //     $url = filter_var($url, FILTER_SANITIZE_URL);
+    //     $url = explode('/', $url);
+    //     return $url;
+    // }
 
     public function dispatch($url)
     {
         // Remove query string variables
         $url = $this->removeQueryStringVariables($url);
 
-        if ($this->match($url)) { }
+        if ($this->match($url)) {
+            // if route matches
+            $controller_object = new $this->currentController();
+            // var_dump($controller_object);
+            if (method_exists($controller_object, $this->currentMethod)) {
+                // echo "method exists";
+                $method = $this->currentMethod;
+                $controller_object->$method();
+            }
+        } else {
+            // if route does not match
+        }
     }
 
     public function match($url)
@@ -93,29 +112,46 @@ class Router
         // Check if the route is in our array
         if (!array_key_exists($url, $this->routes)) {
             echo "No route found";
+            die();
         }
         // var_dump($this->routes[$url]);
         $this->route = $this->routes[$url];
         // var_dump($this->route);
 
-        // Check the server method against allowed route method
+        // Check the server query method against allowed route method
         // var_dump($this->methodMatchCheck($_SERVER['REQUEST_METHOD'], $this->routes[$url]['method']));
-        $this->methodMatchCheck($_SERVER['REQUEST_METHOD'], $this->routes[$url]['method']);
+        if (!$this->methodMatchCheck($_SERVER['REQUEST_METHOD'], $this->routes[$url]['method'])) {
+            echo "REQUEST_METHOD does not match";
+            die();
+        }
         // Get the url as an array. Divide the parts up to check if the Controller file and Methods exist
-        $parts = $this->getUrlAsArray($url);
+        // $parts = $this->getUrlAsArray($url);
         // Validate controller
-        $controller = $this->convertToStudlyCase($parts[0]);
-        if (!$this->validateController($controller)) {
+        // $controller = $this->convertToStudlyCase($parts[0]);
+        // Set controller and method from the params of the url in the routing table
+        $this->getParamsAsArray();
+        // Convert the name to StudlyCase
+        $this->currentController = $this->convertToStudlyCase($this->params[0]);
+        // Convert the name to camelCase
+        $this->currentMethod = $this->convertToCamelCase($this->params[1]);
+        // Validate the controller file exists and if it does, will require the file
+        if (!$this->validateController($this->currentController)) {
             echo "No controller found";
+            die();
+        } else {
+            // Set the correct full namespace for the controller
+            $this->setNamespace();
+            // var_dump($this);
+            // Instantiate the controller class
+            $this->currentController = $this->route['namespace'] . $this->currentController;
         }
         // Set the correct full namespace for the controller
-        $this->setNamespace();
-        var_dump($this->route['namespace'] . $controller);
-        $controller = $this->route['namespace'] . $controller;
-        if (class_exists($controller)) {
-            $controller_object = new $controller();
-            var_dump($controller_object);
-        }
+        // $this->setNamespace();
+        // var_dump($this->route['namespace'] . $this->currentController);
+        // $this->currentController = $this->route['namespace'] . $this->currentController;
+        // if (class_exists($this->currentController)) {
+        //     echo "class exists";
+        // }
 
         // Require the controller file
         // require_once Config::getAppRoot() . '/App/Controllers/' . $controller . '.php';
@@ -124,13 +160,14 @@ class Router
         // var_dump($controller);
 
         // Validate method
-        $method = $this->convertToCamelCase($parts[1]);
+        // $method = $this->convertToCamelCase($parts[1]);
         // $this->validateMethod(lcfirst($url[1]));
 
-        var_dump($this->route);
+        // var_dump($this->route);
         // var_dump($url);
         // var_dump($parts);
         // var_dump($_SERVER["REQUEST_METHOD"]);
+        return true;
     }
 
     /**
@@ -162,18 +199,30 @@ class Router
 
     /**
      * Match the server query method to the accepted method for the route.
+     * Checks if the methods allowed for the route are in an array, meaning multiple methods would be allowed.
      *
-     * @param string $method
+     * @param string $request_method    $_SERVER['REQUEST_METHOD'].
+     * @param string|array $url_method  The method from the route in the routing table.
      * 
      * @return boolean
      */
     protected function methodMatchCheck(string $request_method, $url_method)
     {
-        return $request_method === $url_method;
+        if (is_array($url_method)) {
+            foreach ($url_method as $method) {
+                if ($request_method === $method) {
+                    return true;
+                } else {
+                    continue;
+                }
+            }
+        } else {
+            return $request_method === $url_method;
+        }
     }
 
     /**
-     * Check if the controller file exists.
+     * Check if the controller file exists and require it.
      *
      * @throws Exception
      * 
@@ -183,18 +232,19 @@ class Router
      */
     protected function validateController($controller)
     {
-        return file_exists(Config::getAppRoot() . '/App/Controllers/' . $controller . '.php');
+        if (file_exists(Config::getAppRoot() . '/App/Controllers/' . $controller . '.php')) {
+            // var_dump(Config::getAppRoot() . '/App/Controllers/' . $controller . '.php');
+            require_once Config::getAppRoot() . '/App/Controllers/' . $controller . '.php';
+            return true;
+        } else {
+            echo "Controller file not readable or does not exist";
+            die();
+        }
     }
 
-    protected function validateMethod($method)
+    protected function getParamsAsArray()
     {
-        // Instantiate controller class
-        var_dump($this->currentController);
-        $this->currentController = new $this->currentController;
-
-        echo $method;
-        var_dump(method_exists($this->currentController, $method));
-        return method_exists($this->currentController, $method);
+        $this->params = explode('.', $this->route['params']);
     }
 
     /**
