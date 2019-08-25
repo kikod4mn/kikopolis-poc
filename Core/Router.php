@@ -4,6 +4,7 @@ namespace Kikopolis\Core;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
+use App\Helpers\Str;
 use Kikopolis\App\Config\Config;
 
 class Router
@@ -93,7 +94,7 @@ class Router
         // Add start and end delimiters, and case insensitive flag
         $route = '/^' . $route . '$/i';
 
-        $this->routes[$route_name] = [
+        $this->routes[] = [
             'method' => $method,
             'route' => $route,
             'params' => $params,
@@ -101,6 +102,7 @@ class Router
             'namespace' => $namespace,
             'route_name' => $route_name
         ];
+        // var_dump($this->routes[$route_name]);
     }
 
     /**
@@ -205,13 +207,23 @@ class Router
      */
     public function match($url)
     {
+        if (empty($url)) {
+            $url = '/';
+        }
         // Check if the route is in our array
         foreach ($this->routes as $route) {
+            // var_dump($route);
             if (preg_match($route['route'], $url, $matches)) {
                 // echo $route['route'];
                 $this->route = $route;
+                // var_dump($route);
                 // var_dump($this->route);
             }
+            // var_dump($route === $url);
+            // echo $url;
+        }
+        if (empty($this->route)) {
+            // $this->route = null;
         }
         // Verify that the request method part is set in the route
         if (!isset($this->route['method'])) {
@@ -307,7 +319,7 @@ class Router
      */
     protected function convertToStudlyCase($string)
     {
-        return str_replace(' ', '', ucwords(str_replace('-', ' ', $string)));
+        return Str::convertToStudlyCase($string);
     }
 
     /**
@@ -320,7 +332,7 @@ class Router
      */
     protected function convertToCamelCase($string)
     {
-        return lcfirst($this->convertToStudlyCase($string));
+        return Str::convertToCamelCase($string);
     }
 
     /**

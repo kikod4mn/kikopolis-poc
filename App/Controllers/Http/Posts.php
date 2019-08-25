@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Http;
 
+defined('_KIKOPOLIS') or die('No direct script access!');
+
 use App\Controllers\More;
 use App\Controllers\Show;
 

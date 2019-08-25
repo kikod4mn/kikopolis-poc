@@ -60,6 +60,7 @@ session_start();
  */
 $router = new Router();
 
+$router->add('GET', '/', 'home.index', [], 'Http');
 $router->add('GET', 'home/index', 'home.index', [], 'Http');
 $router->add('GET', 'home/about', 'home.about', [], 'Http');
 $router->add('GET', 'home/faq', 'home.faq', [], 'Http');

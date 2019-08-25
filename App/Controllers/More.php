@@ -2,6 +2,10 @@
 
 namespace App\Controllers;
 
+use App\Helpers\Str;
+
+defined('_KIKOPOLIS') or die('No direct script access!');
+
 class More
 {
     public $options;
@@ -11,7 +15,7 @@ class More
         $this->options = ([
             'title' => "Options from the More class<br>",
             'var1' => rand(),
-            'var2' => random_bytes(12)
+            'var2' => Str::randomString(16)
         ]);
         return $this;
     }
