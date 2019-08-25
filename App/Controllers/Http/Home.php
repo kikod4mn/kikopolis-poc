@@ -6,6 +6,7 @@ defined('_KIKOPOLIS') or die('No direct script access!');
 
 use App\Helpers\Str;
 use Kikopolis\App\Utility\Token;
+use Kikopolis\Core\Factories\LoremIpsumFactory;
 use ReflectionClass;
 use ReflectionMethod;
 
@@ -35,5 +36,8 @@ class Home
         $string = $token->getCsrfToken();
         echo $string . '<br><br>';
         var_dump($_SESSION);
+
+        $lorem_ipsum = new LoremIpsumFactory();
+        echo $lorem_ipsum->getLoremWords(100);
     }
 }

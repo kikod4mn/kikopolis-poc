@@ -107,6 +107,10 @@ class Str
         $string = preg_replace('![' . preg_quote($flip) . ']+!u', $separator, $string);
         // Replace @ with at
         $string = str_replace('@', $separator . 'at' . $separator, $string);
+        // Replace & with and
+        $string = preg_replace('/\&/', $separator . 'and' . $separator, $string);
+        // Replace % with percentage
+        $string = preg_replace('/\%/', $separator . 'percentage' . $separator, $string);
         // Remove all chars that are not whitespace, separator, letters or numbers
         $string = preg_replace('![^' . preg_quote($separator) . '\pL\pN\s]+!u', '', strtolower($string));
         // Replace all whitespace and separator with single separator
