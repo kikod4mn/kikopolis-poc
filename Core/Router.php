@@ -67,6 +67,13 @@ class Router
     protected $options = [];
 
     /**
+     * Instance of the Container dependency injector.
+     *
+     * @var \Kikopolis\Core\Container
+     */
+    protected $container;
+
+    /**
      * Add a route to the routing table.
      *
      * @param string|array $method
@@ -126,6 +133,8 @@ class Router
      */
     public function dispatch($uri)
     {
+        // Instantiate the Container dependency injector
+        $this->container = new Container();
         // Check if the $uri isset and remove query string variables
         $url = isset($uri) ? $this->removeQueryStringVariables(filter_var($uri, FILTER_SANITIZE_URL)) : '/';
         // Match the url
@@ -141,50 +150,14 @@ class Router
             $this->setNamespace();
             // Set the namespace to instantiate the controller
             $this->currentController = $this->route['namespace'] . $this->currentController;
-            // Instantiate the controller class
-            $controller_object = new $this->currentController();
+            // Instantiate the controller class and resolve dependencies with the Container class
+            $controller_object = $this->container->get($this->currentController);
             // Check if the method exists and route to the method
             if (method_exists($controller_object, $this->currentMethod)) {
                 $method = $this->currentMethod;
-                // If there are more parameters to the url, use them here
-                if (!empty($this->params)) {
-                    // var_dump for testing
-                    // var_dump($this->params);
-                    // Reorder the array after we removed indexes 0 and 1 for Controller and Method
-                    $this->options = array_splice($this->params, 0, 0);
-                    // Iterate through the params array and find the additional Controller and Method to call
-                    // Controller and Method are the main controller that displays the view
-                    // Can be used to pull in additional info for the current page
-                    // Example, comments for the article from Comments controller, with ID-for-func as an optional parameter
-                    // http://localhost/Controller/Method/Additional-Controller/Additional-Method/ID-for-func/Additional-Controller/Additional-Method/ID-for-func
-                    // And onwards to infinity.
-                    // These parameters are set in the parameters to avoid the user any access when typing in random routes
-                    foreach ($this->params as $key => $value) {
-                        if (file_exists(Config::getAppRoot() . '/App/Controllers/' . $value . '.php')) {
-                            // echo 'Controller found<br>';
-                            $controller = 'App\Controllers\\' . $this->convertToStudlyCase($value);
-                            $controller_name = $value;
-                            // var_dump($controller);
-                            // echo '<br>';
-                            $this->additionalController = new $controller();
-                        }
-                        if (method_exists($this->additionalController, $value)) {
-                            $methodTest = $this->convertToCamelCase($value);
-                            $additionalArgs[] = $this->additionalController->$methodTest();
-                        }
-                    }
-                }
-                // Check what?
+                // Dispatch to the called method in the controller
                 if (preg_match('/method$/i', $method) == 0) {
-                    // extract($additionalArgs);
-                    // var_dump($additionalArgs);
-                    // var_dump($show);
-                    // var_dump($more);
-                    if (isset($additionalArgs)) {
-                        $controller_object->$method($additionalArgs[0], $additionalArgs[1]);
-                    } else {
-                        $controller_object->$method();
-                    }
+                    $controller_object->$method();
                 } else {
                     throw new \Exception("Method - '$this->currentMethod' - in controller - '$this->currentController' - cannot be called directly - remove the Action suffix to call this method");
                 }

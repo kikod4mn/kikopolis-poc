@@ -6,11 +6,18 @@ defined('_KIKOPOLIS') or die('No direct script access!');
 
 use App\Helpers\Str;
 use Kikopolis\App\Utility\Token;
+use ReflectionClass;
+use ReflectionMethod;
 
 class Home
 {
     public function index()
     {
+        print_r($reflection = new ReflectionClass('App\Controllers\Http\Posts'));
+        var_dump($reflection);
+        $method = new ReflectionMethod('App\Controllers\Http\Posts', 'show');
+        var_dump($method->getDocComment());
+        echo "<br>";
         echo "<br><h1>Hi, cruel world of PHP</h1><br>";
         $string = Str::convertToSnakeCase('This to snake case');
         echo $string . '<br><br>';

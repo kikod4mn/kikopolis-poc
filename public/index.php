@@ -1,6 +1,7 @@
 <?php
 
 use Kikopolis\App\Config\Config as Config;
+use Kikopolis\Core\Container;
 use Kikopolis\Core\Router;
 
 /**
@@ -28,6 +29,12 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
 //         require_once $root . '/' . str_replace('\\', '/', $class) . '.php';
 //     }
 // });
+
+$container = new Container();
+$posts = $container->get('App\Controllers\Http\Posts');
+$post = $container->get('App\Models\Post');
+var_dump($posts);
+var_dump($post);
 
 /**
  * Cookie settings
