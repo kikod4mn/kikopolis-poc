@@ -1,17 +1,13 @@
 {
     "require": {
         "ext-pdo": "*",
-        "ext-json": "*",
-        "mailgun/mailgun-php": "^2.8",
-        "guzzlehttp/psr7": "^1.5",
-        "php-http/guzzle6-adapter": "1.1.1",
-        "twig/twig": "^2.0",
-        "illuminate/database": "^5.8"
+        "ext-json": "*"
     },
     "autoload": {
         "psr-4": {
             "Kikopolis\\Core\\": "Core/",
-            "Kikopolis\\App\\": "App/"
+            "Kikopolis\\App\\": "App/",
+            "App\\": "App/"
         },
         "files": [
 

@@ -9,6 +9,20 @@ use Kikopolis\App\Config\Config;
 class Router
 {
     /**
+     * The additional controller instance
+     *
+     * @var string
+     */
+    protected $additionalController;
+
+    /**
+     * The controllers namespace
+     *
+     * @var string
+     */
+    protected $namespace;
+
+    /**
      * The routing table
      *
      * @var array
@@ -56,7 +70,8 @@ class Router
      *
      * @param string|array $method
      * @param string $route
-     * @param string $params
+     * @param string $params            Format goes as controller.method.additional-controller.additional-method.ID-for-func
+     *                                  See the dispatch() function for more clarification.
      * @param array $options
      *
      * @return void
@@ -113,13 +128,11 @@ class Router
         $url = isset($uri) ? $this->removeQueryStringVariables(filter_var($uri, FILTER_SANITIZE_URL)) : '/';
         // Match the url
         if ($this->match($url)) {
-            // Check if controller file exists and require it
+            // Check if controller file exists
             if (!empty($this->route['namespace'])) {
                 $namespace = $this->route['namespace'] . '/';
             }
-            if (file_exists(Config::getAppRoot() . '/App/Controllers/' . $namespace . $this->currentController . '.php')) {
-                require_once Config::getAppRoot() . '/App/Controllers/' . $namespace . $this->currentController . '.php';
-            } else {
+            if (!file_exists(Config::getAppRoot() . '/App/Controllers/' . $namespace . $this->currentController . '.php')) {
                 throw new \Exception("Controller - " . $this->route['route_name'] . " - does not exist or file is not readable");
             }
             // Set the correct full namespace for the controller
@@ -133,14 +146,39 @@ class Router
                 $method = $this->currentMethod;
                 // If there are more parameters to the url, use them here
                 if (!empty($this->params)) {
+                    // var_dump for testing
+                    var_dump($this->params);
+                    // Reorder the array after we removed indexes 0 and 1 for Controller and Method
                     $this->options = array_splice($this->params, 0, 0);
+                    // Iterate through the params array and find the additional Controller and Method to call
+                    // Controller and Method are the main controller that displays the view
+                    // Can be used to pull in additional info for the current page
+                    // Example, comments for the article from Comments controller, with ID-for-func as an optional parameter
+                    // http://localhost/Controller/Method/Additional-Controller/Additional-Method/ID-for-func/Additional-Controller/Additional-Method/ID-for-func
+                    // And onwards to infinity.
+                    // These parameters are set in the parameters to avoid the user any access when typing in random routes
                     foreach ($this->params as $key => $value) {
-                        echo $key . ' - ' . $value . '<br>';
+                        if (file_exists(Config::getAppRoot() . '/App/Controllers/' . $value . '.php')) {
+                            // echo 'Controller found<br>';
+                            $controller = $this->namespace . $this->convertToStudlyCase($value);
+                            $controller_name = $value;
+                            // var_dump($controller);
+                            // echo '<br>';
+                            $this->additionalController = new $controller();
+                        }
+                        if (method_exists($this->additionalController, $value)) {
+                            $methodTest = $this->convertToCamelCase($value);
+                            $testingArgument[$controller_name] = $this->additionalController->$methodTest();
+                        }
                     }
                 }
                 // Check what?
                 if (preg_match('/method$/i', $method) == 0) {
-                    $controller_object->$method();
+                    // extract($testingArgument);
+                    // var_dump($testingArgument);
+                    // var_dump($show);
+                    // var_dump($more);
+                    $controller_object->$method(extract($testingArgument));
                 } else {
                     throw new \Exception("Method - '$this->currentMethod' - in controller - '$this->currentController' - cannot be called directly - remove the Action suffix to call this method");
                 }
@@ -170,6 +208,10 @@ class Router
                 $this->route = $route;
                 // var_dump($this->route);
             }
+        }
+        // Verify that the request method part is set in the route
+        if (!isset($this->route['method'])) {
+            throw new \Exception('Route REQUEST_METHOD cannot be blank. Please check your routing table for the route' . $this->route['route_name']);
         }
         // Check the server query method against allowed route method
         if (!$this->methodMatchCheck($_SERVER['REQUEST_METHOD'], $this->route['method'])) {
@@ -288,17 +330,21 @@ class Router
      * 
      * @return void
      */
-    protected function setNamespace()
+    protected function setNamespace($namespace = null)
     {
-        $namespace = 'App\Controllers\\';
+        if ($namespace) {
+            $this->namespace = $namespace;
+        } else {
+            $this->namespace = 'App\Controllers\\';
+        }
 
         if (array_key_exists('namespace', $this->route)) {
             // If there is no namespace passed in then default namespace is used.
             // Check for an empty array value and set to default namespace if is empty.
             if (empty($this->route['namespace'])) {
-                $this->route['namespace'] = $namespace;
+                $this->route['namespace'] = $this->namespace;
             } else {
-                $this->route['namespace'] = $namespace . $this->route['namespace'] . '\\';
+                $this->route['namespace'] = $this->namespace . $this->route['namespace'] . '\\';
             }
         }
     }

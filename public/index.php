@@ -63,8 +63,8 @@ $router = new Router();
 $router->add('GET', 'home/index', 'home.index.show.me.more.options', [], 'Http');
 $router->add('GET', 'home/about', 'home.about', [], 'Http');
 $router->add('GET', 'home/faq', 'home.faq', [], 'Http');
-$router->add('GET', 'posts/show/{slug:\d+}', 'posts.show', [], 'Http');
-$router->add('GET', 'posts', 'posts.show', [], 'Http');
+$router->add('GET', 'posts/view/{slug:\d+}', 'posts.view', [], 'Http');
+$router->add('GET', 'posts/show', 'posts.show', [], 'Http');
 
 // var_dump($router->getRoutes());
 // var_dump(Config::getUrlRoot());
