@@ -2,13 +2,22 @@
 
 namespace App\Controllers\Http;
 
+use App\Controllers\More;
+use App\Controllers\Show;
+
 class Posts
 {
-    public function show(Post $post)
+    public function show(Show $show, More $more)
     {
-        echo $_GET['id'];
-        echo $_GET['title'];
-        echo "Hi from posts";
-        var_dump($post->slug);
+        echo "<br><h1>Hi from posts</h1><br>";
+        echo "<h4>The Get Array</h4>";
+        var_dump(isset($_GET) ? $_GET : 'No get');
+        echo "<br>";
+        if ($show) {
+            var_dump($show);
+        }
+        if ($more) {
+            var_dump($more);
+        }
     }
 }

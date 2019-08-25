@@ -147,7 +147,7 @@ class Router
                 // If there are more parameters to the url, use them here
                 if (!empty($this->params)) {
                     // var_dump for testing
-                    var_dump($this->params);
+                    // var_dump($this->params);
                     // Reorder the array after we removed indexes 0 and 1 for Controller and Method
                     $this->options = array_splice($this->params, 0, 0);
                     // Iterate through the params array and find the additional Controller and Method to call
@@ -160,7 +160,7 @@ class Router
                     foreach ($this->params as $key => $value) {
                         if (file_exists(Config::getAppRoot() . '/App/Controllers/' . $value . '.php')) {
                             // echo 'Controller found<br>';
-                            $controller = $this->namespace . $this->convertToStudlyCase($value);
+                            $controller = 'App\Controllers\\' . $this->convertToStudlyCase($value);
                             $controller_name = $value;
                             // var_dump($controller);
                             // echo '<br>';
@@ -168,17 +168,21 @@ class Router
                         }
                         if (method_exists($this->additionalController, $value)) {
                             $methodTest = $this->convertToCamelCase($value);
-                            $testingArgument[$controller_name] = $this->additionalController->$methodTest();
+                            $additionalArgs[] = $this->additionalController->$methodTest();
                         }
                     }
                 }
                 // Check what?
                 if (preg_match('/method$/i', $method) == 0) {
-                    // extract($testingArgument);
-                    // var_dump($testingArgument);
+                    // extract($additionalArgs);
+                    // var_dump($additionalArgs);
                     // var_dump($show);
                     // var_dump($more);
-                    $controller_object->$method(extract($testingArgument));
+                    if (isset($additionalArgs)) {
+                        $controller_object->$method($additionalArgs[0], $additionalArgs[1]);
+                    } else {
+                        $controller_object->$method();
+                    }
                 } else {
                     throw new \Exception("Method - '$this->currentMethod' - in controller - '$this->currentController' - cannot be called directly - remove the Action suffix to call this method");
                 }
@@ -332,12 +336,13 @@ class Router
      */
     protected function setNamespace($namespace = null)
     {
-        if ($namespace) {
-            $this->namespace = $namespace;
-        } else {
-            $this->namespace = 'App\Controllers\\';
-        }
+        // if ($namespace) {
+        //     $this->namespace = $namespace;
+        // } else {
 
+        // }
+
+        $this->namespace = 'App\Controllers\\';
         if (array_key_exists('namespace', $this->route)) {
             // If there is no namespace passed in then default namespace is used.
             // Check for an empty array value and set to default namespace if is empty.
