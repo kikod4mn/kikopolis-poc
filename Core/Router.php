@@ -153,7 +153,7 @@ class Router
             // Set the namespace to instantiate the controller
             $this->currentController = $this->route['namespace'] . $this->currentController;
             // Instantiate the controller class and resolve dependencies with the Container class
-            $controller_object = $this->container->get($this->currentController);
+            $controller_object = $this->container->get($this->currentController, $this->currentMethod);
             // Check if the method exists and route to the method
             if (method_exists($controller_object, $this->currentMethod)) {
                 $method = $this->currentMethod;
