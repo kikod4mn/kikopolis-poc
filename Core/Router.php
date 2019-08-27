@@ -6,6 +6,7 @@ defined('_KIKOPOLIS') or die('No direct script access!');
 
 use App\Helpers\Str;
 use Kikopolis\App\Config\Config;
+use ReflectionClass;
 use ReflectionMethod;
 
 class Router
@@ -157,9 +158,14 @@ class Router
             if (method_exists($controller_object, $this->currentMethod)) {
                 $method = $this->currentMethod;
                 // $reflected_method = new ReflectionMethod($controller_object, $method);
-                // var_dump($reflected_method->getParameters());
+                // $method_dependencies = $reflected_method->getParameters();
                 // var_dump($reflected_method);
-
+                // foreach ($method_dependencies as $method_dependency) {
+                //     $reflector = new ReflectionClass($method_dependency);
+                //     $constructor = $reflector->getConstructor();
+                //     $ref_methods[] = $this->container->resolve($constructor);
+                // }
+                // var_dump($ref_methods);
                 // die;
                 // Dispatch to the called method in the controller
                 if (preg_match('/method$/i', $method) == 0) {

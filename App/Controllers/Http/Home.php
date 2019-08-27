@@ -6,7 +6,7 @@ defined('_KIKOPOLIS') or die('No direct script access!');
 
 use App\Controllers\More;
 use App\Controllers\Show;
-use App\Controllers\Posts;
+use App\Controllers\Http\Posts;
 use App\Helpers\Str;
 use Kikopolis\App\Utility\Token;
 use Kikopolis\Core\Factories\LoremIpsumFactory;
