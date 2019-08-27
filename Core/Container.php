@@ -72,6 +72,9 @@ class Container
         }
         // Get constructor parameters
         $parameters = $constructor->getParameters();
+        $method = $reflector->getMethod();
+        // $method->getParameters();
+        var_dump($method);
         $dependencies = $this->getDependencies($parameters);
         // Get new instance with dependencies resolved
         return $reflector->newInstanceArgs($dependencies);

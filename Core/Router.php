@@ -6,6 +6,7 @@ defined('_KIKOPOLIS') or die('No direct script access!');
 
 use App\Helpers\Str;
 use Kikopolis\App\Config\Config;
+use ReflectionMethod;
 
 class Router
 {
@@ -155,6 +156,11 @@ class Router
             // Check if the method exists and route to the method
             if (method_exists($controller_object, $this->currentMethod)) {
                 $method = $this->currentMethod;
+                // $reflected_method = new ReflectionMethod($controller_object, $method);
+                // var_dump($reflected_method->getParameters());
+                // var_dump($reflected_method);
+
+                // die;
                 // Dispatch to the called method in the controller
                 if (preg_match('/method$/i', $method) == 0) {
                     $controller_object->$method();

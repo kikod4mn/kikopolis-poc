@@ -31,10 +31,10 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
 // });
 
 $container = new Container();
-$posts = $container->get('App\Controllers\Http\Posts');
-$post = $container->get('App\Models\Post');
-var_dump($posts);
-var_dump($post);
+// $posts = $container->get('App\Controllers\Http\Posts');
+// $post = $container->get('App\Models\Post');
+// var_dump($posts);
+// var_dump($post);
 
 /**
  * Cookie settings
