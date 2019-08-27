@@ -10,18 +10,11 @@ use App\Controllers\Http\Posts;
 use App\Helpers\Str;
 use Kikopolis\App\Utility\Token;
 use Kikopolis\Core\Factories\LoremIpsumFactory;
-use ReflectionClass;
-use ReflectionMethod;
 
 class Home
 {
     public function index(Posts $posts, Show $show, More $more)
     {
-        print_r($reflection = new ReflectionClass('App\Controllers\Http\Posts'));
-        var_dump($reflection);
-        $method = new ReflectionMethod('App\Controllers\Http\Posts', 'show');
-        var_dump($method->getDocComment());
-        echo "<br>";
         echo "<br><h1>Hi, cruel world of PHP</h1><br>";
         $string = Str::convertToSnakeCase('This to snake case');
         echo $string . '<br><br>';
@@ -42,5 +35,7 @@ class Home
 
         $lorem_ipsum = new LoremIpsumFactory();
         echo $lorem_ipsum->getLoremWords(100);
+
+        $posts->show();
     }
 }

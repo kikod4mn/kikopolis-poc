@@ -66,13 +66,15 @@ class Container
         if (!$reflector->isInstantiable()) {
             throw new \Exception("Class {$concrete} is not instantiable!");
         }
+        $method_dependencies = [];
+        $method_instance = null;
         if ($method !== null) {
-            $method_dependencies = new ReflectionMethod($concrete, $method);
-            var_dump($method_dependencies);
-            $method_dependencies_array = $method_dependencies->getParameters();
-            var_dump($method_dependencies_array);
-            $method_dependencies_array = $this->getDependencies($method_dependencies_array);
-            var_dump($method_dependencies_array);
+            $method_instance = new ReflectionMethod($concrete, $method);
+            // var_dump($method_instance);
+            $method_dependencies_array = $method_instance->getParameters();
+            // var_dump($method_dependencies_array);
+            $method_dependencies = $this->getDependencies($method_dependencies_array);
+            // var_dump($method_dependencies);
             // die;
         }
         // Get class constructor
@@ -88,13 +90,15 @@ class Container
         }
 
         // Get new instance with dependencies resolved
-        if ($method !== null) {
-            $method_dependencies = $method_dependencies->invokeArgs($constructor, $method_dependencies_array);
-            var_dump($method_dependencies);
-            var_dump($constructor->$method($method_dependencies));
-            die;
-            return $constructor->$method($method_dependencies);
+        if ($method_dependencies) {
+            $method_dependencies = $method_instance->invokeArgs($constructor, $method_dependencies);
+            // var_dump($method_dependencies);
+            // var_dump($constructor->$method($method_dependencies));
+            // die;
+            return $method_dependencies;
         } else {
+            // var_dump($constructor);
+            // die;
             return $constructor;
         }
     }

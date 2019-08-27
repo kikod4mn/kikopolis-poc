@@ -169,7 +169,7 @@ class Router
                 // die;
                 // Dispatch to the called method in the controller
                 if (preg_match('/method$/i', $method) == 0) {
-                    $controller_object->$method();
+                    // $controller_object();
                 } else {
                     throw new \Exception("Method - '$this->currentMethod' - in controller - '$this->currentController' - cannot be called directly - remove the Action suffix to call this method");
                 }
