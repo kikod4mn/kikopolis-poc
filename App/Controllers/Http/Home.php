@@ -5,6 +5,7 @@ namespace App\Controllers\Http;
 defined('_KIKOPOLIS') or die('No direct script access!');
 
 use App\Helpers\Str;
+use App\Models\Post;
 use Kikopolis\App\Utility\Token;
 use Kikopolis\Core\Factories\LoremIpsumFactory;
 use ReflectionClass;
@@ -12,7 +13,7 @@ use ReflectionMethod;
 
 class Home
 {
-    public function index()
+    public function index(Post $post)
     {
         print_r($reflection = new ReflectionClass('App\Controllers\Http\Posts'));
         var_dump($reflection);
