@@ -38,7 +38,7 @@ class Posts
         var_dump(isset($_GET) ? $_GET : 'No get');
         echo "<br>";
         if ($this->show) {
-            var_dump($this->show->Me());
+            var_dump($this->show->me());
         }
         if ($this->more) {
             var_dump($this->more->options());

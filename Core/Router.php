@@ -154,28 +154,30 @@ class Router
             $this->currentController = $this->route['namespace'] . $this->currentController;
             // Instantiate the controller class and resolve dependencies with the Container class
             $controller_object = $this->container->get($this->currentController, $this->currentMethod);
+            // var_dump($controller_object);
+            die;
             // Check if the method exists and route to the method
-            if (method_exists($controller_object, $this->currentMethod)) {
-                $method = $this->currentMethod;
-                // $reflected_method = new ReflectionMethod($controller_object, $method);
-                // $method_dependencies = $reflected_method->getParameters();
-                // var_dump($reflected_method);
-                // foreach ($method_dependencies as $method_dependency) {
-                //     $reflector = new ReflectionClass($method_dependency);
-                //     $constructor = $reflector->getConstructor();
-                //     $ref_methods[] = $this->container->resolve($constructor);
-                // }
-                // var_dump($ref_methods);
-                // die;
-                // Dispatch to the called method in the controller
-                if (preg_match('/method$/i', $method) == 0) {
-                    // $controller_object();
-                } else {
-                    throw new \Exception("Method - '$this->currentMethod' - in controller - '$this->currentController' - cannot be called directly - remove the Action suffix to call this method");
-                }
-            } else {
-                throw new \Exception("Method - '$this->currentMethod' - not found in class - '$this->currentController'");
-            }
+            // if (method_exists($controller_object, $this->currentMethod)) {
+            //     $method = $this->currentMethod;
+            //     // $reflected_method = new ReflectionMethod($controller_object, $method);
+            //     // $method_dependencies = $reflected_method->getParameters();
+            //     // var_dump($reflected_method);
+            //     // foreach ($method_dependencies as $method_dependency) {
+            //     //     $reflector = new ReflectionClass($method_dependency);
+            //     //     $constructor = $reflector->getConstructor();
+            //     //     $ref_methods[] = $this->container->resolve($constructor);
+            //     // }
+            //     // var_dump($ref_methods);
+            //     // die;
+            //     // Dispatch to the called method in the controller
+            //     if (preg_match('/method$/i', $method) == 0) {
+            //         // $controller_object();
+            //     } else {
+            //         throw new \Exception("Method - '$this->currentMethod' - in controller - '$this->currentController' - cannot be called directly - remove the Action suffix to call this method");
+            //     }
+            // } else {
+            //     throw new \Exception("Method - '$this->currentMethod' - not found in class - '$this->currentController'");
+            // }
         } else {
             throw new \Exception('No route matched', 404);
         }

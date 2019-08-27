@@ -36,6 +36,12 @@ class Home
         $lorem_ipsum = new LoremIpsumFactory();
         echo $lorem_ipsum->getLoremWords(100);
 
-        $posts->show();
+        if ($show) {
+            var_dump($show->me());
+        }
+        if ($more) {
+            var_dump($more->options());
+        }
+        print_r($posts->show());
     }
 }

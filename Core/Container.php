@@ -5,6 +5,8 @@ namespace Kikopolis\Core;
 use ReflectionClass;
 use ReflectionMethod;
 
+//@TODO: REFACTOR FOR PRIVATE CONSTRUCTORS AND METHODS
+
 defined('_KIKOPOLIS') or die('No direct script access!');
 
 class Container

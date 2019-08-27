@@ -8,7 +8,7 @@ class Show
 {
     public $me;
 
-    public function Me()
+    public function me()
     {
         $this->me = "Me from Show class<br>";
         return $this;
