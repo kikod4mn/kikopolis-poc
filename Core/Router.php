@@ -154,8 +154,13 @@ class Router
             $this->currentController = $this->route['namespace'] . $this->currentController;
             // Instantiate the controller class and resolve dependencies with the Container class
             $controller_object = $this->container->get($this->currentController, $this->currentMethod);
-            // var_dump($controller_object);
-            die;
+            var_dump($controller_object);
+            var_dump($this->currentMethod);
+            $method = $this->currentMethod;
+            if ($method && $controller_object) {
+                $controller_object->$method();
+            }
+            // die;
             // Check if the method exists and route to the method
             // if (method_exists($controller_object, $this->currentMethod)) {
             //     $method = $this->currentMethod;
@@ -171,7 +176,7 @@ class Router
             //     // die;
             //     // Dispatch to the called method in the controller
             //     if (preg_match('/method$/i', $method) == 0) {
-            //         // $controller_object();
+            //         // $controller_object->$method();
             //     } else {
             //         throw new \Exception("Method - '$this->currentMethod' - in controller - '$this->currentController' - cannot be called directly - remove the Action suffix to call this method");
             //     }

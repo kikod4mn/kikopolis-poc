@@ -18,10 +18,17 @@ class Posts
 
     public function __construct(Show $show, More $more, Post $post, Config $config)
     {
+        echo "<br>The Posts Constructor<br>";
         $this->show = $show;
         $this->more = $more;
         $this->post = $post;
         $this->config = $config;
+        echo "<h4>The Get Array</h4>";
+        var_dump(!empty($_GET) ? $_GET : 'No get');
+        echo "<br>";
+        echo "<h4>The Post Array</h4>";
+        var_dump(!empty($_POST) ? $_POST : 'No get');
+        echo "<br>";
     }
 
     /**
@@ -34,9 +41,6 @@ class Posts
     public function show()
     {
         echo "<br><h1>Hi from posts</h1><br>";
-        echo "<h4>The Get Array</h4>";
-        var_dump(isset($_GET) ? $_GET : 'No get');
-        echo "<br>";
         if ($this->show) {
             var_dump($this->show->me());
         }

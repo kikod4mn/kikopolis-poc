@@ -18,6 +18,8 @@ class Container
      */
     protected $instances = [];
 
+    protected $method;
+
     /**
      * Set the class names with namespace to instances array.
      *
@@ -78,6 +80,12 @@ class Container
             $method_dependencies = $this->getDependencies($method_dependencies_array);
             // var_dump($method_dependencies);
             // die;
+            // if ($method_instance->isPrivate()) {
+            //     $method_instance->setAccessible(true);
+            // }
+            // if ($method_instance->isProtected()) {
+            //     $method_instance->setAccessible(true);
+            // }
         }
         // Get class constructor
         $constructor = $reflector->getConstructor();
@@ -92,6 +100,7 @@ class Container
         }
 
         // Get new instance with dependencies resolved
+        // die;
         if ($method_dependencies) {
             $method_dependencies = $method_instance->invokeArgs($constructor, $method_dependencies);
             // var_dump($method_dependencies);
@@ -100,6 +109,7 @@ class Container
             return $method_dependencies;
         } else {
             // var_dump($constructor);
+            // var_dump($method_instance);
             // die;
             return $constructor;
         }

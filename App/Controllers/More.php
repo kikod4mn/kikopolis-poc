@@ -10,6 +10,11 @@ class More
 {
     public $options;
 
+    public function __construct()
+    {
+        echo "<br>The More Constructor<br>";
+    }
+
     public function options()
     {
         $this->options = ([

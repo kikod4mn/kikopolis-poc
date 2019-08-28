@@ -13,6 +13,17 @@ use Kikopolis\Core\Factories\LoremIpsumFactory;
 
 class Home
 {
+    public function __construct()
+    {
+        echo "<br>The Home Constructor<br>";
+        echo "<h4>The Get Array</h4>";
+        var_dump(!empty($_GET) ? $_GET : 'No get');
+        echo "<br>";
+        echo "<h4>The Post Array</h4>";
+        var_dump(!empty($_POST) ? $_POST : 'No get');
+        echo "<br>";
+    }
+
     public function index(Posts $posts, Show $show, More $more)
     {
         echo "<br><h1>Hi, cruel world of PHP</h1><br>";

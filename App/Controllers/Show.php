@@ -8,6 +8,11 @@ class Show
 {
     public $me;
 
+    public function __construct()
+    {
+        echo "<br>The Show Constructor<br>";
+    }
+
     public function me()
     {
         $this->me = "Me from Show class<br>";
