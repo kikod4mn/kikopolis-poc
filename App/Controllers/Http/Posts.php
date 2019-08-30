@@ -27,7 +27,7 @@ class Posts
         var_dump(!empty($_GET) ? $_GET : 'No get');
         echo "<br>";
         echo "<h4>The Post Array</h4>";
-        var_dump(!empty($_POST) ? $_POST : 'No get');
+        var_dump(!empty($_POST) ? $_POST : 'No post');
         echo "<br>";
     }
 

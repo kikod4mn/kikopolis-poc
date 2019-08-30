@@ -5,8 +5,6 @@ namespace Kikopolis\Core;
 use ReflectionClass;
 use ReflectionMethod;
 
-//@TODO: REFACTOR FOR PRIVATE CONSTRUCTORS AND METHODS
-
 defined('_KIKOPOLIS') or die('No direct script access!');
 
 class Container
@@ -106,12 +104,17 @@ class Container
             // var_dump($method_dependencies);
             // var_dump($constructor->$method($method_dependencies));
             // die;
-            return $method_dependencies;
+            // return $method_dependencies;
         } else {
             // var_dump($constructor);
-            // var_dump($method_instance);
+            // // var_dump($method_instance);
+            // var_dump($method);
             // die;
-            return $constructor;
+            if ($method) {
+                return $constructor->$method();
+            } else {
+                return $constructor;
+            }
         }
     }
 

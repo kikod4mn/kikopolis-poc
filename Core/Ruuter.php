@@ -6,10 +6,8 @@ defined('_KIKOPOLIS') or die('No direct script access!');
 
 use App\Helpers\Str;
 use Kikopolis\App\Config\Config;
-use ReflectionClass;
-use ReflectionMethod;
 
-class Router
+class DeprecatedRouterOld
 {
     /**
      * The additional controller instance

@@ -2,7 +2,7 @@
 
 use Kikopolis\App\Config\Config as Config;
 use Kikopolis\Core\Container;
-use Kikopolis\Core\Router;
+use Kikopolis\Core\Route\Router;
 
 /**
  * Define constant to prevent direct access to scripts
@@ -67,12 +67,12 @@ session_start();
  */
 $router = new Router();
 
-$router->add('GET', '/', 'home.index', [], 'Http');
-$router->add('GET', 'home/index', 'home.index', [], 'Http');
-$router->add('GET', 'home/about', 'home.about', [], 'Http');
-$router->add('GET', 'home/faq', 'home.faq', [], 'Http');
-$router->add('GET', 'posts/view/{slug:\d+}', 'posts.view', [], 'Http');
-$router->add('GET', 'posts/show', 'posts.show.show.me.more.options', [], 'Http');
+$router->get('/', 'home.index', ['namespace' => 'Http']);
+$router->get('home/index', 'home.index', ['namespace' => 'Http']);
+$router->get('home/about', 'home.about', ['namespace' => 'Http']);
+$router->get('home/faq', 'home.faq', ['namespace' => 'Http']);
+$router->get('posts/view/{slug:\d+}', 'posts.view', ['namespace' => 'Http']);
+$router->get('posts/show', 'posts.show.show.me.more.options', ['namespace' => 'Http']);
 
 // var_dump($router->getRoutes());
 // var_dump(Config::getUrlRoot());

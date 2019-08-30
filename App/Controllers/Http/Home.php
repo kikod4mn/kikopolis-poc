@@ -4,12 +4,12 @@ namespace App\Controllers\Http;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
-use App\Controllers\More;
-use App\Controllers\Show;
-use App\Controllers\Http\Posts;
 use App\Helpers\Str;
 use Kikopolis\App\Utility\Token;
 use Kikopolis\Core\Factories\LoremIpsumFactory;
+use App\Controllers\More;
+use App\Controllers\Show;
+use App\Controllers\Http\Posts;
 
 class Home
 {
@@ -20,7 +20,7 @@ class Home
         var_dump(!empty($_GET) ? $_GET : 'No get');
         echo "<br>";
         echo "<h4>The Post Array</h4>";
-        var_dump(!empty($_POST) ? $_POST : 'No get');
+        var_dump(!empty($_POST) ? $_POST : 'No post');
         echo "<br>";
     }
 
@@ -53,6 +53,6 @@ class Home
         if ($more) {
             var_dump($more->options());
         }
-        print_r($posts->show());
+        print_r($posts->show($post));
     }
 }
