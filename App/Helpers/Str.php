@@ -53,9 +53,7 @@ class Str
     public static function removeForbiddenCharsFromString(string $string)
     {
         $invalid_chars = ['/', '\\', '.', ';', '<', '>', '`', '^'];
-
         $string = str_replace($invalid_chars, '', $string);
-
         return $string;
     }
 
