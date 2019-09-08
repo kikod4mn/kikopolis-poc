@@ -58,6 +58,23 @@ class Str
     }
 
     /**
+     * Search a larger string for a needle or an array of needles.
+     *
+     * @param string $haystack
+     * @param string|array $needles
+     * @return boolean
+     */
+    public static function contains($haystack, $needles)
+    {
+        foreach ($needles as $needle) {
+            if ($needle !== '' && mb_strpos($haystack, $needle) !== false) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Generate a pseudo random string.
      *
      * @param   integer   $length
@@ -82,7 +99,7 @@ class Str
      * @param   string    $append   Option append to the end of string to signify there is more content.
      * @return  string
      */
-    public static function limitWords(string $string, int $limit = 100, string $append = '...')
+    public static function limitWords(string $string, int $limit = 150, string $append = '...')
     {
         preg_match('/^\s*+(?:\S++\s*+){1,' . $limit . '}/u', $string, $matches);
         if (!$matches[0] || strlen($string) === strlen($matches[0])) {
@@ -166,7 +183,7 @@ class Str
      */
     public static function hasLengthGreaterThan(string $string, int $min)
     {
-        $length = strlen(trim($string));
+        $length = mb_strlen(trim($string));
 
         return $length > $min;
     }
@@ -183,7 +200,7 @@ class Str
      */
     public static function hasLengthLessThan(string $string, int $max)
     {
-        $length = strlen(trim($string));
+        $length = mb_strlen(trim($string));
 
         return $length < $max;
     }
@@ -200,7 +217,7 @@ class Str
      */
     public static function hasLengthExact(string $string, int $exact)
     {
-        $length = strlen(trim($string));
+        $length = mb_strlen(trim($string));
 
         return $length == $exact;
     }
