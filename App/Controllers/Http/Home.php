@@ -4,14 +4,16 @@ namespace App\Controllers\Http;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
-use App\Helpers\Str;
+use Kikopolis\App\Helpers\Str;
 use Kikopolis\App\Utility\Token;
 use Kikopolis\Core\Factories\LoremIpsumFactory;
 use App\Controllers\More;
 use App\Controllers\Show;
 use App\Controllers\Http\Posts;
+use Kikopolis\App\Controllers\Controller;
+use Kikopolis\App\Helpers\FileHelper;
 
-class Home
+class Home extends Controller
 {
     public function __construct()
     {
@@ -22,6 +24,7 @@ class Home
         echo "<h4>The Post Array</h4>";
         var_dump(!empty($_POST) ? $_POST : 'No post');
         echo "<br>";
+        echo FileHelper::getHumanFileSize('34000591231240');
     }
 
     public function index(Posts $posts, Show $show, More $more)
@@ -53,6 +56,6 @@ class Home
         if ($more) {
             var_dump($more->options());
         }
-        print_r($posts->show($post));
+        print_r($posts->show());
     }
 }

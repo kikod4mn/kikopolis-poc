@@ -4,7 +4,7 @@ namespace Kikopolis\Core\Route;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
-use App\Helpers\Str;
+use Kikopolis\App\Helpers\Str;
 use Kikopolis\Core\Container;
 use ReflectionClass;
 

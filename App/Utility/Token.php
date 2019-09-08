@@ -2,7 +2,7 @@
 
 namespace Kikopolis\App\Utility;
 
-use App\Helpers\Str;
+use Kikopolis\App\Helpers\Str;
 use Kikopolis\App\Config\Config;
 
 defined('_KIKOPOLIS') or die('No direct script access!');

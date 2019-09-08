@@ -4,7 +4,7 @@ namespace Kikopolis\Core;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
-use App\Helpers\Str;
+use Kikopolis\App\Helpers\Str;
 use Kikopolis\App\Config\Config;
 
 class DeprecatedRouterOld

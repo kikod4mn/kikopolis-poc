@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-use App\Helpers\Str;
+use Kikopolis\App\Helpers\Str;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
