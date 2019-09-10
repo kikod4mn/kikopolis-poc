@@ -72,18 +72,8 @@ class Container
         $method_instance = null;
         if ($method !== null) {
             $method_instance = new ReflectionMethod($concrete, $method);
-            // var_dump($method_instance);
             $method_dependencies_array = $method_instance->getParameters();
-            // var_dump($method_dependencies_array);
             $method_dependencies = $this->getDependencies($method_dependencies_array);
-            // var_dump($method_dependencies);
-            // die;
-            // if ($method_instance->isPrivate()) {
-            //     $method_instance->setAccessible(true);
-            // }
-            // if ($method_instance->isProtected()) {
-            //     $method_instance->setAccessible(true);
-            // }
         }
         // Get class constructor
         $constructor = $reflector->getConstructor();
@@ -100,15 +90,7 @@ class Container
         // Get new instance with dependencies resolved
         if ($method_dependencies) {
             $method_dependencies = $method_instance->invokeArgs($constructor, $method_dependencies);
-            // var_dump($method_dependencies);
-            // var_dump($constructor->$method($method_dependencies));
-            // die;
-            // return $method_dependencies;
         } else {
-            // var_dump($constructor);
-            // // var_dump($method_instance);
-            // var_dump($method);
-            // die;
             if ($method) {
                 return $constructor->$method();
             } else {

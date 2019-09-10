@@ -2,7 +2,7 @@
 
 namespace Kikopolis\App\Http\Controllers;
 
-use Kikopolis\App\Http\Controllers\Framework\BaseController;
+use Kikopolis\App\Framework\Controllers\BaseController;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 

@@ -64,10 +64,16 @@ class Str
      * @param string|array $needles
      * @return boolean
      */
-    public static function contains($haystack, $needles)
+    public static function contains(string $haystack, $needles)
     {
-        foreach ($needles as $needle) {
-            if ($needle !== '' && mb_strpos($haystack, $needle) !== false) {
+        if ($needles instanceof Traversable || is_array($needles)) {
+            foreach ($needles as $needle) {
+                if ($needle !== '' && mb_strpos($haystack, $needle) !== false) {
+                    return true;
+                }
+            }
+        } else {
+            if ($needles !== '' && mb_strpos($haystack, $needles) !== false) {
                 return true;
             }
         }
@@ -248,5 +254,20 @@ class Str
 
             return true;
         }
+    }
+
+    public static function parseUrl()
+    {
+        //
+    }
+
+    public static function parseDotSyntax(string $string)
+    {
+        return static::contains($string, '.') ? explode('.', $string) : [$string];
+    }
+
+    public static function parseCallback(string $string)
+    {
+        return static::contains($string, '@') ? explode('@', $string, 2) : [$string];
     }
 }

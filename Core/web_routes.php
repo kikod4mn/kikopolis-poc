@@ -9,4 +9,4 @@ $router->get('home/index', 'home.index', []);
 $router->get('home/about', 'home.about', []);
 $router->get('home/faq', 'home.faq', []);
 $router->get('posts/view/{slug:\d+}', 'posts.view', []);
-$router->get('posts/show', 'posts.show.show.me.more.options', []);
+$router->get('posts/show', 'posts.show', []);

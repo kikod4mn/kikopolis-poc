@@ -1,14 +1,23 @@
 <?php
 
 use Kikopolis\App\Config\Config;
+use Kikopolis\Core\Route\RouteCompiler;
 
 /**
  * Autoloading
  */
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
+/**
+ * Session start
+ */
+session_start();
+
 $approot = isset($approot) ? $approot : Config::getAppRoot();
 $urlroot = isset($urlroot) ? $urlroot : Config::getUrlRoot();
+
+$route_compiler = new RouteCompiler();
+print_r($route_compiler->getRoutes());
 
 /**
  * Cookie settings
@@ -30,8 +39,3 @@ ini_set("xdebug.var_display_max_depth", -1);
 // ini_set('error_reporting', E_ALL ^ E_DEPRECATED);
 // set_error_handler('Core\Error::errorHandler');
 // set_exception_handler('Core\Error::exceptionHandler');
-
-/**
- * Session start
- */
-session_start();

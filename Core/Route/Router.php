@@ -6,7 +6,6 @@ defined('_KIKOPOLIS') or die('No direct script access!');
 
 use Kikopolis\App\Helpers\Str;
 use Kikopolis\Core\Container;
-use ReflectionClass;
 
 class Router
 {
@@ -94,7 +93,7 @@ class Router
         $this->routes[] = [
             'method' => $method,
             'uri' => $uri,
-            'action' => $this->processAction($action),
+            'action' => Str::parseDotSyntax($action),
             'options' => $options
         ];
     }
@@ -205,17 +204,6 @@ class Router
             throw new \Exception('Error setting method property.');
         }
         return $this;
-    }
-
-    /**
-     * Convert the action to an array.
-     *
-     * @param string $action
-     * @return array
-     */
-    protected function processAction(string $action)
-    {
-        return explode('.', $action);
     }
 
     /**
