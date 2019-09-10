@@ -1,6 +1,6 @@
 <?php
 
-namespace Kikopolis\App\Controllers\Framework;
+namespace Kikopolis\App\Http\Controllers\Framework;
 
 use Kikopolis\App\Config\Config;
 

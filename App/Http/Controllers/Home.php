@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Controllers\Http;
+namespace App\Http\Controllers;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
 use Kikopolis\App\Helpers\Str;
 use Kikopolis\App\Utility\Token;
 use Kikopolis\Core\Factories\LoremIpsumFactory;
-use App\Controllers\More;
-use App\Controllers\Show;
-use App\Controllers\Http\Posts;
-use Kikopolis\App\Controllers\Controller;
+use App\Http\Controllers\More;
+use App\Http\Controllers\Show;
+use App\Http\Controllers\Posts;
+use Kikopolis\App\Http\Controllers\Controller;
 use Kikopolis\App\Helpers\FileHelper;
 
 class Home extends Controller

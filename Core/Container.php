@@ -98,7 +98,6 @@ class Container
         }
 
         // Get new instance with dependencies resolved
-        // die;
         if ($method_dependencies) {
             $method_dependencies = $method_instance->invokeArgs($constructor, $method_dependencies);
             // var_dump($method_dependencies);

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Http\Controllers;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 

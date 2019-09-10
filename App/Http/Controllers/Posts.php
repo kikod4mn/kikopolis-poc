@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Controllers\Http;
+namespace App\Http\Controllers;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
 use App\Models\Post;
-use App\Controllers\More;
-use App\Controllers\Show;
+use App\Http\Controllers\More;
+use App\Http\Controllers\Show;
 use Kikopolis\App\Config\Config;
 
 class Posts

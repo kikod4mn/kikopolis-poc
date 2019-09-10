@@ -190,7 +190,7 @@ class Router
         }
         // Verify that the request method part is set in the route
         if (!isset($this->route['method'])) {
-            throw new \Exception('Route REQUEST_METHOD cannot be blank. Please check your routing table for the route' . $this->route['route_name']);
+            throw new \Exception('Route REQUEST_METHOD cannot be blank. Please check your routing table for the route' . $this->route['route']);
         }
         // Check if server query method and allowed method for the url match
         if (!$this->methodMatchCheck($_SERVER['REQUEST_METHOD'], $this->route['method'])) {
@@ -273,14 +273,14 @@ class Router
      * Set the correct namespace for the route.
      * Namespace is defined in the route parameters in the routing table.
      * To instantiate the controller class we need the correct namespace.
-     * Default namespace is App\Controllers\{controller}.
+     * Default namespace is App\Http\Controllers\{controller}.
      * Where {controller} is the name of the class.
      * 
      * @return void
      */
     protected function setNamespace($namespace = null)
     {
-        $namespace = isset($namespace) ? 'App\Controllers\\' . $namespace . '\\' : 'App\Controllers\\';
+        $namespace = isset($namespace) ? 'App\Http\Controllers\\' . $namespace . '\\' : 'App\Http\Controllers\\';
         return $namespace;
     }
 }
