@@ -9,6 +9,7 @@ use Kikopolis\App\Utility\Token;
 use Kikopolis\Core\Factories\LoremIpsumFactory;
 use Kikopolis\App\Framework\Controllers\Controller;
 use Kikopolis\App\Helpers\FileHelper;
+use Kikopolis\Core\Http\Request;
 
 class Home extends Controller
 {
@@ -43,6 +44,8 @@ class Home extends Controller
         $string = $token->getCsrfToken();
         echo $string . '<br><br>';
         var_dump($_SESSION);
+        $request = Request::createFromGlobals();
+        var_dump($request);
 
         $lorem_ipsum = new LoremIpsumFactory();
         echo $lorem_ipsum->getLoremWords(100);
