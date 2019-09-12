@@ -1,6 +1,6 @@
 <?php
 
-namespace Kikopolis\App\Http\Controllers;
+namespace Kikopolis\App\Framework\Controllers;
 
 use Kikopolis\App\Framework\Controllers\BaseController;
 

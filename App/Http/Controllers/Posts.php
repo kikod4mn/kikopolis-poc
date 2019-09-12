@@ -8,7 +8,7 @@ use App\Models\Post;
 use App\Http\Controllers\More;
 use App\Http\Controllers\Show;
 use Kikopolis\App\Config\Config;
-use Kikopolis\App\Http\Controllers\Controller;
+use Kikopolis\App\Framework\Controllers\Controller;
 
 class Posts extends Controller
 {

@@ -4,8 +4,8 @@ namespace Kikopolis\Core\Route;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
+use Kikopolis\App\Framework\Controllers\Controller;
 use Kikopolis\App\Helpers\Str;
-use Kikopolis\App\Http\Controllers\Controller;
 use Kikopolis\Core\Container;
 
 class Router
@@ -155,8 +155,11 @@ class Router
      * @param string $uri
      * @return void
      */
-    public function dispatch($uri)
+    public function dispatch(string $uri = '/')
     {
+        if ($uri === '') {
+            $uri = '/';
+        }
         // Instantiate the container
         $this->container = new Container();
         // Check if the $uri isset and remove query string variables
@@ -180,10 +183,11 @@ class Router
      */
     protected function parseAction(string $action, string $uri = '')
     {
-        if ($uri === '') {
-            return Str::parseDotSyntax($action);
-        }
-        return Str::parseSlashSyntax($uri);
+        return Str::parseDotSyntax($action);
+        // if ($uri === '') {
+        //     return Str::parseDotSyntax($action);
+        // }
+        // return Str::parseSlashSyntax($uri);
     }
 
     /**
@@ -231,12 +235,19 @@ class Router
         }
         unset($this->route['action'][1]);
         // Get extra parameters from the url if they exist
-        $this->route['params'] = $this->getRouteParams($url);
+        $this->route['params'] = $this->extractRouteParameters($url);
         return $this;
     }
 
-    protected function getRouteParams($url)
+    /**
+     * Extract the route parameters from the url
+     *
+     * @param string $url
+     * @return array
+     */
+    protected function extractRouteParameters(string $url)
     {
+        $params = [];
         if (preg_match($this->route['uri'], $url, $matches)) {
             foreach ($matches as $key => $match) {
                 if (is_string($key)) {
@@ -309,7 +320,7 @@ class Router
      */
     protected function setNamespace($namespace = null)
     {
-        $namespace = isset($namespace) ? 'App\Http\Controllers\\' . $namespace . '\\' : 'App\Http\Controllers\\';
+        $namespace = !is_null($namespace) && is_string($namespace) ? 'App\Http\Controllers\\' . $namespace . '\\' : 'App\Http\Controllers\\';
         return $namespace;
     }
 }
