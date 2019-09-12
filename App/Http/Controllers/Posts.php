@@ -20,7 +20,8 @@ class Posts extends Controller
 
     public function __construct(Show $show, More $more, Post $post, Config $config)
     {
-        // Get the route parameters from the base controller
+        // Get the route parameters from the base controller.
+        // This line is necessary in all controllers that utilize a parameter from the url.
         $this->params = Controller::getRouteParams();
         echo "<br>The Posts Constructor<br>";
         $this->show = $show;
@@ -45,8 +46,12 @@ class Posts extends Controller
      */
     public function show()
     {
+        var_dump($this);
         if (isset($this->params['id'])) {
-            echo "<h1>ID IS SET - </h1>" . $this->params['id'];
+            echo "<h1>Id is : {$this->params['id']}</h1>";
+        }
+        if (isset($this->params['slug'])) {
+            echo "<h1>The slug is : {$this->params['slug']}</h1>";
         }
         echo "<br><h1>Hi from posts</h1><br>";
         if ($this->show) {

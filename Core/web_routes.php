@@ -5,7 +5,8 @@
  */
 
 $router->get('/', 'home.index', []);
-$router->get('posts/show/{id:\d+}/{slug:[a-z0-9-]+}', 'posts.show', []);
+$router->get('posts/show/{id}/{slug}', 'posts.show', []);
+// $router->get('posts/show/{id:\d+}/{slug:[a-z0-9-]+}', 'posts.show', []);
 // $router->get('home/index', 'home.index', []);
 // $router->get('home/about', 'home.about', []);
 // $router->get('home/faq', 'home.faq', []);

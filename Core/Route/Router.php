@@ -86,14 +86,7 @@ class Router
         // This uses the same logic as the dot syntax $action.
         // 0 for Controller and 1 for the Method in the final action array key.
         $uri_old = $uri;
-        // Convert the route to a regular expression: escape forward slashes
-        $uri = preg_replace('/\//', '\\/', $uri);
-        // Convert variables e.g. {controller}
-        $uri = preg_replace('/\{([a-z]+)\}/', '(?P<\1>[a-z-]+)', $uri);
-        // Convert variables with custom regular expressions e.g. {id:\d+}
-        $uri = preg_replace('/\{([a-z]+):([^\}]+)\}/', '(?P<\1>\2)', $uri);
-        // Add start and end delimiters, and case insensitive flag
-        $uri = '/^' . $uri . '$/i';
+        $uri = $this->parseUrl($uri);
         // Add the route to the routes array
         $this->routes[] = [
             'method' => $method,
@@ -170,7 +163,34 @@ class Router
         Controller::setRouteParams($this->route['params']);
         // Send the controller and method to the Container
         // The container will instantiate the correct method with dependencies
-        $this->container->get($this->controller, $this->method, [], $this->route['params']);
+        $this->container->get($this->controller, $this->method, []);
+    }
+
+    protected function parseUrl($url)
+    {
+        $params = [];
+        // Convert the route to a regular expression: escape forward slashes
+        $url = preg_replace('/\//', '\\/', $url);
+        // Convert variables e.g. {controller}
+        // $url = preg_replace('/\{([a-z]+)\}/', '(?P<\1>[a-z-]+)', $url);
+        // Convert variables with custom regular expressions e.g. {id:\d+}
+        // $url = preg_replace('/\{([a-z]+):([^\}]+)\}/', '(?P<\1>\2)', $url);
+        // if (preg_match_all('/\{[a-z]+\}/', $url, $matches)) {
+        //     foreach ($matches as $match) {
+        //         // $params[$key] = $match;
+        //         var_dump($match);
+        //         foreach ($match as $value) {
+        //             $temp[] = preg_replace('/\{([a-z]+)\}/', '(?P<\1>[a-z0-9-]+)', $value);
+        //         }
+        //         var_dump($temp);
+        //     }
+        // }
+        $url = preg_replace('/\{([a-z]+)\}/', '(?P<\1>[a-z0-9-]+)', $url);
+        // Add start and end delimiters, and case insensitive flag
+        $url = '/^' . $url . '$/i';
+        // var_dump($url);
+        // var_dump($params);
+        return $url;
     }
 
     /**
@@ -203,6 +223,12 @@ class Router
             if (preg_match($route['uri'], $url, $matches)) {
                 // If the route is found, set it as the route and break from the loop
                 $this->route = $route;
+
+                /**
+                 * Do the sending of variables testing here
+                 */
+
+
                 // Set the route namespace
                 if (array_key_exists('namespace', $this->route['options'])) {
                     $this->route['options']['namespace'] = $this->setNamespace($this->route['options']['namespace']);
