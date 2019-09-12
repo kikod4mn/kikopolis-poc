@@ -16,8 +16,8 @@ session_start();
 $approot = isset($approot) ? $approot : Config::getAppRoot();
 $urlroot = isset($urlroot) ? $urlroot : Config::getUrlRoot();
 
-$route_compiler = new RouteCompiler();
-print_r($route_compiler->getRoutes());
+// $route_compiler = new RouteCompiler();
+// print_r($route_compiler->getBindings());
 
 /**
  * Cookie settings

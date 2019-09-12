@@ -8,19 +8,30 @@ defined('_KIKOPOLIS') or die('No direct script access!');
 
 class Controller extends BaseController
 {
+    /**
+     * The route parameters bag.
+     *
+     * @var array
+     */
     protected static $route_params = [];
 
-    public function __construct()
-    {
-        //
-    }
-
-    public static function setRouteParams($route_params)
+    /**
+     * Set the route parameters.
+     *
+     * @param array $route_params
+     * @return void
+     */
+    public static function setRouteParams(array $route_params): void
     {
         static::$route_params = $route_params;
     }
 
-    public static function getRouteParams()
+    /**
+     * Get the current route parameters.
+     *
+     * @return array
+     */
+    public static function getRouteParams(): array
     {
         return static::$route_params;
     }

@@ -29,7 +29,7 @@ class Container
      * @param string $concrete The name of the class
      * @return void
      */
-    public function set(string $abstract, string $concrete = '')
+    public function set(string $abstract, string $concrete = ''): void
     {
         if ($concrete === '') {
             $concrete = $abstract;
@@ -132,7 +132,7 @@ class Container
      * @param array $parameters
      * @return array
      */
-    protected function getDependencies(array $parameters)
+    protected function getDependencies(array $parameters): array
     {
         // Initialize variables
         $dependency = null;

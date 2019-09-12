@@ -7,9 +7,6 @@ defined('_KIKOPOLIS') or die('No direct script access!');
 use Kikopolis\App\Helpers\Str;
 use Kikopolis\App\Utility\Token;
 use Kikopolis\Core\Factories\LoremIpsumFactory;
-use App\Http\Controllers\More;
-use App\Http\Controllers\Show;
-use App\Http\Controllers\Posts;
 use Kikopolis\App\Framework\Controllers\Controller;
 use Kikopolis\App\Helpers\FileHelper;
 
@@ -27,7 +24,7 @@ class Home extends Controller
         echo FileHelper::getHumanFileSize('34000591231240');
     }
 
-    public function index(Posts $posts, Show $show, More $more)
+    public function index()
     {
         echo "<br><h1>Hi, cruel world of PHP</h1><br>";
         $string = Str::convertToSnakeCase('This to snake case');
@@ -49,13 +46,5 @@ class Home extends Controller
 
         $lorem_ipsum = new LoremIpsumFactory();
         echo $lorem_ipsum->getLoremWords(100);
-
-        if ($show) {
-            var_dump($show->me());
-        }
-        if ($more) {
-            var_dump($more->options());
-        }
-        print_r($posts->show());
     }
 }

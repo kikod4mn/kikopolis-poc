@@ -8,6 +8,12 @@ use Kikopolis\App\Framework\Controllers\Controller;
 use Kikopolis\App\Helpers\Str;
 use Kikopolis\Core\Container;
 
+/**
+ * The Router class for Kikopolis MVC.
+ * 
+ * @author Kristo Leas <admin@kikopolis.com>
+ * PHP Version 7.3.5
+ */
 class Router
 {
     /**
@@ -46,7 +52,7 @@ class Router
     protected $method = '';
 
     /**
-     * Parameters of the route.
+     * Action parameters of the route.
      * Controller at 0 and method at 1.
      *
      * @var array
@@ -61,7 +67,7 @@ class Router
     protected $options = [];
 
     /**
-     * The DI container.
+     * The IoC container.
      *
      * @var \Kikopolis\Core\Container
      */
@@ -74,24 +80,15 @@ class Router
      * @param string        $uri
      * @param string        $action
      * @param array         $options
-     * @param string        $namespace
      * @return void
      */
-    public function add($method, string $uri, string $action, array $options = [])
+    public function add($method, string $uri, string $action, array $options = []): void
     {
-        // This variable exists to use the uri incase the url is dynamic and does not contain some parts.
-        // This assumes that $action has been left as an empty string as by default.
-        // If the controller is there but the method isn't then we will parse it differently and instead use the
-        // $uri_old to figure out which controller and method to use.
-        // This uses the same logic as the dot syntax $action.
-        // 0 for Controller and 1 for the Method in the final action array key.
-        $uri_old = $uri;
-        $uri = $this->parseUrl($uri);
         // Add the route to the routes array
         $this->routes[] = [
             'method' => $method,
-            'uri' => $uri,
-            'action' => $this->parseAction($action, $uri_old),
+            'uri' => $this->parseUrl($uri),
+            'action' => $this->parseAction($action),
             'options' => $options
         ];
     }
@@ -101,41 +98,89 @@ class Router
      *
      * @return array
      */
-    public function getRoutes()
+    public function getRoutes(): array
     {
         return $this->routes;
     }
 
+    /**
+     * Add a route to the routing table with the HEAD method.
+     *
+     * @param string $uri
+     * @param string $action
+     * @param array $options
+     * @return this
+     */
     public function head($uri, $action, $options = [])
     {
         $this->add('HEAD', $uri, $action, $options);
         return $this;
     }
 
+    /**
+     * Add a route to the routing table with the GET method.
+     *
+     * @param string $uri
+     * @param string $action
+     * @param array $options
+     * @return this
+     */
     public function get($uri, $action, $options = [])
     {
         $this->add('GET', $uri, $action, $options);
         return $this;
     }
 
+    /**
+     * Add a route to the routing table with the POST method.
+     *
+     * @param string $uri
+     * @param string $action
+     * @param array $options
+     * @return this
+     */
     public function post($uri, $action, $options = [])
     {
         $this->add('POST', $uri, $action, $options);
         return $this;
     }
 
+    /**
+     * Add a route to the routing table with the PUT method.
+     *
+     * @param string $uri
+     * @param string $action
+     * @param array $options
+     * @return this
+     */
     public function put($uri, $action, $options = [])
     {
         $this->add('PUT', $uri, $action, $options);
         return $this;
     }
 
+    /**
+     * Add a route to the routing table with the PATCH method.
+     *
+     * @param string $uri
+     * @param string $action
+     * @param array $options
+     * @return this
+     */
     public function patch($uri, $action, $options = [])
     {
         $this->add('PATCH', $uri, $action, $options);
         return $this;
     }
 
+    /**
+     * Add a route to the routing table with the DELETE method.
+     *
+     * @param string $uri
+     * @param string $action
+     * @param array $options
+     * @return this
+     */
     public function delete($uri, $action, $options = [])
     {
         $this->add('DELETE', $uri, $action, $options);
@@ -148,10 +193,13 @@ class Router
      * @param string $uri
      * @return void
      */
-    public function dispatch(string $uri = '/')
+    public function dispatch(string $uri = ''): void
     {
+        // If the $uri is an empty string, set it to the default that routes to the homepage.
         if ($uri === '') {
             $uri = '/';
+        } else {
+            $uri = $this->removeTrailingSlash($uri);
         }
         // Instantiate the container
         $this->container = new Container();
@@ -166,30 +214,37 @@ class Router
         $this->container->get($this->controller, $this->method, []);
     }
 
-    protected function parseUrl($url)
+    /**
+     * Remove slashes from the front and back of the string.
+     *
+     * @param string $uri
+     * @return string
+     */
+    protected function removeTrailingSlash(string $uri): string
     {
+        return ltrim(rtrim($uri, '/'), '/');
+    }
+
+    /**
+     * Parse the url to a Regex and if applicable, convert variables to capture groups.
+     *
+     * @param string $url
+     * @return string
+     */
+    protected function parseUrl(string $url): string
+    {
+        // Remove trailing slash if the $url is not simply a slash indicating the home route
+        if ($url !== '/') {
+            $url = $this->removeTrailingSlash($url);
+        }
+        // Initialize variables
         $params = [];
         // Convert the route to a regular expression: escape forward slashes
         $url = preg_replace('/\//', '\\/', $url);
-        // Convert variables e.g. {controller}
-        // $url = preg_replace('/\{([a-z]+)\}/', '(?P<\1>[a-z-]+)', $url);
-        // Convert variables with custom regular expressions e.g. {id:\d+}
-        // $url = preg_replace('/\{([a-z]+):([^\}]+)\}/', '(?P<\1>\2)', $url);
-        // if (preg_match_all('/\{[a-z]+\}/', $url, $matches)) {
-        //     foreach ($matches as $match) {
-        //         // $params[$key] = $match;
-        //         var_dump($match);
-        //         foreach ($match as $value) {
-        //             $temp[] = preg_replace('/\{([a-z]+)\}/', '(?P<\1>[a-z0-9-]+)', $value);
-        //         }
-        //         var_dump($temp);
-        //     }
-        // }
+        // Convert variables e.g. {id}, {slug} to capture groups
         $url = preg_replace('/\{([a-z]+)\}/', '(?P<\1>[a-z0-9-]+)', $url);
         // Add start and end delimiters, and case insensitive flag
         $url = '/^' . $url . '$/i';
-        // var_dump($url);
-        // var_dump($params);
         return $url;
     }
 
@@ -198,38 +253,29 @@ class Router
      * If no action is specified, uses the uri part of the url to try to find a suitable controller and method.
      *
      * @param string $action
-     * @param string $uri
      * @return array
      */
-    protected function parseAction(string $action, string $uri = '')
+    protected function parseAction(string $action): array
     {
         return Str::parseDotSyntax($action);
-        // if ($uri === '') {
-        //     return Str::parseDotSyntax($action);
-        // }
-        // return Str::parseSlashSyntax($uri);
     }
 
     /**
      * Match the url to a route
      *
      * @param string $url
-     * @return $this
+     * @return this
      */
-    protected function match($url)
+    protected function match(string $url)
     {
-        // Check if the route is in our array
+        // Check if the route is in our array.
         foreach ($this->routes as $route) {
             if (preg_match($route['uri'], $url, $matches)) {
-                // If the route is found, set it as the route and break from the loop
+                // If the route is found, set it as the route and break from the loop.
                 $this->route = $route;
-
-                /**
-                 * Do the sending of variables testing here
-                 */
-
-
-                // Set the route namespace
+                // Set the route namespace.
+                // If the namespace exists, we will add the defined namespace through the setNameSpace function to the default one.
+                // If no namespace is found, the default will be used.
                 if (array_key_exists('namespace', $this->route['options'])) {
                     $this->route['options']['namespace'] = $this->setNamespace($this->route['options']['namespace']);
                 } else {
@@ -238,29 +284,29 @@ class Router
                 break;
             }
         }
-        // if no match is found then throw an exception
+        // If no matching route is found then throw an exception.
         if (empty($this->route)) {
             throw new \Exception('No route is matched.', 404);
         }
-        // Verify that the request method part is set in the route
+        // Verify that the request method part is set in the route.
         if (!isset($this->route['method'])) {
             throw new \Exception('Route REQUEST_METHOD cannot be blank. Please check your routing table for the route' . $this->route['route']);
         }
-        // Check if server query method and allowed method for the url match
+        // Check if server query method and allowed method for the url match.
         if (!$this->methodMatchCheck($_SERVER['REQUEST_METHOD'], $this->route['method'])) {
             throw new \Exception('Request method does not match the allowed method for the route.');
         }
-        // Assign the controller and unset its array value
+        // Assign the controller and unset its array value.
         if (!$this->controller = $this->route['options']['namespace'] . Str::convertToStudlyCase($this->route['action'][0])) {
             throw new \Exception('Error setting controller property.');
         }
         unset($this->route['action'][0]);
-        // Assign the method and unset its array value
+        // Assign the method and unset its array value.
         if (!$this->method = Str::convertToCamelCase($this->route['action'][1])) {
             throw new \Exception('Error setting method property.');
         }
         unset($this->route['action'][1]);
-        // Get extra parameters from the url if they exist
+        // Get extra parameters from the url if they exist.
         $this->route['params'] = $this->extractRouteParameters($url);
         return $this;
     }
@@ -271,7 +317,7 @@ class Router
      * @param string $url
      * @return array
      */
-    protected function extractRouteParameters(string $url)
+    protected function extractRouteParameters(string $url): array
     {
         $params = [];
         if (preg_match($this->route['uri'], $url, $matches)) {
@@ -294,10 +340,9 @@ class Router
      *(NB. The .htaccess file converts the first ? to a & when it's passed through to the $_SERVER variable).
      * 
      * @param string $url The full url
-     * 
      * @return string $url URL with the variables removed
      */
-    protected function removeQueryStringVariables($url)
+    protected function removeQueryStringVariables(string $url): string
     {
         if ($url != '') {
             $parts = explode('&', $url, 2);
@@ -317,10 +362,9 @@ class Router
      *
      * @param string $request_method    $_SERVER['REQUEST_METHOD'].
      * @param string|array $url_method  The method from the route in the routing table.
-     * 
-     * @return boolean
+     * @return bool
      */
-    protected function methodMatchCheck(string $request_method, $url_method)
+    protected function methodMatchCheck(string $request_method, $url_method): bool
     {
         if (is_array($url_method)) {
             foreach ($url_method as $method) {
@@ -342,11 +386,12 @@ class Router
      * Default namespace is App\Http\Controllers\{controller}.
      * Where {controller} is the name of the class.
      * 
-     * @return void
+     * @param string $namespace
+     * @return string
      */
-    protected function setNamespace($namespace = null)
+    protected function setNamespace(string $namespace = ''): string
     {
-        $namespace = !is_null($namespace) && is_string($namespace) ? 'App\Http\Controllers\\' . $namespace . '\\' : 'App\Http\Controllers\\';
+        $namespace = $namespace !== '' ? 'App\Http\Controllers\\' . $namespace . '\\' : 'App\Http\Controllers\\';
         return $namespace;
     }
 }

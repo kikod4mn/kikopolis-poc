@@ -4,11 +4,9 @@ namespace Kikopolis\Core\Route;
 
 class RouteCompiler
 {
-    private $route_array = [
+    private $bindings_array = [
         'home' => \App\Controllers\Http\Home::class,
-        'more' => \App\Controllers\More::class,
         'posts' => \App\Controllers\Posts::class,
-        'show' => \App\Controllers\Show::class
     ];
 
     /**
@@ -38,8 +36,8 @@ class RouteCompiler
         $this->method = $method;
     }
 
-    public function getRoutes()
+    public function getBindings()
     {
-        return $this->route_array;
+        return $this->bindings_array;
     }
 }
