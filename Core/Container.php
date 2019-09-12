@@ -16,7 +16,9 @@ class Container
      */
     protected $instances = [];
 
-    protected $method;
+    protected $method = '';
+
+    protected $route_params = [];
 
     /**
      * Set the class names with namespace to instances array.

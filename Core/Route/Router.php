@@ -5,6 +5,7 @@ namespace Kikopolis\Core\Route;
 defined('_KIKOPOLIS') or die('No direct script access!');
 
 use Kikopolis\App\Helpers\Str;
+use Kikopolis\App\Http\Controllers\Controller;
 use Kikopolis\Core\Container;
 
 class Router
@@ -78,22 +79,26 @@ class Router
      */
     public function add($method, string $uri, string $action, array $options = [])
     {
+        // This variable exists to use the uri incase the url is dynamic and does not contain some parts.
+        // This assumes that $action has been left as an empty string as by default.
+        // If the controller is there but the method isn't then we will parse it differently and instead use the
+        // $uri_old to figure out which controller and method to use.
+        // This uses the same logic as the dot syntax $action.
+        // 0 for Controller and 1 for the Method in the final action array key.
+        $uri_old = $uri;
         // Convert the route to a regular expression: escape forward slashes
         $uri = preg_replace('/\//', '\\/', $uri);
-
         // Convert variables e.g. {controller}
         $uri = preg_replace('/\{([a-z]+)\}/', '(?P<\1>[a-z-]+)', $uri);
-
         // Convert variables with custom regular expressions e.g. {id:\d+}
         $uri = preg_replace('/\{([a-z]+):([^\}]+)\}/', '(?P<\1>\2)', $uri);
-
         // Add start and end delimiters, and case insensitive flag
         $uri = '/^' . $uri . '$/i';
-
+        // Add the route to the routes array
         $this->routes[] = [
             'method' => $method,
             'uri' => $uri,
-            'action' => Str::parseDotSyntax($action),
+            'action' => $this->parseAction($action, $uri_old),
             'options' => $options
         ];
     }
@@ -144,17 +149,41 @@ class Router
         return $this;
     }
 
+    /**
+     * Dispatch the current route
+     *
+     * @param string $uri
+     * @return void
+     */
     public function dispatch($uri)
     {
         // Instantiate the container
         $this->container = new Container();
         // Check if the $uri isset and remove query string variables
-        $url = isset($uri) ? $this->removeQueryStringVariables(filter_var($uri, FILTER_SANITIZE_URL)) : '/';
+        $url = isset($uri) ? $this->removeQueryStringVariables(Str::u($uri)) : '/';
         // Match the url
         $this->match($url);
+        // Run the base controller to set the route parameters eg ID, slug etc
+        Controller::setRouteParams($this->route['params']);
         // Send the controller and method to the Container
         // The container will instantiate the correct method with dependencies
-        $this->container->get($this->controller, $this->method);
+        $this->container->get($this->controller, $this->method, [], $this->route['params']);
+    }
+
+    /**
+     * Parse the action parameter of the url to a usable array format.
+     * If no action is specified, uses the uri part of the url to try to find a suitable controller and method.
+     *
+     * @param string $action
+     * @param string $uri
+     * @return array
+     */
+    protected function parseAction(string $action, string $uri = '')
+    {
+        if ($uri === '') {
+            return Str::parseDotSyntax($action);
+        }
+        return Str::parseSlashSyntax($uri);
     }
 
     /**
@@ -165,10 +194,6 @@ class Router
      */
     protected function match($url)
     {
-        // Check if the $url is empty. Set it to a slash for default
-        if (empty($url)) {
-            $url = '/';
-        }
         // Check if the route is in our array
         foreach ($this->routes as $route) {
             if (preg_match($route['uri'], $url, $matches)) {
@@ -195,15 +220,31 @@ class Router
         if (!$this->methodMatchCheck($_SERVER['REQUEST_METHOD'], $this->route['method'])) {
             throw new \Exception('Request method does not match the allowed method for the route.');
         }
-        // Assign the controller
+        // Assign the controller and unset its array value
         if (!$this->controller = $this->route['options']['namespace'] . Str::convertToStudlyCase($this->route['action'][0])) {
             throw new \Exception('Error setting controller property.');
         }
-        // Assign the method
+        unset($this->route['action'][0]);
+        // Assign the method and unset its array value
         if (!$this->method = Str::convertToCamelCase($this->route['action'][1])) {
             throw new \Exception('Error setting method property.');
         }
+        unset($this->route['action'][1]);
+        // Get extra parameters from the url if they exist
+        $this->route['params'] = $this->getRouteParams($url);
         return $this;
+    }
+
+    protected function getRouteParams($url)
+    {
+        if (preg_match($this->route['uri'], $url, $matches)) {
+            foreach ($matches as $key => $match) {
+                if (is_string($key)) {
+                    $params[$key] = $match;
+                }
+            }
+        }
+        return $params;
     }
 
     /**

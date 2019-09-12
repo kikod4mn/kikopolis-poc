@@ -39,7 +39,7 @@ class Str
      */
     public static function u(string $string)
     {
-        return urlencode(filter_var($string, FILTER_SANITIZE_URL));
+        return filter_var($string, FILTER_SANITIZE_URL);
     }
 
     /**
@@ -264,6 +264,11 @@ class Str
     public static function parseDotSyntax(string $string)
     {
         return static::contains($string, '.') ? explode('.', $string) : [$string];
+    }
+
+    public static function parseSlashSyntax(string $string)
+    {
+        return static::contains($string, '/') ? explode('/', $string) : [$string];
     }
 
     public static function parseCallback(string $string)
