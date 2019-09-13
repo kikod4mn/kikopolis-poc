@@ -31,7 +31,7 @@ class Home extends Controller
     {
         $lorem_ipsum = new LoremIpsumFactory();
 
-        echo View::render('home.index', [
+        return View::render('home.index', [
             'page_title' => 'The dynamic title of the page',
             'heading_title' => 'The title of lorems',
             'content' => $lorem_ipsum->getLoremWords(250)

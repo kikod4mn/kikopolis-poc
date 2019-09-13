@@ -16,9 +16,8 @@ class Aurora
     protected $variables = [];
 
     protected $instructions = [
-        '@section',
-        '@extends',
-        '@includes'
+        'section',
+        'includes'
     ];
     protected $instruction_blocks = [];
 
@@ -42,14 +41,15 @@ class Aurora
         $this->file_contents = file_get_contents($this->file);
         // Check if the template extends a parent template
         // Compile the @extend statement
-        if ($this->checkExtend() === true) {
+        if ($this->checkExtend($this->file_contents) === true) {
             $output = $this->parseExtend();
         } else {
             $output = $this->file_contents;
         }
         // Check and parse the @instructions
-        $this->parseInstructions();
+        $output = $this->parseInstructions($output);
         // Parse the variables
+        // var_dump($output);
         $output = $this->parseVariables($output);
 
         return $output;
@@ -71,7 +71,7 @@ class Aurora
         return $file_name;
     }
 
-    protected function parseInstructions()
+    protected function parseInstructions($output)
     {
         $tag_to_replace = '';
 
@@ -79,13 +79,60 @@ class Aurora
 
 
         foreach ($this->instructions as $instruction) {
-            //
+            $output = $this->parseSection($instruction, $output);
         }
+        // var_dump($output);
+        // die;
+        return $output;
     }
 
-    protected function checkExtend()
+    protected function parseSection($instruction, $output)
     {
-        preg_match_all('/\(\@extends\:\:\w+\)/', $this->file_contents, $matches);
+        // $sectiontempforincludedfile = '/\@section\(\'' . preg_quote($section_name) . '\'\)(.*?)\@endsection/';
+
+        $section_name = '';
+        $included_file_contents = '';
+        $tag_to_replace = '';
+        $section_content = '';
+        $section_content_tag = '';
+        $section_content_tag_in_base_template = '';
+        $tag_we_found_to_replace = '';
+        $tag_to_replace = '/\(@' . preg_quote($instruction) . '::(\w+\.?\w+)\)/';
+        // var_dump($instruction);
+        preg_match($tag_to_replace, $output, $matches);
+        if (array_key_exists('1', $matches)) {
+            $tag_we_found_to_replace = $matches[1];
+        }
+        // var_dump($tag_we_found_to_replace);
+        if ($tag_we_found_to_replace) {
+            $included_file_contents = $this->getTemplateFileContents($tag_we_found_to_replace);
+        }
+        $section_content_tag_in_base_template = $tag_we_found_to_replace;
+        if (Str::contains($tag_we_found_to_replace, '.')) {
+            $tag_we_found_to_replace = Str::parseDotSyntax($tag_we_found_to_replace);
+            $section_name = $tag_we_found_to_replace[1];
+        } else {
+            $section_name = $tag_we_found_to_replace;
+        }
+        // var_dump($included_file_contents);
+        $section_content_tag = '/\@section\(\'' . preg_quote($section_name) . '\'\)(.*?)\@endsection/s';
+        // var_dump($section_content_tag);
+        // var_dump($section_content_tag_in_base_template);
+        preg_match($section_content_tag, $included_file_contents, $matches);
+        // var_dump($matches);
+        if (array_key_exists('1', $matches)) {
+            $section_content = $matches[1];
+            // var_dump($output);
+            $output = $this->replaceSection('(@' . $instruction . '::' . $section_content_tag_in_base_template . ')', $section_content, $output);
+        }
+        // var_dump($output);
+
+        return $output;
+    }
+
+    protected function checkExtend($file_contents)
+    {
+        preg_match_all('/\(\@extends\:\:\w+\)/', $file_contents, $matches);
 
         if (count($matches[0]) > 1) {
             throw new \Exception('A template can only extend one other template! Please make sure there is only a single extend statement in your template file.');
@@ -99,19 +146,42 @@ class Aurora
     protected function parseExtend()
     {
         $section_content = '';
+        $output = $this->getParentTemplateContents();
+        if ($this->checkExtend($output) === true) {
+            throw new \Exception('Parent template cannot extend another template.');
+        }
+        $section_content_tag = '/\@section\(\'extend\'\)(.*?)\@endsection/s';
+        preg_match($section_content_tag, $this->file_contents, $matches);
+        if (array_key_exists('1', $matches)) {
+            $section_content = $matches[1];
+            $output = $this->replaceSection('(@section::extend)', $section_content, $output);
+        }
+        return $output;
+    }
+
+    protected function getParentTemplateContents()
+    {
         preg_match('/\(@[extends]+\:\:([\w]+)\)/', $this->file_contents, $matches);
         $this->parent_file = $this->parseTemplateName($matches[1]);
         $this->parent_file_contents = file_get_contents($this->parent_file);
-        $section_content_tag = '/\@section\(\'content\'\)(.*?)\@endsection/s';
-        preg_match($section_content_tag, $this->file_contents, $matches);
-        $section_content = $matches[1];
-        $output = $this->replaceSection('(@section::content)', $section_content, $this->parent_file_contents);
-        return $output;
+        return $this->parent_file_contents;
+    }
+
+    protected function getTemplateFileContents($file)
+    {
+        $file_contents = '';
+        $file = $this->parseTemplateName($file);
+        $file_contents = file_get_contents($file);
+        return $file_contents;
     }
 
     protected function replaceSection($section_title, $section_content, $output)
     {
-        $output = preg_replace('/' . preg_quote($section_title) . '/', $section_content, $output);
+        $tag_to_replace = '/' . preg_quote($section_title) . '/';
+        $output = preg_replace($tag_to_replace, $section_content, $output);
+        // var_dump($tag_to_replace);
+        // var_dump($section_content);
+        // var_dump($output);
         return $output;
     }
 
@@ -125,47 +195,8 @@ class Aurora
         return $output;
     }
 
-    // protected function saveInstructions()
-    // {
-    //     $file_contents = preg_replace_callback('/\(@([\w]+)\:\:([\w]+)\)/', function ($matches) {
-    //         $this->instructions[$matches[1]] = $matches[2];
-    //         return $this->instruction_placeholder;
-    //     }, $this->file_contents);
-    //     echo "<h1>The instruction lines</h1>";
-    //     // var_dump($this->instructions);
-    //     // var_dump($this->file_contents);
-    //     var_dump($file_contents);
-    //     echo "<h1>The instruction lines</h1>";
-    //     // var_dump($this->instructions);
-    //     // foreach ($this->instructions as $key => $instruction); {
-    //     //     var_dump("$key - $instruction");
-
-    //     // }
-    //     // preg_match_all('/\(@([\w]+)\:\:([\w]+)\)/', $this->file_contents, $matches, PREG_SET_ORDER);
-
-    //     // var_dump($matches);
-    //     // foreach ($matches as $match) {
-    //     //     $this->instructions[$match[1]] = $match[2];
-    //     //     // echo "$match[0]";
-    //     //     $file_contents = preg_replace($match[0], "[[{$match[1]}]]", $this->file_contents);
-    //     // }
-    //     // echo $file_contents;
-    // }
-
-    // protected function saveInstructionBlocks()
-    // {
-    //     echo "<h1>The instruction blocks</h1>";
-    //     $file_contents = preg_replace_callback('/(?<!@)@\w+(.*?)@end\w+/s', function ($matches) {
-    //         // $this->instruction_blocks[$matches[1]] = $matches[1];
-    //         var_dump($matches);
-    //         return $this->instruction_block_placeholder;
-    //     }, $this->file_contents);
-    //     // preg_match_all('/(?<!@)@\w+(.*?)@end\w+/s', $this->file_contents, $matches);
-    //     // echo "<h1>The matches</h1>";
-    //     // var_dump($matches);
-    //     // echo "<h1>End matches</h1>";
-    //     var_dump($file_contents);
-    //     echo "<h1>The instruction blocks</h1>";
-    //     die;
-    // }
+    protected function parseAssets()
+    {
+        //
+    }
 }

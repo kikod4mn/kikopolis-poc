@@ -9,7 +9,13 @@
 </head>
 
 <body>
-    (@section::content)
+    <div style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
+        <div style="display:flex; justify-content:center; align-items:center; margin:100px;">
+            (@section::extend)
+            (@includes::layouts.sidebar)
+        </div>
+        (@function::countDaysFromBirth)
+    </div>
 </body>
 
 </html>
