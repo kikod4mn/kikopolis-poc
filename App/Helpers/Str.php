@@ -256,11 +256,6 @@ class Str
         }
     }
 
-    public static function parseUrl()
-    {
-        //
-    }
-
     public static function parseDotSyntax(string $string)
     {
         return static::contains($string, '.') ? explode('.', $string) : [$string];
