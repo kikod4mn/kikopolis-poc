@@ -49,8 +49,10 @@ class Aurora
         // Check and parse the @instructions
         $output = $this->parseInstructions($output);
         // Parse the variables
-        // var_dump($output);
+        // var_dump($this->file_contents);
+        // var_dump($this->parent_file_contents);
         $output = $this->parseVariables($output);
+        // var_dump($output);
 
         return $output;
     }
@@ -73,13 +75,17 @@ class Aurora
 
     protected function parseInstructions($output)
     {
-        $tag_to_replace = '';
-
-
-
+        $count = 0;
 
         foreach ($this->instructions as $instruction) {
-            $output = $this->parseSection($instruction, $output);
+            preg_match_all('/\(@' . preg_quote($instruction) . '::(\w+\.?\w+)\)/', $output, $matches);
+            $count = count($matches[1]);
+            // var_dump($instruction);
+            // var_dump($matches);
+            // var_dump($count);
+            for ($i = $count; $i > 0; $i--) {
+                $output = $this->parseSection($instruction, $output);
+            }
         }
         // var_dump($output);
         // die;
@@ -132,8 +138,7 @@ class Aurora
 
     protected function checkExtend($file_contents)
     {
-        preg_match_all('/\(\@extends\:\:\w+\)/', $file_contents, $matches);
-
+        preg_match_all('/\(\@extends\:\:(\w+\.?\w+)/', $file_contents, $matches);
         if (count($matches[0]) > 1) {
             throw new \Exception('A template can only extend one other template! Please make sure there is only a single extend statement in your template file.');
         }
@@ -161,7 +166,7 @@ class Aurora
 
     protected function getParentTemplateContents()
     {
-        preg_match('/\(@[extends]+\:\:([\w]+)\)/', $this->file_contents, $matches);
+        preg_match('/\(\@extends\:\:(\w+\.?\w+)/', $this->file_contents, $matches);
         $this->parent_file = $this->parseTemplateName($matches[1]);
         $this->parent_file_contents = file_get_contents($this->parent_file);
         return $this->parent_file_contents;

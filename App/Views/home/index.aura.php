@@ -1,4 +1,4 @@
-(@extends::base)
+(@extends::layouts.base)
 
 @section('extend')
 <div style="float:left; max-width:1200px;">
