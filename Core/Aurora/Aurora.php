@@ -17,6 +17,20 @@ class Aurora
     private $file = '';
 
     /**
+     * Holds the view name. Used in the template cache generating and checking if a cached version exists.
+     *
+     * @var string
+     */
+    private $view_name = '';
+
+    /**
+     * Full filename of the cached view if exists.
+     *
+     * @var string
+     */
+    private $cached_view_file = '';
+
+    /**
      * The current template file contents.
      *
      * @var string
@@ -108,6 +122,8 @@ class Aurora
     public function __construct(string $file, array $variables = [])
     {
         $this->file = $this->parseTemplateName($file);
+        $this->view_name = $file;
+        $this->cached_view_file = Config::getAppRoot() . '/App/Views/cache/' . $this->view_name . '.php';
         $this->variables = $variables;
     }
 
@@ -117,7 +133,7 @@ class Aurora
         $this->values[$tag] = $value;
     }
 
-    public function isCompiled()
+    public function getIsCompiled()
     {
         return $this->is_compiled;
     }
@@ -126,21 +142,33 @@ class Aurora
      * Main output method.
      * See the individual methods for more detailed explanation of how Aurora works.
      * This is the only intended returning method for template content.
+     * 
+     * @param bool $force_compile   Force a new compilation of the template file regardless of any conditions.
      *
      * @return string
      */
-    public function output(): string
+    public function output(bool $force_compile = false)
     {
-        // The variable to hold the compiled output if it is present.
-        $compiled_output = '';
-        // @TODO: Write compilation check.
-        if (file_exists($this->compiled_template)) {
-            $compiled_output = file_get_contents($this->compiled_template);
+        // Check for a compiled file
+        // See method checkForCachedFile for specific conditions as to when the cached file is used.
+        $this->is_compiled = $this->checkForCachedFile($this->cached_view_file);
+        // If there is a compiled file and it is 
+        if ($this->is_compiled === true && $force_compile === false) {
+            return $this->cached_view_file;
         }
-        //If there is a compiled template present, return the compiled version.
-        if ($this->isCompiled() === true) {
-            return $compiled_output;
-        }
+
+        // If $this->is_compiled returns true
+
+        // // The variable to hold the compiled output if it is present.
+        // $compiled_output = '';
+        // // @TODO: Write compilation check.
+        // if (file_exists($this->compiled_template)) {
+        //     $compiled_output = file_get_contents($this->compiled_template);
+        // }
+        // //If there is a compiled template present, return the compiled version.
+        // if ($this->getIsCompiled() === true) {
+        //     return $compiled_output;
+        // }
         // Variable to hold the output of the rendered page
         $output = '';
         // Check if the template file exists, this filename is set during instantiation in the View class.
@@ -172,7 +200,42 @@ class Aurora
             throw new \Exception("A template file may only extend on other template file, additionally no included files may extend another template. Only one @extends::('template-name') line per the entire compiled template is allowed and it must be in the current template being rendered. This template is {$this->file} - and it is the current view file being called. No other file may have the extends statement in its code. Check your files for a stray extends statement!!", 404);
         }
         // Check for compiled template
-        return $this->isCompiled() ? $compiled_output : $output;
+        // return $this->getIsCompiled() ? $compiled_output : $output;
+        $cached = $this->saveToCachedFile($output);
+        return $cached;
+    }
+
+    private function saveToCachedFile($output)
+    {
+
+
+        if ($this->checkForCachedFile($this->cached_view_file)) {
+            // echo "sending cached file";
+            // die;
+            // Serving the cached file.
+            return $this->cached_view_file;
+        } else {
+            // echo "doing new file";
+            // die;
+            // File is older than 12 hours or does not exist.
+            // Generate a new template file.
+            file_put_contents($this->cached_view_file, $output);
+            return $this->cached_view_file;
+        }
+    }
+
+    private function checkFileTime($file)
+    {
+        if (time() - filemtime($file) > 12 * 3600) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    private function checkForCachedFile($file)
+    {
+        return file_exists($file) && $this->checkFileTime($file) === true ? true : false;
     }
 
     /**
@@ -464,7 +527,7 @@ class Aurora
     {
         // Initialize variables
         $file_root = '';
-        // Swtich for determining the root to return.
+        // Switch for determining the root to return.
         switch ($file_type) {
             case 'css':
                 $file_root = Config::getAssetRoot() . '/css/';
@@ -482,11 +545,28 @@ class Aurora
     // @TODO: Write a check for array
     private function parseVariables($output)
     {
+        // Initialize variables
+        $variable_tag = '';
+        $variables = [];
+        $var_temps = [];
         $tag_to_replace = '';
-        foreach ($this->variables as $key => $value) {
-            $tag_to_replace = '/\{\{\ ?' . preg_quote($key) . '\ ?\}\}/';
-            $output = preg_replace($tag_to_replace, $value, $output);
+        // Find all of our variables in the $output
+        $variable_tag = '/\{\{\ *?(\w+)\ *?\}\}/';
+        preg_match_all($variable_tag, $output, $matches, PREG_SET_ORDER);
+        foreach ($matches as $match) {
+            $var_temps[$match[0]] = $match[1];
         }
+        foreach ($var_temps as $key => $value) {
+            $tag_to_replace = '/\{\{\ *?' . preg_quote($value) . '\ *?\}\}/';
+            $tag_for_replacement = "<?php echo $" . $value . "; ?>";
+            echo $tag_for_replacement;
+            $output = preg_replace($tag_to_replace, $tag_for_replacement, $output);
+        }
+        // // Loop through the current template variables
+        // foreach ($this->variables as $key => $value) {
+        // $tag_to_replace = '/\{\{\ ?' . preg_quote($key) . '\ ?\}\}/';
+        // $output = preg_replace($tag_to_replace, $value, $output);
+        // }
         return $output;
     }
 
