@@ -45,18 +45,11 @@ class Aurora
     private $variables = [];
 
     /**
-     * Variable to hold the compiled template.
+     * Array to hold the linked asset values of the current template.
      *
-     * @var string
+     * @var array
      */
-    private $compiled_template = '';
-
-    /**
-     * Boolean for determining the presence of a compiled script file.
-     *
-     * @var boolean
-     */
-    private $is_compiled = false;
+    private $assets = [];
 
     /**
      * The instructions that Aurora will search for in the template contents.
@@ -82,6 +75,20 @@ class Aurora
      * @var array
      */
     private $instruction_blocks = [];
+
+    /**
+     * Boolean for determining the presence of a compiled script file.
+     *
+     * @var boolean
+     */
+    private $is_compiled = false;
+
+    /**
+     * Variable to hold the compiled template.
+     *
+     * @var string
+     */
+    private $compiled_template = '';
 
     /**
      * @TODO: Idea to be able to set with a public method the tags that Aurora replaces.
@@ -153,6 +160,8 @@ class Aurora
             // Simply assign $output since no parent template is detected.
             $output = $this->file_contents;
         }
+        // Parse all linked assets
+        $output = $this->parseAssets($output);
         // Check and parse the instruction blocks.
         // See individual methods for workflow explanation.
         $output = $this->parseInstructions($output);
@@ -268,7 +277,7 @@ class Aurora
         // If a third option in the array is not set however, simply use the previous file name
         $file_name = array_key_exists('2', $file) ? "{$file_name}/{$file[2]}" : "{$file_name}";
         // Add the file extension, by default, the extensions are filename.aura.php
-        $file_name = Config::getViewRoot() . $file_name . '.aura.php';
+        $file_name = $this->assignFileRoot() . $file_name . $this->assignFileExt();
         // Return the completed file name
         return $file_name;
     }
@@ -377,9 +386,74 @@ class Aurora
         return $output;
     }
 
-    private function parseAssets()
+    private function parseAssets(string $output): string
     {
-        //
+        preg_match_all('/\(\@asset\(\'(\w+)\'\,\ \'(\w+)\'\)\)/', $output, $matches, PREG_SET_ORDER);
+        foreach ($matches as $match) {
+            $this->assets[$match[0]] = $this->parseAssetFilename($match[1], $match[2]);
+        }
+        foreach ($this->assets as $tag => $link) {
+            $output = preg_replace('/' . preg_quote($tag) . '/', $link, $output);
+        }
+        return $output;
+    }
+
+    private function parseAssetFilename(string $asset, string $type): string
+    {
+        // Initialize variables
+        $file_name = '';
+        // Check and assign the file extension
+        // Add the file extension, by default, the extensions are filename.aura.php
+        $file_name = $this->assignFileRoot($type) . $asset . $this->assignFileExt($type);
+        // Assign the completed tag to insert to html
+        switch ($type) {
+            case 'css':
+                $file_name = "<link href='{$file_name}' rel='stylesheet'>";
+                break;
+            case 'javascript':
+                $file_name = "<script src='{$file_name}'></script>";
+                break;
+        }
+        // Return the completed file name
+        return $file_name;
+    }
+
+    private function assignFileExt($file_type = '')
+    {
+        $file_ext = '';
+        switch ($file_type) {
+            case 'css':
+                $file_ext = '.css';
+                break;
+            case 'javascript':
+                $file_ext = '.js';
+                break;
+            case 'php':
+                $file_ext = '.php';
+                break;
+            case 'html':
+                $file_ext = '.html';
+                break;
+            default:
+                $file_ext = '.aura.php';
+        }
+        return $file_ext;
+    }
+
+    private function assignFileRoot($file_type = '')
+    {
+        $file_root = '';
+        switch ($file_type) {
+            case 'css':
+                $file_root = Config::getAssetRoot() . '/css/';
+                break;
+            case 'javascript':
+                $file_root = Config::getAssetRoot() . '/js/';
+                break;
+            default:
+                $file_root = Config::getViewRoot();
+        }
+        return $file_root;
     }
 
     private function escapeVariable()
