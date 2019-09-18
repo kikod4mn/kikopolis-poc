@@ -375,17 +375,6 @@ class Aurora
         return $output;
     }
 
-    // @TODO: Write a check for array
-    private function parseVariables($output)
-    {
-        $tag_to_replace = '';
-        foreach ($this->variables as $key => $value) {
-            $tag_to_replace = '/\{\{\ ?' . preg_quote($key) . '\ ?\}\}/';
-            $output = preg_replace($tag_to_replace, $value, $output);
-        }
-        return $output;
-    }
-
     private function parseAssets(string $output): string
     {
         preg_match_all('/\(\@asset\(\'(\w+)\'\,\ \'(\w+)\'\)\)/', $output, $matches, PREG_SET_ORDER);
@@ -398,12 +387,18 @@ class Aurora
         return $output;
     }
 
+    /**
+     * Parse the asset filename into a readily usable tag.
+     *
+     * @param string $asset
+     * @param string $type
+     * @return string
+     */
     private function parseAssetFilename(string $asset, string $type): string
     {
         // Initialize variables
         $file_name = '';
-        // Check and assign the file extension
-        // Add the file extension, by default, the extensions are filename.aura.php
+        // Add the file root and extension.
         $file_name = $this->assignFileRoot($type) . $asset . $this->assignFileExt($type);
         // Assign the completed tag to insert to html
         switch ($type) {
@@ -418,9 +413,18 @@ class Aurora
         return $file_name;
     }
 
-    private function assignFileExt($file_type = '')
+    /**
+     * Assign the file extension.
+     * Default is .aura.php as the Aurora default file extension.
+     *
+     * @param string $file_type
+     * @return string
+     */
+    private function assignFileExt($file_type = ''): string
     {
+        // Initialize variables
         $file_ext = '';
+        // Switch for determining the extension to return.
         switch ($file_type) {
             case 'css':
                 $file_ext = '.css';
@@ -440,9 +444,18 @@ class Aurora
         return $file_ext;
     }
 
-    private function assignFileRoot($file_type = '')
+    /**
+     * Assign the file root directory.
+     * Default value is the Views folder in App directory.
+     *
+     * @param string $file_type
+     * @return string
+     */
+    private function assignFileRoot($file_type = ''): string
     {
+        // Initialize variables
         $file_root = '';
+        // Swtich for determining the root to return.
         switch ($file_type) {
             case 'css':
                 $file_root = Config::getAssetRoot() . '/css/';
@@ -454,6 +467,18 @@ class Aurora
                 $file_root = Config::getViewRoot();
         }
         return $file_root;
+    }
+
+
+    // @TODO: Write a check for array
+    private function parseVariables($output)
+    {
+        $tag_to_replace = '';
+        foreach ($this->variables as $key => $value) {
+            $tag_to_replace = '/\{\{\ ?' . preg_quote($key) . '\ ?\}\}/';
+            $output = preg_replace($tag_to_replace, $value, $output);
+        }
+        return $output;
     }
 
     private function escapeVariable()
