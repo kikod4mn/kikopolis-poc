@@ -176,6 +176,26 @@ class Aurora
     }
 
     /**
+     * Strip the tags that surround the content in the template file.
+     *
+     * @param string $content
+     * @return string
+     */
+    public static function stripInstructionTags(string $content): string
+    {
+        // Regex to match the section and its contents to capture groups.
+        $strip_tag = '/\@section\(\'\w+\-*?\w+\'\)(.*?)\@endsection/s';
+        preg_match($strip_tag, $content, $matches);
+        // If a match is found then the $strip_tag variable is used as placeholder, it will be replaced by 
+        // the content it is surrounding in the template file.
+        if (array_key_exists('1', $matches)) {
+            $content = preg_replace($strip_tag, $matches[1], $content);
+        }
+        // Return finished $content.
+        return $content;
+    }
+
+    /**
      * Check the template file contents for an extends:: statement.
      * Using a variable passed in instead of $this->file_contents because this method is also used
      * to check the parent template for extends.
@@ -332,30 +352,10 @@ class Aurora
     {
         // Loop through the saved instruction blocks.
         foreach ($this->instruction_blocks as $tag => $file) {
-            $section_content = $this->stripInstructionTags($this->getTemplateFileContents($file));
+            $section_content = static::stripInstructionTags($this->getTemplateFileContents($file));
             $output = preg_replace('/' . preg_quote($tag) . '/', $section_content, $output);
         }
         return $output;
-    }
-
-    /**
-     * Strip the tags that surround the content in the template file.
-     *
-     * @param string $content
-     * @return string
-     */
-    private function stripInstructionTags(string $content): string
-    {
-        // Regex to match the section and its contents to capture groups.
-        $strip_tag = '/\@section\(\'\w+\-*?\w+\'\)(.*?)\@endsection/s';
-        preg_match($strip_tag, $content, $matches);
-        // If a match is found then the $strip_tag variable is used as placeholder, it will be replaced by 
-        // the content it is surrounding in the template file.
-        if (array_key_exists('1', $matches)) {
-            $content = preg_replace($strip_tag, $matches[1], $content);
-        }
-        // Return finished $content.
-        return $content;
     }
 
     /**
@@ -375,15 +375,24 @@ class Aurora
         return $output;
     }
 
+    /**
+     * Parse all assets into the output as tags.
+     *
+     * @param string $output
+     * @return string
+     */
     private function parseAssets(string $output): string
     {
+        // Find all assets and add them to the class assets array.
         preg_match_all('/\(\@asset\(\'(\w+)\'\,\ \'(\w+)\'\)\)/', $output, $matches, PREG_SET_ORDER);
         foreach ($matches as $match) {
             $this->assets[$match[0]] = $this->parseAssetFilename($match[1], $match[2]);
         }
+        // Loop through all assets and replace the asset tag with the tag that is html ready.
         foreach ($this->assets as $tag => $link) {
             $output = preg_replace('/' . preg_quote($tag) . '/', $link, $output);
         }
+        // Return the finished $output.
         return $output;
     }
 
