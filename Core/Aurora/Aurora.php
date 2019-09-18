@@ -9,26 +9,102 @@ defined('_KIKOPOLIS') or die('No direct script access!');
 
 class Aurora
 {
-    protected $file = '';
-    protected $file_contents = '';
-    protected $parent_file = '';
-    protected $parent_file_contents = '';
-    protected $variables = [];
-    protected $compiled_template = '';
-    protected $is_compiled = false;
+    /**
+     * The file name for the current template.
+     *
+     * @var string
+     */
+    private $file = '';
 
-    protected $instructions = [
+    /**
+     * The current template file contents.
+     *
+     * @var string
+     */
+    private $file_contents = '';
+
+    /**
+     * The parent base template file name if the current template extends another.
+     *
+     * @var string
+     */
+    private $parent_file = '';
+
+    /**
+     * The parent base template contents if the current template extends another.
+     *
+     * @var string
+     */
+    private $parent_file_contents = '';
+
+    /**
+     * The current template variables.
+     *
+     * @var array
+     */
+    private $variables = [];
+
+    /**
+     * Variable to hold the compiled template.
+     *
+     * @var string
+     */
+    private $compiled_template = '';
+
+    /**
+     * Boolean for determining the presence of a compiled script file.
+     *
+     * @var boolean
+     */
+    private $is_compiled = false;
+
+    /**
+     * The instructions that Aurora will search for in the template contents.
+     * Firstly, Aurora will check if the current template extends another and merge them.
+     * Then it will find and count all the instruction blocks described here and parse them into the code.
+     * If either extends or includes blocks do not point to valid files, an error will be thrown and no template will be shown.
+     * This is to avoid incomplete or partial pages being rendered.
+     * Extends blocks are not included here because they are only 
+     * 
+     * @section      May come from the current template or any of the extending templates.
+     * @includes     May come from any template but must point to a valid 
+     *
+     * @var array
+     */
+    private $instructions = [
         'section',
         'includes'
     ];
-    protected $instruction_blocks = [];
 
-    public function __construct($file, $variables = [])
+    /**
+     * Instruction blocks will be added into this array and later looped through to replace them with content.
+     *
+     * @var array
+     */
+    private $instruction_blocks = [];
+
+    /**
+     * @TODO: Idea to be able to set with a public method the tags that Aurora replaces.
+     *
+     * @var array
+     */
+    private $values = [];
+
+    /**
+     * Class constructor.
+     * Set the current template file that is called from View and optionally set an array of variables
+     * that will be used in the template itself.
+     *
+     * @param string $file
+     * @param array $variables
+     */
+    public function __construct(string $file, array $variables = [])
     {
         $this->file = $this->parseTemplateName($file);
         $this->variables = $variables;
     }
 
+    // @TODO: Maybe method for setting the replaceable tag and its corresponding value.
     public function set($tag, $value)
     {
         $this->values[$tag] = $value;
@@ -39,7 +115,14 @@ class Aurora
         return $this->is_compiled;
     }
 
-    public function output()
+    /**
+     * Main output method.
+     * See the individual methods for more detailed explanation of how Aurora works.
+     * This is the only intended returning method for template content.
+     *
+     * @return string
+     */
+    public function output(): string
     {
         // The variable to hold the compiled output if it is present.
         $compiled_output = '';
@@ -58,30 +141,27 @@ class Aurora
         // It's filename is already set in the constructor with the parseFilename method that assumes always
         // that the template files are in the Views folder in the App main directory.
         if (!file_exists($this->file)) {
-            throw new \Exception("Template file does not exist or is unreadable. Check the file {$this->file}");
+            throw new \Exception("Template file does not exist or is unreadable. Check the file {$this->file}", 404);
         }
         // Read the template file contents into the class variable.
         $this->file_contents = file_get_contents($this->file);
-        // Check if the template extends a parent template
-        // Compile the @extend statement
+        // Check if the current template extends a parent template and merge the two templates.
         if ($this->checkExtend($this->file_contents) === true) {
-            $output = $this->parseExtend();
+            // Merge current template with its parent.
+            $output = $this->mergeWithParent();
         } else {
+            // Simply assign $output since no parent template is detected.
             $output = $this->file_contents;
         }
-
-        // TESTING BLOCK
-        var_dump($this);
-        die;
-        // TESTING BLOCK
-
-        // Check and parse the @instructions
+        // Check and parse the instruction blocks.
+        // See individual methods for workflow explanation.
         $output = $this->parseInstructions($output);
         // Parse the variables
-        // var_dump($this->file_contents);
-        // var_dump($this->parent_file_contents);
         $output = $this->parseVariables($output);
-        // var_dump($output);
+        // Final check for any stray extends:: in the code
+        if ($this->checkExtend($output) === true) {
+            throw new \Exception("A template file may only extend on other template file, additionally no included files may extend another template. Only one @extends::('template-name') line per the entire compiled template is allowed and it must be in the current template being rendered. This template is {$this->file} - and it is the current view file being called. No other file may have the extends statement in its code. Check your files for a stray extends statement!!", 404);
+        }
         // Check for compiled template
         return $this->isCompiled() ? $compiled_output : $output;
     }
@@ -96,13 +176,13 @@ class Aurora
      * @throws Exception
      * @return boolean
      */
-    protected function checkExtend(string $file_contents)
+    private function checkExtend(string $file_contents)
     {
         // Use regex to find the extends statement
         preg_match_all('/\(\@extends\:\:(\w+\.?\w+)/', $file_contents, $matches);
         // If the count of extends:: statements is higher than 1, throw error as a template file must not extend more than one template file.
         if (count($matches[0]) > 1) {
-            throw new \Exception('A template can only extend one other template! Please make sure there is only a single extend statement in your template file.');
+            throw new \Exception('A template can only extend one other template! Please make sure there is only a single extend statement in your template file.', 404);
         }
         // If there are no matches to the extends:: statement then that means we are in a template that does not extend another, return false
         if (count($matches[0]) < 1) {
@@ -120,7 +200,7 @@ class Aurora
      * @throws Exception
      * @return string
      */
-    protected function parseExtend(): string
+    private function mergeWithParent(): string
     {
         // Initialize variables
         $section_content = '';
@@ -128,8 +208,9 @@ class Aurora
         $output = $this->getParentTemplateContents();
         // Check the parent template contents for an extends:: statement and throw an Exception if one is found.
         if ($this->checkExtend($output) === true) {
-            throw new \Exception('Parent template cannot extend another template.');
+            throw new \Exception('Parent template cannot extend another template.', 404);
         }
+        // Regex for the content tag
         $section_content_tag = '/\@section\(\'extend\'\)(.*?)\@endsection/s';
         preg_match($section_content_tag, $this->file_contents, $matches);
         if (array_key_exists('1', $matches)) {
@@ -144,7 +225,7 @@ class Aurora
      *
      * @return string
      */
-    protected function getParentTemplateContents(): string
+    private function getParentTemplateContents(): string
     {
         return $this->parent_file_contents = file_get_contents($this->parent_file);
     }
@@ -157,18 +238,16 @@ class Aurora
      * @throws Exception
      * @return string
      */
-    protected function getTemplateFileContents(string $file): string
+    private function getTemplateFileContents(string $file): string
     {
-        // Initialize variables.
-        $file_contents = '';
         // Parse the template name.
         $file = $this->parseTemplateName($file);
         // Check if the indicated file exists, throw Exception if it does not.
         if (!file_exists($file)) {
-            throw new \Exception("Template file - {$file} - is not accessible or does not exist.");
+            throw new \Exception("Template file - {$file} - is not accessible or does not exist.", 404);
         }
         // Return the file contents.
-        return $file_contents = file_get_contents($file);
+        return file_get_contents($file);
     }
 
     /**
@@ -178,7 +257,7 @@ class Aurora
      * @param string $file
      * @return string
      */
-    protected function parseTemplateName(string $file): string
+    private function parseTemplateName(string $file): string
     {
         // Parse the file name with dot separators
         $file = Str::parseDotSyntax($file);
@@ -194,81 +273,101 @@ class Aurora
         return $file_name;
     }
 
-
-    protected function parseInstructions($output)
+    /**
+     * Parse the instruction blocks.
+     *
+     * @param string $output
+     * @return string
+     */
+    private function parseInstructions(string $output): string
     {
-        $count = 0;
+        // Save all instruction blocks to an array.
+        $this->saveInstructionBlocks($output);
+        // Replace all the instruction blocks that are in the array with actual content.
+        $output = $this->replaceInstructionBlocks($output);
+        // Return finished output.
+        return $output;
+    }
 
+    /**
+     * Save the instruction blocks to an array.
+     *
+     * @param string $output
+     * @return void
+     */
+    private function saveInstructionBlocks(string $output): void
+    {
+        // Loop through the accepted instructions array for Aurora.
+        // This is set at the top as a class variable array.
         foreach ($this->instructions as $instruction) {
-            preg_match_all('/\(@' . preg_quote($instruction) . '::(\w+\.?\-?\w+)\)/', $output, $matches);
-            $count = count($matches[1]);
-            // var_dump($instruction);
-            // var_dump($matches);
-            // var_dump($count);
-            for ($i = $count; $i > 0; $i--) {
-                $output = $this->parseSection($instruction, $output);
+            preg_match_all('/\(@' . preg_quote($instruction) . '::(\w+\.?\-?\w+)\)/', $output, $matches, PREG_SET_ORDER);
+            foreach ($matches as $match) {
+                // Add the instruction blocks to the array as such
+                // $match[0] - The entire string to replace eg. (@includes::layouts.sidebar) - 
+                // this is used as the placeholder to replace with content later on.
+                // $match[1] - layouts.sidebar - 
+                // this is used as the template name to search for in the Views folder.
+                // See the parseTemplateName method for explanation on the rules of structure and naming.
+                $this->instruction_blocks[$match[0]] = $match[1];
             }
         }
-        // var_dump($output);
-        // die;
+    }
+
+    /**
+     * Replace all the individual instruction blocks.
+     *
+     * @param string $output
+     * @return string
+     */
+    private function replaceInstructionBlocks(string $output): string
+    {
+        // Loop through the saved instruction blocks.
+        foreach ($this->instruction_blocks as $tag => $file) {
+            $section_content = $this->stripInstructionTags($this->getTemplateFileContents($file));
+            $output = preg_replace('/' . preg_quote($tag) . '/', $section_content, $output);
+        }
         return $output;
     }
 
-    protected function parseSection($instruction, $output)
+    /**
+     * Strip the tags that surround the content in the template file.
+     *
+     * @param string $content
+     * @return string
+     */
+    private function stripInstructionTags(string $content): string
     {
-        // $sectiontempforincludedfile = '/\@section\(\'' . preg_quote($section_name) . '\'\)(.*?)\@endsection/';
-
-        $section_name = '';
-        $included_file_contents = '';
-        $tag_to_replace = '';
-        $section_content = '';
-        $section_content_tag = '';
-        $section_content_tag_in_base_template = '';
-        $tag_we_found_to_replace = '';
-        $tag_to_replace = '/\(@' . preg_quote($instruction) . '::(\w+\.?\-?\w+)\)/';
-        // var_dump($instruction);
-        preg_match($tag_to_replace, $output, $matches);
+        // Regex to match the section and its contents to capture groups.
+        $strip_tag = '/\@section\(\'\w+\-*?\w+\'\)(.*?)\@endsection/s';
+        preg_match($strip_tag, $content, $matches);
+        // If a match is found then the $strip_tag variable is used as placeholder, it will be replaced by 
+        // the content it is surrounding in the template file.
         if (array_key_exists('1', $matches)) {
-            $tag_we_found_to_replace = $matches[1];
+            $content = preg_replace($strip_tag, $matches[1], $content);
         }
-        // var_dump($tag_we_found_to_replace);
-        if ($tag_we_found_to_replace) {
-            $included_file_contents = $this->getTemplateFileContents($tag_we_found_to_replace);
-        }
-        $section_content_tag_in_base_template = $tag_we_found_to_replace;
-        if (Str::contains($tag_we_found_to_replace, '.')) {
-            $tag_we_found_to_replace = Str::parseDotSyntax($tag_we_found_to_replace);
-            $section_name = $tag_we_found_to_replace[1];
-        } else {
-            $section_name = $tag_we_found_to_replace;
-        }
-        // var_dump($included_file_contents);
-        $section_content_tag = '/\@section\(\'' . preg_quote($section_name) . '\'\)(.*?)\@endsection/s';
-        // var_dump($section_content_tag);
-        // var_dump($section_content_tag_in_base_template);
-        preg_match($section_content_tag, $included_file_contents, $matches);
-        // var_dump($matches);
-        if (array_key_exists('1', $matches)) {
-            $section_content = $matches[1];
-            // var_dump($output);
-            $output = $this->replaceSection('(@' . $instruction . '::' . $section_content_tag_in_base_template . ')', $section_content, $output);
-        }
-        // var_dump($output);
-
-        return $output;
+        // Return finished $content.
+        return $content;
     }
 
-    protected function replaceSection($section_title, $section_content, $output)
+    /**
+     * A more general section replace method.
+     *
+     * @param string $section_title     The full section title to replace
+     * @param string $section_content   The section content to insert
+     * @param string $output            The final output
+     * @return string
+     */
+    private function replaceSection(string $section_title, string $section_content, string $output): string
     {
+        // Regex for the tag to find in our $output.
         $tag_to_replace = '/' . preg_quote($section_title) . '/';
         $output = preg_replace($tag_to_replace, $section_content, $output);
-        // var_dump($tag_to_replace);
-        // var_dump($section_content);
-        // var_dump($output);
+        // Return the finished $output.
         return $output;
     }
 
-    protected function parseVariables($output)
+    // @TODO: Write a check for array
+    private function parseVariables($output)
     {
         $tag_to_replace = '';
         foreach ($this->variables as $key => $value) {
@@ -278,7 +377,12 @@ class Aurora
         return $output;
     }
 
-    protected function parseAssets()
+    private function parseAssets()
+    {
+        //
+    }
+
+    private function escapeVariable()
     {
         //
     }
