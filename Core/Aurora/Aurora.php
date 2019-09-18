@@ -14,6 +14,7 @@ class Aurora
     protected $parent_file = '';
     protected $parent_file_contents = '';
     protected $variables = [];
+    protected $compiled_template = '';
     protected $is_compiled = false;
 
     protected $instructions = [
@@ -33,13 +34,33 @@ class Aurora
         $this->values[$tag] = $value;
     }
 
+    public function isCompiled()
+    {
+        return $this->is_compiled;
+    }
+
     public function output()
     {
-        $compiled = '';
+        // The variable to hold the compiled output if it is present.
+        $compiled_output = '';
+        // @TODO: Write compilation check.
+        if (file_exists($this->compiled_template)) {
+            $compiled_output = file_get_contents($this->compiled_template);
+        }
+        //If there is a compiled template present, return the compiled version.
+        if ($this->isCompiled() === true) {
+            return $compiled_output;
+        }
+        // Variable to hold the output of the rendered page
         $output = '';
+        // Check if the template file exists, this filename is set during instantiation in the View class.
+        // This is the template file for the route itself, eg.'/' for the index page route.
+        // It's filename is already set in the constructor with the parseFilename method that assumes always
+        // that the template files are in the Views folder in the App main directory.
         if (!file_exists($this->file)) {
             throw new \Exception("Template file does not exist or is unreadable. Check the file {$this->file}");
         }
+        // Read the template file contents into the class variable.
         $this->file_contents = file_get_contents($this->file);
         // Check if the template extends a parent template
         // Compile the @extend statement
@@ -48,6 +69,12 @@ class Aurora
         } else {
             $output = $this->file_contents;
         }
+
+        // TESTING BLOCK
+        var_dump($this);
+        die;
+        // TESTING BLOCK
+
         // Check and parse the @instructions
         $output = $this->parseInstructions($output);
         // Parse the variables
@@ -56,15 +83,102 @@ class Aurora
         $output = $this->parseVariables($output);
         // var_dump($output);
         // Check for compiled template
-        return $this->isCompiled() ? $compiled : $output;
+        return $this->isCompiled() ? $compiled_output : $output;
     }
 
-    protected function isCompiled()
+    /**
+     * Check the template file contents for an extends:: statement.
+     * Using a variable passed in instead of $this->file_contents because this method is also used
+     * to check the parent template for extends.
+     * The parent template is not allowed to extend another template.
+     *
+     * @param string $file_contents The contents of the current template
+     * @throws Exception
+     * @return boolean
+     */
+    protected function checkExtend(string $file_contents)
     {
-        return $this->is_compiled;
+        // Use regex to find the extends statement
+        preg_match_all('/\(\@extends\:\:(\w+\.?\w+)/', $file_contents, $matches);
+        // If the count of extends:: statements is higher than 1, throw error as a template file must not extend more than one template file.
+        if (count($matches[0]) > 1) {
+            throw new \Exception('A template can only extend one other template! Please make sure there is only a single extend statement in your template file.');
+        }
+        // If there are no matches to the extends:: statement then that means we are in a template that does not extend another, return false
+        if (count($matches[0]) < 1) {
+            return false;
+        }
+        // Set the parent template and parse its name.
+        $this->parent_file = $this->parseTemplateName($matches[1][0]);
+        // Return true if no exception and an extends:: has been found.
+        return true;
     }
 
-    protected function parseTemplateName($file)
+    /**
+     * Merge the parent template and current template together.
+     *
+     * @throws Exception
+     * @return string
+     */
+    protected function parseExtend(): string
+    {
+        // Initialize variables
+        $section_content = '';
+        // Get the parent template contents
+        $output = $this->getParentTemplateContents();
+        // Check the parent template contents for an extends:: statement and throw an Exception if one is found.
+        if ($this->checkExtend($output) === true) {
+            throw new \Exception('Parent template cannot extend another template.');
+        }
+        $section_content_tag = '/\@section\(\'extend\'\)(.*?)\@endsection/s';
+        preg_match($section_content_tag, $this->file_contents, $matches);
+        if (array_key_exists('1', $matches)) {
+            $section_content = $matches[1];
+            $output = $this->replaceSection('(@section::extend)', $section_content, $output);
+        }
+        return $output;
+    }
+
+    /**
+     * Get the parent template contents.
+     *
+     * @return string
+     */
+    protected function getParentTemplateContents(): string
+    {
+        return $this->parent_file_contents = file_get_contents($this->parent_file);
+    }
+
+    /**
+     * Get the indicated template file contents.
+     * Used for setting the base template file contents as well as all the includes.
+     *
+     * @param string $file
+     * @throws Exception
+     * @return string
+     */
+    protected function getTemplateFileContents(string $file): string
+    {
+        // Initialize variables.
+        $file_contents = '';
+        // Parse the template name.
+        $file = $this->parseTemplateName($file);
+        // Check if the indicated file exists, throw Exception if it does not.
+        if (!file_exists($file)) {
+            throw new \Exception("Template file - {$file} - is not accessible or does not exist.");
+        }
+        // Return the file contents.
+        return $file_contents = file_get_contents($file);
+    }
+
+    /**
+     * Parse the template file name.
+     * Accepts up to two levels of folder structure.
+     *
+     * @param string $file
+     * @return string
+     */
+    protected function parseTemplateName(string $file): string
     {
         // Parse the file name with dot separators
         $file = Str::parseDotSyntax($file);
@@ -79,6 +193,7 @@ class Aurora
         // Return the completed file name
         return $file_name;
     }
+
 
     protected function parseInstructions($output)
     {
@@ -141,53 +256,6 @@ class Aurora
         // var_dump($output);
 
         return $output;
-    }
-
-    protected function checkExtend($file_contents)
-    {
-        preg_match_all('/\(\@extends\:\:(\w+\.?\w+)/', $file_contents, $matches);
-        if (count($matches[0]) > 1) {
-            throw new \Exception('A template can only extend one other template! Please make sure there is only a single extend statement in your template file.');
-        }
-        if (count($matches[0]) < 1) {
-            return false;
-        }
-        return true;
-    }
-
-    protected function parseExtend()
-    {
-        $section_content = '';
-        $output = $this->getParentTemplateContents();
-        if ($this->checkExtend($output) === true) {
-            throw new \Exception('Parent template cannot extend another template.');
-        }
-        $section_content_tag = '/\@section\(\'extend\'\)(.*?)\@endsection/s';
-        preg_match($section_content_tag, $this->file_contents, $matches);
-        if (array_key_exists('1', $matches)) {
-            $section_content = $matches[1];
-            $output = $this->replaceSection('(@section::extend)', $section_content, $output);
-        }
-        return $output;
-    }
-
-    protected function getParentTemplateContents()
-    {
-        preg_match('/\(\@extends\:\:(\w+\.?\w+)/', $this->file_contents, $matches);
-        $this->parent_file = $this->parseTemplateName($matches[1]);
-        $this->parent_file_contents = file_get_contents($this->parent_file);
-        return $this->parent_file_contents;
-    }
-
-    protected function getTemplateFileContents($file)
-    {
-        $file_contents = '';
-        $file = $this->parseTemplateName($file);
-        if (!file_exists($file)) {
-            throw new \Exception("Template file - {$file} - is not accessible or does not exist.");
-        }
-        $file_contents = file_get_contents($file);
-        return $file_contents;
     }
 
     protected function replaceSection($section_title, $section_content, $output)
