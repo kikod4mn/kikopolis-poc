@@ -98,18 +98,13 @@ class Aurora
     private $is_compiled = false;
 
     /**
-     * Variable to hold the compiled template.
-     *
-     * @var string
-     */
-    private $compiled_template = '';
-
-    /**
      * @TODO: Idea to be able to set with a public method the tags that Aurora replaces.
      *
      * @var array
      */
     private $values = [];
+
+    private $cache_root = '';
 
     /**
      * Class constructor.
@@ -121,9 +116,14 @@ class Aurora
      */
     public function __construct(string $file, array $variables = [])
     {
-        $this->file = $this->parseTemplateName($file);
+        // Set the current called template.
+        $this->file = $this->parseFileName($file);
+        // Set aside the name of the current template.
         $this->view_name = $file;
-        $this->cached_view_file = Config::getAppRoot() . '/App/Views/cache/' . $this->view_name . '.php';
+        // Set the current template cached version name.
+        $this->cache_root = Config::getViewCacheRoot();
+        $this->cached_view_file = $this->cache_root . $this->view_name . '.php';
+        // Set the current template variables.
         $this->variables = $variables;
     }
 
@@ -133,6 +133,11 @@ class Aurora
         $this->values[$tag] = $value;
     }
 
+    /**
+     * Public getter for the $is_compiled class variable.
+     *
+     * @return bool
+     */
     public function getIsCompiled()
     {
         return $this->is_compiled;
@@ -147,32 +152,22 @@ class Aurora
      *
      * @return string
      */
-    public function output(bool $force_compile = false)
+    public function output(bool $force_compile = false): string
     {
         // Check for a compiled file
         // See method checkForCachedFile for specific conditions as to when the cached file is used.
         $this->is_compiled = $this->checkForCachedFile($this->cached_view_file);
-        // If there is a compiled file and it is 
+        // If no $force_compile variable is passed in and there is a compiled template present,
+        // simply return the cached view filename.
         if ($this->is_compiled === true && $force_compile === false) {
             return $this->cached_view_file;
         }
-
-        // If $this->is_compiled returns true
-
-        // // The variable to hold the compiled output if it is present.
-        // $compiled_output = '';
-        // // @TODO: Write compilation check.
-        // if (file_exists($this->compiled_template)) {
-        //     $compiled_output = file_get_contents($this->compiled_template);
-        // }
-        // //If there is a compiled template present, return the compiled version.
-        // if ($this->getIsCompiled() === true) {
-        //     return $compiled_output;
-        // }
-        // Variable to hold the output of the rendered page
+        // Variable to hold the output of the rendered page and the cached file name in the end.
+        // Only initialize these once we are certain that we are going to recompile the template from scratch.
         $output = '';
-        // Check if the template file exists, this filename is set during instantiation in the View class.
-        // This is the template file for the route itself, eg.'/' for the index page route.
+        $cached_file = '';
+        // Check if the current template file exists, this filename is set during instantiation in the View class.
+        // This is the template file for the route itself, eg the index page route would have an index.aura.php template file.
         // It's filename is already set in the constructor with the parseFilename method that assumes always
         // that the template files are in the Views folder in the App main directory.
         if (!file_exists($this->file)) {
@@ -199,32 +194,50 @@ class Aurora
         if ($this->checkExtend($output) === true) {
             throw new \Exception("A template file may only extend on other template file, additionally no included files may extend another template. Only one @extends::('template-name') line per the entire compiled template is allowed and it must be in the current template being rendered. This template is {$this->file} - and it is the current view file being called. No other file may have the extends statement in its code. Check your files for a stray extends statement!!", 404);
         }
-        // Check for compiled template
-        // return $this->getIsCompiled() ? $compiled_output : $output;
-        $cached = $this->saveToCachedFile($output);
-        return $cached;
-    }
+        // Check for a compiled template
+        $cached_file = $this->saveToCachedFile($output);
 
-    private function saveToCachedFile($output)
-    {
-
-
-        if ($this->checkForCachedFile($this->cached_view_file)) {
-            // echo "sending cached file";
-            // die;
-            // Serving the cached file.
-            return $this->cached_view_file;
-        } else {
-            // echo "doing new file";
-            // die;
-            // File is older than 12 hours or does not exist.
-            // Generate a new template file.
-            file_put_contents($this->cached_view_file, $output);
-            return $this->cached_view_file;
+        if ($cached_file === false) {
+            throw new \Exception('No cached file created.');
         }
+        return $cached_file;
     }
 
-    private function checkFileTime($file)
+    /**
+     * Save the compiled output to a cache file.
+     *
+     * @param string $output
+     * @return string|bool
+     */
+    private function saveToCachedFile(string $output)
+    {
+        return $this->forceFileContents($output) === true ? $this->cached_view_file : false;
+    }
+
+    /**
+     * Force the file contents.
+     * Create the cache directory if it does not exist.
+     *
+     * @param string $contents
+     * @return boolean
+     */
+    private function forceFileContents(string $contents): bool
+    {
+        if (!file_exists($this->cache_root) || !is_dir($this->cache_root)) {
+            mkdir($this->cache_root);
+        }
+        return file_put_contents($this->cached_view_file, $contents);
+    }
+
+    /**
+     * Check the file modification time.
+     * Default set for 12 hours. Should be sufficient in production environments.
+     * Just send in a boolean variable of true to the output() method to override any checks for a cached template.
+     *
+     * @param string $file
+     * @return bool
+     */
+    private function checkFileTime(string $file): bool
     {
         if (time() - filemtime($file) > 12 * 3600) {
             return false;
@@ -233,7 +246,13 @@ class Aurora
         }
     }
 
-    private function checkForCachedFile($file)
+    /**
+     * Check if a file exists and its modification time is not greater than 12 hours ago.
+     *
+     * @param string $file
+     * @return bool
+     */
+    private function checkForCachedFile(string $file): bool
     {
         return file_exists($file) && $this->checkFileTime($file) === true ? true : false;
     }
@@ -281,7 +300,7 @@ class Aurora
             return false;
         }
         // Set the parent template and parse its name.
-        $this->parent_file = $this->parseTemplateName($matches[1][0]);
+        $this->parent_file = $this->parseFileName($matches[1][0]);
         // Return true if no exception and an extends:: has been found.
         return true;
     }
@@ -333,7 +352,7 @@ class Aurora
     private function getTemplateFileContents(string $file): string
     {
         // Parse the template name.
-        $file = $this->parseTemplateName($file);
+        $file = $this->parseFileName($file);
         // Check if the indicated file exists, throw Exception if it does not.
         if (!file_exists($file)) {
             throw new \Exception("Template file - {$file} - is not accessible or does not exist.", 404);
@@ -349,7 +368,7 @@ class Aurora
      * @param string $file
      * @return string
      */
-    private function parseTemplateName(string $file): string
+    private function parseFileName(string $file): string
     {
         // Parse the file name with dot separators
         $file = Str::parseDotSyntax($file);
@@ -399,7 +418,7 @@ class Aurora
                 // this is used as the placeholder to replace with content later on.
                 // $match[1] - layouts.sidebar - 
                 // this is used as the template name to search for in the Views folder.
-                // See the parseTemplateName method for explanation on the rules of structure and naming.
+                // See the parseFileName method for explanation on the rules of structure and naming.
                 $this->instruction_blocks[$match[0]] = $match[1];
             }
         }
