@@ -14,6 +14,7 @@ class Aurora
     protected $parent_file = '';
     protected $parent_file_contents = '';
     protected $variables = [];
+    protected $is_compiled = false;
 
     protected $instructions = [
         'section',
@@ -34,6 +35,7 @@ class Aurora
 
     public function output()
     {
+        $compiled = '';
         $output = '';
         if (!file_exists($this->file)) {
             throw new \Exception("Template file does not exist or is unreadable. Check the file {$this->file}");
@@ -53,8 +55,13 @@ class Aurora
         // var_dump($this->parent_file_contents);
         $output = $this->parseVariables($output);
         // var_dump($output);
+        // Check for compiled template
+        return $this->isCompiled() ? $compiled : $output;
+    }
 
-        return $output;
+    protected function isCompiled()
+    {
+        return $this->is_compiled;
     }
 
     protected function parseTemplateName($file)
@@ -78,7 +85,7 @@ class Aurora
         $count = 0;
 
         foreach ($this->instructions as $instruction) {
-            preg_match_all('/\(@' . preg_quote($instruction) . '::(\w+\.?\w+)\)/', $output, $matches);
+            preg_match_all('/\(@' . preg_quote($instruction) . '::(\w+\.?\-?\w+)\)/', $output, $matches);
             $count = count($matches[1]);
             // var_dump($instruction);
             // var_dump($matches);
@@ -103,7 +110,7 @@ class Aurora
         $section_content_tag = '';
         $section_content_tag_in_base_template = '';
         $tag_we_found_to_replace = '';
-        $tag_to_replace = '/\(@' . preg_quote($instruction) . '::(\w+\.?\w+)\)/';
+        $tag_to_replace = '/\(@' . preg_quote($instruction) . '::(\w+\.?\-?\w+)\)/';
         // var_dump($instruction);
         preg_match($tag_to_replace, $output, $matches);
         if (array_key_exists('1', $matches)) {
@@ -176,6 +183,9 @@ class Aurora
     {
         $file_contents = '';
         $file = $this->parseTemplateName($file);
+        if (!file_exists($file)) {
+            throw new \Exception("Template file - {$file} - is not accessible or does not exist.");
+        }
         $file_contents = file_get_contents($file);
         return $file_contents;
     }

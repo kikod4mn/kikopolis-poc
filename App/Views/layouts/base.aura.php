@@ -14,6 +14,7 @@
             (@section::extend)
             (@includes::layouts.sidebar)
         </div>
+        (@includes::section-main)
         (@includes::layouts.footer)
         <!-- <script>
         self["\x61\x6c\x65\x72\x74"]("\x4a\x6f\x69\x6e\x20\x75\x73\x21")
