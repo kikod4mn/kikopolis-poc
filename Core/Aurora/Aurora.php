@@ -411,7 +411,7 @@ class Aurora
         // Loop through the accepted instructions array for Aurora.
         // This is set at the top as a class variable array.
         foreach ($this->instructions as $instruction) {
-            preg_match_all('/\(@' . preg_quote($instruction) . '::(\w+\.?\-?\w+)\)/', $output, $matches, PREG_SET_ORDER);
+            preg_match_all('/\(\@' . preg_quote($instruction) . '::(\w+\.?\-?\w*?\.?\-?\w*?\.?\-?\w*?)\)/', $output, $matches, PREG_SET_ORDER);
             foreach ($matches as $match) {
                 // Add the instruction blocks to the array as such
                 // $match[0] - The entire string to replace eg. (@includes::layouts.sidebar) - 
@@ -564,33 +564,50 @@ class Aurora
     // @TODO: Write a check for array
     private function parseVariables($output)
     {
+        $output = $this->parseEscapedVars($output);
+        $output = $this->parseUnEscapedVars($output);
+        return $output;
+    }
+
+    private function parseEscapedVars($output)
+    {
         // Initialize variables
         $variable_tag = '';
         $variables = [];
-        $var_temps = [];
         $tag_to_replace = '';
         // Find all of our variables in the $output
         $variable_tag = '/\{\{\ *?(\w+)\ *?\}\}/';
         preg_match_all($variable_tag, $output, $matches, PREG_SET_ORDER);
         foreach ($matches as $match) {
-            $var_temps[$match[0]] = $match[1];
+            $variables[$match[0]] = $match[1];
         }
-        foreach ($var_temps as $key => $value) {
+        foreach ($variables as $key => $value) {
             $tag_to_replace = '/\{\{\ *?' . preg_quote($value) . '\ *?\}\}/';
-            $tag_for_replacement = "<?php echo $" . $value . "; ?>";
+            $tag_for_replacement = "<?php echo escape($" . $value . "); ?>";
             echo $tag_for_replacement;
             $output = preg_replace($tag_to_replace, $tag_for_replacement, $output);
         }
-        // // Loop through the current template variables
-        // foreach ($this->variables as $key => $value) {
-        // $tag_to_replace = '/\{\{\ ?' . preg_quote($key) . '\ ?\}\}/';
-        // $output = preg_replace($tag_to_replace, $value, $output);
-        // }
         return $output;
     }
 
-    private function escapeVariable()
+    private function parseUnEscapedVars($output)
     {
-        //
+        // Initialize variables
+        $variable_tag = '';
+        $variables = [];
+        $tag_to_replace = '';
+        // Find all of our variables in the $output
+        $variable_tag = '/\{\!\!\ *?(\w+)\ *?\!\!\}/';
+        preg_match_all($variable_tag, $output, $matches, PREG_SET_ORDER);
+        foreach ($matches as $match) {
+            $variables[$match[0]] = $match[1];
+        }
+        foreach ($variables as $key => $value) {
+            $tag_to_replace = '/\{\!\!\ *?' . preg_quote($value) . '\ *?\!\!\}/';
+            $tag_for_replacement = "<?php echo outputSafeHtml($" . $value . "); ?>";
+            echo $tag_for_replacement;
+            $output = preg_replace($tag_to_replace, $tag_for_replacement, $output);
+        }
+        return $output;
     }
 }

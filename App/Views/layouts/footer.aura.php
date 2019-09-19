@@ -1,3 +1,3 @@
 @section('footer')
-<h3>The footer</h3>
+<h3 class="text-center">The footer</h3>
 @endsection

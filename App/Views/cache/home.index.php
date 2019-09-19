@@ -5,21 +5,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title><?php echo $page_title; ?></title>
+    <title><?php echo escape($page_title); ?></title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
     <link href='http://localhost/kikopolis_poc/public/css/style.css' rel='stylesheet'>
 </head>
 
 <body>
-    <div style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
-        <div style="display:flex; justify-content:center; align-items:center; margin:100px;">
+    <div class="container justify-content-center align-items-center">
+        <div class="row">
+            <h4 class="col-12 text-center"><u>Limited html allowed</u></h4>
             
-<div style="float:left; max-width:1200px;">
-    <h1><?php echo $heading_title; ?></h1>
-    <?php echo $content; ?>
+<div>
+    <h1 class="text-center"><?php echo outputSafeHtml($heading_title); ?></h1>
+    <p class="text-justify"><?php echo outputSafeHtml($content); ?></p>
 </div>
 
-            
-<div style="float: right; background-color:darkslategrey">
+        </div>
+        <div class="row">
+            <h4 class="col-12 text-center"><u>No Html allowed</u></h4>
+            <div class="col-9">
+                <h1 class="text-center"><?php echo escape($heading_title); ?></h1>
+                <p class="text-justify"><?php echo escape($content); ?></p>
+                
+<ul>
+    <li><a href="#">Link Item</a></li>
+    <li><a href="#">Link Item</a></li>
+    <li><a href="#">Link Item</a></li>
+    <li><a href="#">Link Item</a></li>
+    <li><a href="#">Link Item</a></li>
+</ul>
+
+                (@function::countDaysFromBirth)
+            </div>
+            <div class="col-3">
+<div class="bg-secondary">
     <h4>The sidebar</h4>
     <ul>
         <li style="color:bisque;">Sidebar item</li>
@@ -31,24 +51,13 @@
         <li style="color:bisque;">Sidebar item</li>
     </ul>
 </div>
-
+</div>
         </div>
-        
-<?php echo $content; ?>
-<ul>
-    <li><a href="#">Link Item</a></li>
-    <li><a href="#">Link Item</a></li>
-    <li><a href="#">Link Item</a></li>
-    <li><a href="#">Link Item</a></li>
-    <li><a href="#">Link Item</a></li>
-</ul>
-
-        
-<h3>The footer</h3>
-
-        (@function::countDaysFromBirth)
+        <div class="row justify-content-center">
+<h3 class="text-center">The footer</h3>
+</div>
+        <script src='http://localhost/kikopolis_poc/public/js/main.js'></script>
     </div>
-    <script src='http://localhost/kikopolis_poc/public/js/main.js'></script>
 </body>
 
 </html>

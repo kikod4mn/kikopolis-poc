@@ -1,5 +1,5 @@
 @section('sidebar')
-<div style="float: right; background-color:darkslategrey">
+<div class="bg-secondary">
     <h4>The sidebar</h4>
     <ul>
         <li style="color:bisque;">Sidebar item</li>

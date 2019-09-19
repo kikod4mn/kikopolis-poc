@@ -33,8 +33,8 @@ class Home extends Controller
 
         return View::render('home.index', [
             'page_title' => 'The dynamic title of the page',
-            'heading_title' => 'The title of lorems',
-            'content' => $lorem_ipsum->getLoremWords(250)
+            'heading_title' => '<i>The title of lorems<script>alert(\'alert\');</script></i>',
+            'content' => '<a href="#">The link</a><br>' . $lorem_ipsum->getLoremWords(250)
         ]);
         // echo "<br><h1>Hi, cruel world of PHP</h1><br>";
         // $string = Str::convertToSnakeCase('This to snake case');

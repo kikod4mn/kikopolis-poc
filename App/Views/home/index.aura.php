@@ -1,8 +1,8 @@
 (@extends::layouts.base)
 
 @section('extend')
-<div style="float:left; max-width:1200px;">
-    <h1>{{heading_title}}</h1>
-    {{ content }}
+<div>
+    <h1 class="text-center">{!! heading_title !!}</h1>
+    <p class="text-justify">{!! content !!}</p>
 </div>
 @endsection
