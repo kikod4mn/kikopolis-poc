@@ -22,10 +22,10 @@
             <div class="col-9">
                 <h1 class="text-center">{{ heading_title }}</h1>
                 <p class="text-justify">{{ content }}</p>
-                (@includes::layouts.section-main)
+                (@includes::layouts.pointless.section-main)
                 (@function::countDaysFromBirth)
             </div>
-            <div class="col-3">(@includes::layouts.sidebar)</div>
+            <div class="col-3">(@includes::layouts.pointless.sidebar)</div>
         </div>
         <div class="row justify-content-center">(@includes::layouts.footer)</div>
         (@asset('main', 'javascript'))

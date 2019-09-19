@@ -104,6 +104,11 @@ class Aurora
      */
     private $values = [];
 
+    /**
+     * The cache root directory.
+     *
+     * @var string
+     */
     private $cache_root = '';
 
     /**
@@ -113,6 +118,7 @@ class Aurora
      *
      * @param string $file
      * @param array $variables
+     * @return void
      */
     public function __construct(string $file, array $variables = [])
     {
@@ -138,9 +144,9 @@ class Aurora
      *
      * @return bool
      */
-    public function getIsCompiled()
+    public function getIsCompiled(): bool
     {
-        return $this->is_compiled;
+        return (bool) $this->is_compiled;
     }
 
     /**
@@ -149,7 +155,7 @@ class Aurora
      * This is the only intended returning method for template content.
      * 
      * @param bool $force_compile   Force a new compilation of the template file regardless of any conditions.
-     *
+     * @throws \Exception
      * @return string
      */
     public function output(bool $force_compile = false): string
@@ -162,11 +168,12 @@ class Aurora
         if ($this->is_compiled === true && $force_compile === false) {
             return $this->cached_view_file;
         }
+        // Initialize variables
         // Variable to hold the output of the rendered page and the cached file name in the end.
         // Only initialize these once we are certain that we are going to recompile the template from scratch.
         $output = '';
         $cached_file = '';
-        // Check if the current template file exists, this filename is set during instantiation in the View class.
+        // Check if the current template file exists.
         // This is the template file for the route itself, eg the index page route would have an index.aura.php template file.
         // It's filename is already set in the constructor with the parseFilename method that assumes always
         // that the template files are in the Views folder in the App main directory.
@@ -194,11 +201,11 @@ class Aurora
         if ($this->checkExtend($output) === true) {
             throw new \Exception("A template file may only extend on other template file, additionally no included files may extend another template. Only one @extends::('template-name') line per the entire compiled template is allowed and it must be in the current template being rendered. This template is {$this->file} - and it is the current view file being called. No other file may have the extends statement in its code. Check your files for a stray extends statement!!", 404);
         }
-        // Check for a compiled template
+        // Generate a new cache file with plain php
         $cached_file = $this->saveToCachedFile($output);
-
+        // If an error occurs during cache file creation, throws an Exception.
         if ($cached_file === false) {
-            throw new \Exception('No cached file created.');
+            throw new \Exception("Unable to create cache file - {$this->cached_view_file} - to  - {$this->cache_root} - directory. Please make sure the folder has sufficient rights set for a script to write to it.", 404);
         }
         return $cached_file;
     }
@@ -258,7 +265,7 @@ class Aurora
     }
 
     /**
-     * Strip the tags that surround the content in the template file.
+     * Strip the tags that surround the content in the included template file.
      *
      * @param string $content
      * @return string
@@ -410,13 +417,15 @@ class Aurora
     {
         // Loop through the accepted instructions array for Aurora.
         // This is set at the top as a class variable array.
+        // Not intended to have this set anywhere outside the class to maintain integrity of the code and
+        // to make sure all instructions are parsed correctly.
         foreach ($this->instructions as $instruction) {
             preg_match_all('/\(\@' . preg_quote($instruction) . '::(\w+\.?\-?\w*?\.?\-?\w*?\.?\-?\w*?)\)/', $output, $matches, PREG_SET_ORDER);
             foreach ($matches as $match) {
                 // Add the instruction blocks to the array as such
-                // $match[0] - The entire string to replace eg. (@includes::layouts.sidebar) - 
+                // $match[0] - The entire string to replace eg. '(@includes::layouts.sidebar)' - 
                 // this is used as the placeholder to replace with content later on.
-                // $match[1] - layouts.sidebar - 
+                // $match[1] - 'layouts.sidebar' - 
                 // this is used as the template name to search for in the Views folder.
                 // See the parseFileName method for explanation on the rules of structure and naming.
                 $this->instruction_blocks[$match[0]] = $match[1];
@@ -459,6 +468,9 @@ class Aurora
 
     /**
      * Parse all assets into the output as tags.
+     * Only accepts local files and assumes directory structure as follows 
+     * css in the /public/css/ folder
+     * javascript in the /public/js/ folder
      *
      * @param string $output
      * @return string
@@ -511,7 +523,7 @@ class Aurora
      * @param string $file_type
      * @return string
      */
-    private function assignFileExt($file_type = ''): string
+    private function assignFileExt(string $file_type = ''): string
     {
         // Initialize variables
         $file_ext = '';
@@ -532,6 +544,7 @@ class Aurora
             default:
                 $file_ext = '.aura.php';
         }
+        // Return file extension.
         return $file_ext;
     }
 
@@ -542,7 +555,7 @@ class Aurora
      * @param string $file_type
      * @return string
      */
-    private function assignFileRoot($file_type = ''): string
+    private function assignFileRoot(string $file_type = ''): string
     {
         // Initialize variables
         $file_root = '';
@@ -557,19 +570,35 @@ class Aurora
             default:
                 $file_root = Config::getViewRoot();
         }
+        // Return the determined file root.
         return $file_root;
     }
 
 
-    // @TODO: Write a check for array
-    private function parseVariables($output)
+    /**
+     * Parse all variables, both fully escaped and html allowed into 
+     * vanilla php echoes.
+     *
+     * @param string $output
+     * @return string
+     */
+    private function parseVariables(string $output): string
     {
+        // See method for explanation.
         $output = $this->parseEscapedVars($output);
+        // See method for explanation.
         $output = $this->parseUnEscapedVars($output);
+        // Return finished $output.
         return $output;
     }
 
-    private function parseEscapedVars($output)
+    /**
+     * Parse fully escaped variables into a PHP echo statement.
+     *
+     * @param string $output
+     * @return string
+     */
+    private function parseEscapedVars(string $output): string
     {
         // Initialize variables
         $variable_tag = '';
@@ -581,16 +610,26 @@ class Aurora
         foreach ($matches as $match) {
             $variables[$match[0]] = $match[1];
         }
+        // Loop through all the variables and replace them with valid PHP code
         foreach ($variables as $key => $value) {
             $tag_to_replace = '/\{\{\ *?' . preg_quote($value) . '\ *?\}\}/';
             $tag_for_replacement = "<?php echo escape($" . $value . "); ?>";
             echo $tag_for_replacement;
             $output = preg_replace($tag_to_replace, $tag_for_replacement, $output);
         }
+        // Return finished $output.
         return $output;
     }
 
-    private function parseUnEscapedVars($output)
+    /**
+     * Parse partially unescaped variables to allow HTML tags.
+     * Although JavaScript is still escaped, it is strongly recommended not to allow users this functionality,
+     * this is meant to be used by the web app creator to allow some html through while maintaining some security.
+     *
+     * @param string $output
+     * @return string
+     */
+    private function parseUnEscapedVars(string $output): string
     {
         // Initialize variables
         $variable_tag = '';
@@ -602,12 +641,14 @@ class Aurora
         foreach ($matches as $match) {
             $variables[$match[0]] = $match[1];
         }
+        // Loop through all the variables and replace them with valid PHP code
         foreach ($variables as $key => $value) {
             $tag_to_replace = '/\{\!\!\ *?' . preg_quote($value) . '\ *?\!\!\}/';
             $tag_for_replacement = "<?php echo outputSafeHtml($" . $value . "); ?>";
             echo $tag_for_replacement;
             $output = preg_replace($tag_to_replace, $tag_for_replacement, $output);
         }
+        // Return finished $output.
         return $output;
     }
 }
