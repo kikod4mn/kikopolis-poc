@@ -44,4 +44,19 @@ class Arr
         }
         return $object;
     }
+
+    public static function arrayFlatten(array $array): array
+    {
+        $return = [];
+
+        foreach ($array as $key => $value) {
+            if (is_array($value)) {
+                $return = array_merge($return, static::arrayFlatten($value));
+            } else {
+                $return[] = $value;
+            }
+        }
+
+        return $return;
+    }
 }

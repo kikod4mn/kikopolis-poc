@@ -12,9 +12,26 @@
 </head>
 
 <body>
+    
+<header>
+    <nav>
+        <div class="text-center container-fluid">
+            <h1>The site header</h1>
+            <ul class="nav justify-content-center">
+                <li class="nav-item"><a class="nav-link text-secondary" href="#">Nav item</a></li>
+                <li class="nav-item"><a class="nav-link text-secondary" href="#">Nav item</a></li>
+                <li class="nav-item"><a class="nav-link text-secondary" href="#">Nav item</a></li>
+                <li class="nav-item"><a class="nav-link text-secondary" href="#">Nav item</a></li>
+                <li class="nav-item"><a class="nav-link text-secondary" href="#">Nav item</a></li>
+            </ul>
+        </div>
+    </nav>
+</header>
+
     <div class="container justify-content-center align-items-center">
         <div class="row">
             <h4 class="col-12 text-center"><u>Limited html allowed</u></h4>
+            <?php echo $no_escape; ?>
             
 <div>
     <h1 class="text-center"><?php echo outputSafeHtml($heading_title); ?></h1>
@@ -36,6 +53,21 @@
     <li><a href="#">Link Item</a></li>
 </ul>
 
+                
+            <?php foreach($users as $user): ?>
+                
+                <?php echo outputMiscValue($user, 'id'); ?>
+                <?php echo outputMiscValue($user, 'name'); ?>
+                <?php echo outputMiscValue($user, 'email'); ?>
+                
+            <?php endforeach ?>
+                
+            <?php foreach($posts as $post): ?>
+                
+                <?php echo outputMiscValue($post, 'id'); ?>
+                <?php echo outputMiscValue($post, 'title'); ?>
+                
+            <?php endforeach ?>
             </div>
             <div class="col-3">
 <div class="bg-secondary">

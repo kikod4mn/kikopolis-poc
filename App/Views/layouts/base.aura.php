@@ -12,9 +12,11 @@
 </head>
 
 <body>
+    (@section::layouts.header)
     <div class="container justify-content-center align-items-center">
         <div class="row">
             <h4 class="col-12 text-center"><u>Limited html allowed</u></h4>
+            {!! no_escape !!}
             (@section::extend)
         </div>
         <div class="row">
@@ -23,6 +25,15 @@
                 <h1 class="text-center">{{ heading_title }}</h1>
                 <p class="text-justify">{{ content }}</p>
                 (@includes::layouts.pointless.section-main)
+                (@for::user in users)
+                {{ user.id }}
+                {{ user.name }}
+                {{ user.email }}
+                (@endfor)
+                (@for::post in posts)
+                {{ post.id }}
+                {{ post.title }}
+                (@endfor)
             </div>
             <div class="col-3">(@includes::layouts.pointless.sidebar)</div>
         </div>

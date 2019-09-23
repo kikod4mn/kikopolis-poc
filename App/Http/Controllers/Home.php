@@ -32,9 +32,41 @@ class Home extends Controller
         $lorem_ipsum = new LoremIpsumFactory();
 
         return View::render('home.index', [
-            'page_title' => 'The dynamic title of the page',
+            'page_title' => '<i>The dynamic title of the page in italic</i>',
             'heading_title' => '<i>The title of lorems<script>alert(\'alert\');</script></i>',
-            'content' => '<a href="#">The link</a><br>' . $lorem_ipsum->getLoremWords(250)
+            'content' => '<a href="#">The link</a><br>' . $lorem_ipsum->getLoremWords(250),
+            'no_escape' => '
+            <div class="container" id="blink"><h1 class="text-center">No escaping here!!! JavaScript injects supreme!!!!!</h1>
+            <script>window.addEventListener("load", function() {
+                var f = document.getElementById("blink");
+                setInterval(function() {
+                    f.style.color = (f.style.color == "red" ? "" : "red");
+                }, 200);
+            
+            }, false);</script></div>',
+            'users' => [
+                'user1' => [
+                    'id' => '1',
+                    'name' => 'John',
+                    'email' => 'john@doe.com'
+                ],
+
+                'user2' => [
+                    'id' => '1',
+                    'name' => 'Jane',
+                    'email' => 'jane@doe.com'
+                ]
+            ],
+            'posts' => (object) [
+                'post1' => (object) [
+                    'id' => '1',
+                    'title' => 'Foo'
+                ],
+                'post2' => (object) [
+                    'id' => '2',
+                    'title' => 'Bar'
+                ]
+            ]
         ]);
         // echo "<br><h1>Hi, cruel world of PHP</h1><br>";
         // $string = Str::convertToSnakeCase('This to snake case');

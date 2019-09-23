@@ -3,7 +3,7 @@
 namespace Kikopolis\Core\Aurora;
 
 use Kikopolis\App\Config\Config;
-use Kikopolis\App\Helpers\Str;
+use Kikopolis\App\Helpers\Arr;
 use Kikopolis\Core\Aurora\AuroraTraits\ParseVariablesTrait;
 use Kikopolis\Core\Aurora\AuroraTraits\ManageFileContentsTrait;
 use Kikopolis\Core\Aurora\AuroraTraits\ParseAssetsTrait;
@@ -72,6 +72,24 @@ class Aurora
     private $assets = [];
 
     /**
+     * All the different tags that Aurora uses.
+     * Used mostly for removing either stray tags or looping through variables to determine the type.
+     * Recommended not to modify this.
+     *
+     * @var array
+     */
+    private $surrounding_tags = [
+        'auto_escape' => ['{{', '}}'],
+        'limited_escape' => ['{!%', '%!}'],
+        'no_escape' => ['{!!', '!!}'],
+        'extend' => ['\@section(\'extend\')', '\@endsection', '\(@extends::(.+\.?.+)\)'],
+        'section' => ['\@section\(.+\)', '\@endsection', '\@section\:\:.+'],
+        'includes' => ['\(\@includes::.+\)'],
+        'asset' => ['\(\@asset\(.+\)\)'],
+        'foreach' => ['\(\@for\:\:.+\)', '\(\@endfor\)']
+    ];
+
+    /**
      * The instructions that Aurora will search for in the template contents.
      * Firstly, Aurora will check if the current template extends another and merge them.
      * Then it will find and count all the instruction blocks described here and parse them into the code.
@@ -80,7 +98,7 @@ class Aurora
      * Extends blocks are not included here because they are only 
      * 
      * @section      May come from the current template or any of the extending templates.
-     * @includes     May come from any template but must point to a valid 
+     * @includes     May come from any template but must point to a valid file
      *
      * @var array
      */
@@ -202,17 +220,27 @@ class Aurora
         }
         // Parse all linked assets
         $output = $this->parseAssets($output);
+        // Save all variables to an array and replace with placeholder
+        // $output = $this->saveVariables($output);
         // Check and parse the instruction blocks.
         // See individual methods for workflow explanation.
         $output = $this->parseInstructions($output);
-        // Parse the variables
-        $output = $this->parseVariables($output);
+        // Parse loops
+        $output = $this->parseLoops($output);
         // Parse the functions
         $output = $this->parseFunctions($output);
+        // Parse the variables
+        $output = $this->parseVariables($output);
+        // Parse loop variables
+        $output = $this->parseLoopVariables($output);
         // Final check for any stray extends:: in the code
         if ($this->checkExtend($output) === true) {
-            throw new \Exception("A template file may only extend on other template file, additionally no included files may extend another template. Only one @extends::('template-name') line per the entire compiled template is allowed and it must be in the current template being rendered. This template is {$this->file} - and it is the current view file being called. No other file may have the extends statement in its code. Check your files for a stray extends statement!!", 404);
+            throw new \Exception("A template file may only extend one other template file, additionally no included files may extend another template. Only one @extends::('template-name') line per the entire compiled template is allowed and it must be in the current template being rendered. This template is {$this->file} - and it is the current view file being called. No other file may have the extends statement in its code. Check your files for a stray extends statement!!", 404);
         }
+        // Remove any stray tags
+        $output = $this->removeTags($output);
+        var_dump($output);
+        // die;
         // Generate a new cache file with plain php
         $cached_file = $this->saveToCachedFile($output);
         // If an error occurs during cache file creation, throws an Exception.
@@ -256,7 +284,7 @@ class Aurora
      * @param string $content
      * @return string
      */
-    public static function stripInstructionTags(string $content): string
+    private function stripInstructionTags(string $content): string
     {
         // Regex to match the section and its contents to capture groups.
         $strip_tag = '/\@section\(\'\w+\-*?\w+\'\)(.*?)\@endsection/s';
@@ -297,7 +325,7 @@ class Aurora
     {
         // Loop through the accepted instructions array for Aurora.
         // This is set at the top as a class variable array.
-        // Not intended to have this set anywhere outside the class to maintain integrity of the code and
+        // Not intended to have this modified anywhere outside the class to maintain integrity of the code and
         // to make sure all instructions are parsed correctly.
         foreach ($this->instructions as $instruction) {
             preg_match_all('/\(\@' . preg_quote($instruction) . '::(\w+\.?\-?\w*?\.?\-?\w*?\.?\-?\w*?)\)/', $output, $matches, PREG_SET_ORDER);
@@ -323,8 +351,10 @@ class Aurora
     {
         // Loop through the saved instruction blocks.
         foreach ($this->instruction_blocks as $tag => $file) {
-            $section_content = static::stripInstructionTags($this->getTemplateFileContents($file));
-            $output = preg_replace('/' . preg_quote($tag) . '/', $section_content, $output);
+            $section_content = $this->stripInstructionTags($this->getTemplateFileContents($file));
+            $output = $this->replaceSection($tag, $section_content, $output);
+            // $output = preg_replace('/' . preg_quote($tag) . '/', $section_content, $output);
+
         }
         return $output;
     }
@@ -380,5 +410,23 @@ class Aurora
             $input[] = trim($arr);
         }
         return $input;
+    }
+
+    private function removeTags(string $output, string $regex = '', array $tags = []): string
+    {
+        if ($tags === []) {
+            $tags = Arr::arrayFlatten($this->surrounding_tags);
+        } else {
+            $tags = Arr::arrayFlatten($tags);
+        }
+
+        foreach ($tags as $tag) {
+            $regex = "/{$tag}/";
+            while (preg_match($regex, $output)) {
+                $output = preg_replace($regex, '', $output);
+            }
+        }
+
+        return $output;
     }
 }

@@ -26,3 +26,26 @@ if (!function_exists('outputSafeHtml')) {
         return htmlspecialchars_decode($var);
     }
 }
+
+// Output misc value to HTML. Array values, object properties etc.
+if (!function_exists('outputMiscValue')) {
+    function outputMiscValue($stack, $key)
+    {
+        $var = '';
+        switch ($stack) {
+            case is_array($stack);
+                $var = $stack[$key];
+                break;
+            case is_object($stack);
+                $var = $stack->{"$key"};
+                break;
+            case class_exists($stack):
+                // @TODO: Concept for using class public methods aswell to try and get a property.
+                $var = $stack->get . $key;
+                break;
+            default:
+                $var = null;
+        }
+        return $var;
+    }
+}
