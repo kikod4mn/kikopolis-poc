@@ -4,7 +4,7 @@ namespace Kikopolis\Core\Aurora;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
-class AuroraLoopHelper
+class AuroraLoops
 {
     public function __construct()
     {

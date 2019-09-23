@@ -2,8 +2,6 @@
 
 namespace Kikopolis\Core\Aurora;
 
-use ReflectionFunction;
-
 defined('_KIKOPOLIS') or die('No direct script access!');
 
 class AuroraFunctionHelper
