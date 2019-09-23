@@ -36,7 +36,6 @@
     <li><a href="#">Link Item</a></li>
 </ul>
 
-                (@function::countDaysFromBirth)
             </div>
             <div class="col-3">
 <div class="bg-secondary">

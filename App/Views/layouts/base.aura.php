@@ -23,7 +23,6 @@
                 <h1 class="text-center">{{ heading_title }}</h1>
                 <p class="text-justify">{{ content }}</p>
                 (@includes::layouts.pointless.section-main)
-                (@function::countDaysFromBirth)
             </div>
             <div class="col-3">(@includes::layouts.pointless.sidebar)</div>
         </div>

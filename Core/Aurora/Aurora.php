@@ -4,6 +4,7 @@ namespace Kikopolis\Core\Aurora;
 
 use Kikopolis\App\Config\Config;
 use Kikopolis\App\Helpers\Str;
+use ReflectionFunction;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
@@ -111,6 +112,8 @@ class Aurora
      */
     private $cache_root = '';
 
+    private $functions = [];
+
     /**
      * Class constructor.
      * Set the current template file that is called from View and optionally set an array of variables
@@ -131,6 +134,8 @@ class Aurora
         $this->cached_view_file = $this->cache_root . $this->view_name . '.php';
         // Set the current template variables.
         $this->variables = $variables;
+
+        $this->functions = AuroraFunctionHelper::getFunctions();
     }
 
     // @TODO: Maybe method for setting the replaceable tag and its corresponding value.
@@ -187,7 +192,7 @@ class Aurora
             // Merge current template with its parent.
             $output = $this->mergeWithParent();
         } else {
-            // Simply assign $output since no parent template is detected.
+            // Simply assign our file contents to $output since no parent template is detected.
             $output = $this->file_contents;
         }
         // Parse all linked assets
@@ -197,6 +202,8 @@ class Aurora
         $output = $this->parseInstructions($output);
         // Parse the variables
         $output = $this->parseVariables($output);
+        // Parse the functions
+        $output = $this->parseFunctions($output);
         // Final check for any stray extends:: in the code
         if ($this->checkExtend($output) === true) {
             throw new \Exception("A template file may only extend on other template file, additionally no included files may extend another template. Only one @extends::('template-name') line per the entire compiled template is allowed and it must be in the current template being rendered. This template is {$this->file} - and it is the current view file being called. No other file may have the extends statement in its code. Check your files for a stray extends statement!!", 404);
@@ -650,5 +657,39 @@ class Aurora
         }
         // Return finished $output.
         return $output;
+    }
+
+    // @TODO: Write custom functions.
+    // @TODO: Make sure if functions are found, the template is always freshly rendered in View class.
+    private function parseFunctions(string $output): string
+    {
+        // Initialize variables
+        $regex = '/\(\@function\:\:(?P<function>\w+)\(\'(?P<input>.*?)\'\)\)/';
+        $replacement = '';
+
+        preg_match_all($regex, $output, $matches, PREG_SET_ORDER);
+        if ($matches) {
+            foreach ($matches as $match) {
+                $this->functions[$match['function']]['parameters'] = $this->processMatches($match);
+            }
+            foreach ($this->functions as $key => $value) {
+
+                ${$key . '_params'} = $value['parameters'];
+                $replacement = "$key(...\$key_params)";
+                $output = preg_replace($regex, '<?php ' . $replacement . ' ?>', $output);
+            }
+        }
+        // var_dump($replacement);
+        return $output;
+    }
+
+    private function processMatches($match)
+    {
+        $input = [];
+        $match = explode(',', $match['input']);
+        foreach ($match as $arr) {
+            $input[] = trim($arr);
+        }
+        return $input;
     }
 }

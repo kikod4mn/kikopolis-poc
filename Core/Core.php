@@ -1,7 +1,6 @@
 <?php
 
 use Kikopolis\App\Config\Config;
-use Kikopolis\Core\Route\RouteCompiler;
 
 /**
  * Autoloading

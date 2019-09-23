@@ -1,8 +1,7 @@
 <?php
 
-use Kikopolis\App\Config\Config as Config;
+use Kikopolis\Core\Aurora\View;
 use Kikopolis\Core\Container;
-use Kikopolis\Core\Route\Router;
 
 /**
  * Define constant to prevent direct access to scripts
@@ -22,6 +21,11 @@ require_once '../Core/Core.php';
 
 // Instantiate the dependency injection container
 $container = new Container();
+
+View::addFunction('countDaysFromBirth', function ($test_var1, $test_var2) {
+    var_dump($test_var1);
+    var_dump($test_var2);
+});
 
 // Require the route dispatcher
 require_once $approot . '/Core/Route/RouteDispatcher.php';

@@ -27,4 +27,10 @@ class View
             echo '<h2 style="color:red;background-color:black;text-align:center;">Contents match, no re-compile necessary</h2>';
         }
     }
+
+    // @TODO: write custom functions into render
+    public static function addFunction($name, $callback, $arguments = [])
+    {
+        AuroraFunctionHelper::addFunction($name, $callback, $arguments);
+    }
 }
