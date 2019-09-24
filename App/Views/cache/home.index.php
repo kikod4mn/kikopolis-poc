@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title><?php echo escape($page_title); ?></title>
+    <title><?php echo k_echo($page_title, 'escape', ''); ?></title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
     <link href='http://localhost/kikopolis_poc/public/css/style.css' rel='stylesheet'>
@@ -31,20 +31,20 @@
     <div class="container justify-content-center align-items-center">
         <div class="row">
             <h4 class="col-12 text-center"><u>Limited html allowed</u></h4>
-            <?php echo $no_escape; ?>
-            11853
+            <?php echo k_echo($no_escape, 'no-escape', ''); ?>
+            11854
             
 <div>
-    <h1 class="text-center"><?php echo outputSafeHtml($heading_title); ?></h1>
-    <p class="text-justify"><?php echo outputSafeHtml($content); ?></p>
+    <h1 class="text-center"><?php echo k_echo($heading_title, 'allow-html', ''); ?></h1>
+    <p class="text-justify"><?php echo k_echo($content, 'allow-html', ''); ?></p>
 </div>
 
         </div>
         <div class="row">
             <h4 class="col-12 text-center"><u>No Html allowed</u></h4>
             <div class="col-9">
-                <h1 class="text-center"><?php echo escape($heading_title); ?></h1>
-                <p class="text-justify"><?php echo escape($content); ?></p>
+                <h1 class="text-center"><?php echo k_echo($heading_title, 'escape', ''); ?></h1>
+                <p class="text-justify"><?php echo k_echo($content, 'escape', ''); ?></p>
                 
 <ul>
     <li><a href="#">Link Item</a></li>
@@ -59,9 +59,9 @@
             <?php foreach($users as $user): ?>
                 
                     <h4 class="text-danger">User data</h4>
-                    <span>User ID : <?php echo outputMiscValue($user, 'id'); ?></span><br>
-                    <span>User name : <?php echo outputMiscValue($user, 'name'); ?></span><br>
-                    <span>User email : <?php echo outputMiscValue($user, 'email'); ?></span><br>
+                    <span>User ID : <?php echo k_echo($user, 'no-escape', 'id'); ?></span><br>
+                    <span>User name : <?php echo k_echo($user, 'no-escape', 'name'); ?></span><br>
+                    <span>User email : <?php echo k_echo($user, 'no-escape', 'email'); ?></span><br>
                     
             <?php endforeach ?>
                 </div>
@@ -70,8 +70,8 @@
             <?php foreach($posts as $post): ?>
                 
                     <h4 class="text-danger">Post info</h4>
-                    <span>Post ID : <?php echo outputMiscValue($post, 'id'); ?></span><br>
-                    <span>Post title : <?php echo outputMiscValue($post, 'title'); ?></span><br>
+                    <span>Post ID : <?php echo k_echo($post, 'allow-html', 'id'); ?></span><br>
+                    <span>Post title : <?php echo k_echo($post, 'allow-html', 'title'); ?></span><br>
                     
             <?php endforeach ?>
                 </div>

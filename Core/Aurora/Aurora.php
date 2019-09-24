@@ -4,6 +4,7 @@ namespace Kikopolis\Core\Aurora;
 
 use Kikopolis\App\Config\Config;
 use Kikopolis\App\Helpers\Arr;
+use Kikopolis\App\Helpers\Str;
 use Kikopolis\Core\Aurora\AuroraTraits\ParseVariablesTrait;
 use Kikopolis\Core\Aurora\AuroraTraits\ManageFileContentsTrait;
 use Kikopolis\Core\Aurora\AuroraTraits\ParseAssetsTrait;
@@ -58,13 +59,6 @@ class Aurora
     private $parent_file_contents = '';
 
     /**
-     * The current template variables.
-     *
-     * @var array
-     */
-    private $variables = [];
-
-    /**
      * Array to hold the linked asset values of the current template.
      *
      * @var array
@@ -79,9 +73,9 @@ class Aurora
      * @var array
      */
     private $surrounding_tags = [
-        'auto_escape' => ['{{', '}}'],
-        'limited_escape' => ['{!%', '%!}'],
-        'no_escape' => ['{!!', '!!}'],
+        'escape' => ['{{', '}}'],
+        'allow-html' => ['{!%', '%!}'],
+        'no-escape' => ['{!!', '!!}'],
         'extend' => ['\@section(\'extend\')', '\@endsection', '\(@extends::(.+\.?.+)\)'],
         'section' => ['\@section\(.+\)', '\@endsection', '\@section\:\:.+'],
         'includes' => ['\(\@includes::.+\)'],
@@ -142,31 +136,32 @@ class Aurora
      */
     private $functions = [];
 
+    /**
+     * Boolean to determine wether user functions are present in the template.
+     * If user functions have been defined, the template will be rendered fresh every time.
+     *
+     * @var boolean
+     */
     public static $must_run_user_func = false;
 
     /**
      * Class constructor.
-     * Set the current template file that is called from View and optionally set an array of variables
-     * that will be used in the template itself.
      *
-     * @param string $file
-     * @param array $variables
+     * @param string $file The current template file that is called from View.
      * @return void
      */
-    public function __construct(string $file, array $variables = [])
+    public function __construct(string $file)
     {
         // Set the current called template.
-        $this->file = $this->parseFileName($file);
-        // Set aside the name of the current template.
+        $this->file = $file;
+        // Set the name of the current template.
         $this->view_name = $file;
-        // Set the current template cached version name.
+        // Set the current template cache location.
         $this->cache_root = Config::getViewCacheRoot();
         $this->cached_view_file = $this->cache_root . $this->view_name . '.php';
-        // Set the current template variables.
-        $this->variables = $variables;
         // Set user defined functions.
         $this->functions = AuroraFunctionHelper::getFunctions();
-        if (AuroraFunctionHelper::getFunctions() !== []) {
+        if ($this->functions !== []) {
             static::$must_run_user_func = true;
         }
     }
@@ -224,19 +219,20 @@ class Aurora
         // This is the template file for the route itself, eg the index page route would have an index.aura.php template file.
         // It's filename is already set in the constructor with the parseFilename method that assumes always
         // that the template files are in the Views folder in the App main directory.
-        if (!file_exists($this->file)) {
-            throw new \Exception("Template file does not exist or is unreadable. Check the file {$this->file}", 404);
-        }
+        // if (!file_exists($this->file)) {
+        //     throw new \Exception("Template file does not exist or is unreadable. Check the file {$this->file}", 404);
+        // }
         // Read the template file contents into the class variable.
-        $this->file_contents = file_get_contents($this->file);
-        // Check if the current template extends a parent template and merge the two templates.
-        if ($this->checkExtend($this->file_contents) === true) {
-            // Merge current template with its parent.
-            $output = $this->mergeWithParent();
-        } else {
-            // Simply assign our file contents to $output since no parent template is detected.
-            $output = $this->file_contents;
-        }
+        // $this->file_contents = file_get_contents($this->file);
+        // // Check if the current template extends a parent template and merge the two templates.
+        // if ($this->checkExtend($this->file_contents) === true) {
+        //     // Merge current template with its parent.
+        //     $output = $this->mergeWithParent();
+        // } else {
+        //     // Simply assign our file contents to $output since no parent template is detected.
+        //     $output = $this->file_contents;
+        // }
+        $output = $this->prepareCurrentTemplate($this->file);
         // Parse all linked assets
         $output = $this->parseAssets($output);
         // Save all variables to an array and replace with placeholder
@@ -246,12 +242,8 @@ class Aurora
         $output = $this->parseInstructions($output);
         // Parse loops
         $output = $this->parseLoops($output);
-        // Parse the functions
-        $output = $this->parseFunctions($output);
         // Parse the variables
         $output = $this->parseVariables($output);
-        // Parse loop variables
-        $output = $this->parseLoopVariables($output);
         // Final check for any stray extends:: in the code
         if ($this->checkExtend($output) === true) {
             throw new \Exception("A template file may only extend one other template file, additionally no included files may extend another template. Only one @extends::('template-name') line per the entire compiled template is allowed and it must be in the current template being rendered. This template is {$this->file} - and it is the current view file being called. No other file may have the extends statement in its code. Check your files for a stray extends statement!!", 404);
@@ -271,34 +263,84 @@ class Aurora
         }
     }
 
+
+    private function prepareCurrentTemplate(string $file): string
+    {
+        $output = '';
+
+        $output = $this->getTemplateFileContents($file);
+        if ($this->checkExtend($output) === true) {
+            $output = $this->mergeTemplates($output, $this->parent_file);
+        } else {
+            return $this->file_contents;
+        }
+
+        return $output;
+    }
+
+    /**
+     * Merge two templates together.
+     *
+     * @param string $current_template
+     * @param string $parent_template
+     * @param string $regex
+     * @param string $output
+     * @return string
+     */
+    private function mergeTemplates(string $current_template, string $parent_template, string $regex = '', string $output = ''): string
+    {
+        // Get the parent template contents
+        $output = $this->getTemplateFileContents($parent_template);
+        // Check the parent template contents for an extends:: statement and throw an Exception if one is found.
+        if ($this->checkExtend($output) === true) {
+            throw new \Exception('Parent template cannot extend another template.', 404);
+        }
+        $regex = '/\@section\(\'extend\'\)(?P<content>.*?)\@endsection/s';
+        $matches = $this->findByRegex($regex, $current_template);
+        if (count($matches) > 1) {
+            throw new \Exception('Multiple sections in the template file, please enclose all content into one @section::(\'extend\')//content//@endsection', 404);
+        }
+        if (!array_key_exists('content', $matches[0])) {
+            throw new \Exception('No target section found in the parent template. Please make sure the parent template you are trying to extend has an (@section::extend) tag in the place where you wish to place the content of the called template.', 404);
+        }
+        $output = $this->replace($output, '(@section::extend)', $matches[0]['content']);
+        return $output;
+    }
+
     /**
      * Check the template file contents for an extends:: statement.
-     * Using a variable passed in instead of $this->file_contents because this method is also used
-     * to check the parent template for extends.
      * The parent template is not allowed to extend another template.
      *
-     * @param string $file_contents The contents of the current template
+     * @param string $output The contents of the current template
      * @throws Exception
      * @return boolean
      */
-    private function checkExtend(string $file_contents)
+    private function checkExtend(string $output)
     {
-        // Use regex to find the extends statement
-        preg_match_all('/\(\@extends\:\:(\w+\.?\w+)/', $file_contents, $matches);
+        $regex = '';
+        $regex = '/\(\@extends\:\:(?P<template>\w+\.?\w+)/';
+        // preg_match_all('/\(\@extends\:\:(\w+\.?\w+)/', $output, $matches);
+        $matches = static::findByRegex($regex, $output);
         // If the count of extends:: statements is higher than 1, throw error as a template file must not extend more than one template file.
-        if (count($matches[0]) > 1) {
+        if (count($matches) > 1) {
             throw new \Exception('A template can only extend one other template! Please make sure there is only a single extend statement in your template file.', 404);
         }
         // If there are no matches to the extends:: statement then that means we are in a template that does not extend another, return false
-        if (count($matches[0]) < 1) {
+        if (count($matches) < 1) {
             return false;
         }
         // Set the parent template and parse its name.
-        $this->parent_file = $this->parseFileName($matches[1][0]);
+        $this->parent_file = $matches[0][1];
         // Return true if no exception and an extends:: has been found.
         return true;
     }
 
+    /**
+     * Set custom tag values
+     *
+     * @param string $output
+     * @return string
+     */
     public function setCustomValues(string $output): string
     {
         return $output;
@@ -313,25 +355,22 @@ class Aurora
     public static function runUserFunc(string $output): string
     {
         $regex = '';
-
         $regex = '/(?P<pattern>\(\@function\:\:(?P<func>\w+)\((?P<args>.*?)\)\))/';
-
-        preg_match_all($regex, $output, $matches, PREG_SET_ORDER);
-
+        $matches = static::findByRegex($regex, $output);
         foreach ($matches as $match) {
-            $match = array_filter($match, 'is_string', ARRAY_FILTER_USE_KEY);
+            $match = Arr::arrayFilter($match);
             foreach (AuroraFunctionHelper::getFunctions() as $func) {
                 if ($func['name'] === $match['func']) {
-                    // $func['closure'](...[$match['args']]);
                     $output = preg_replace_callback('/' . preg_quote($match['pattern']) . '/', function () use ($match, $func) {
                         return $func['closure'](...[$match['args']]);
                     }, $output);
-                    // $output = preg_replace_callback('/' . preg_quote($match['pattern']) . '/', function () use ($match, $func) {
-                    //     return $func['closure'](...[$match['args']]);
-                    // }, $output);
                 }
             }
         }
+        // TODO: Remove func code from template
+        // TODO: Remove func code from template
+        // TODO: Remove func code from template
+        // TODO: Remove func code from template
         // TODO: Remove func code from template
         return $output;
     }
@@ -381,12 +420,15 @@ class Aurora
      */
     private function saveInstructionBlocks(string $output): void
     {
+        $regex = '';
         // Loop through the accepted instructions array for Aurora.
         // This is set at the top as a class variable array.
         // Not intended to have this modified anywhere outside the class to maintain integrity of the code and
         // to make sure all instructions are parsed correctly.
         foreach ($this->instructions as $instruction) {
-            preg_match_all('/\(\@' . preg_quote($instruction) . '::(\w+\.?\-?\w*?\.?\-?\w*?\.?\-?\w*?)\)/', $output, $matches, PREG_SET_ORDER);
+            // preg_match_all('/\(\@' . preg_quote($instruction) . '::(\w+\.?\-?\w*?\.?\-?\w*?\.?\-?\w*?)\)/', $output, $matches, PREG_SET_ORDER);
+            $regex = '/\(\@' . preg_quote($instruction) . '::(\w+\.?\-?\w*?\.?\-?\w*?\.?\-?\w*?)\)/';
+            $matches = static::findByRegex($regex, $output);
             foreach ($matches as $match) {
                 // Add the instruction blocks to the array as such
                 // $match[0] - The entire string to replace eg. '(@includes::layouts.sidebar)' - 
@@ -410,74 +452,50 @@ class Aurora
         // Loop through the saved instruction blocks.
         foreach ($this->instruction_blocks as $tag => $file) {
             $section_content = $this->stripInstructionTags($this->getTemplateFileContents($file));
-            $output = $this->replaceSection($tag, $section_content, $output);
-            // $output = preg_replace('/' . preg_quote($tag) . '/', $section_content, $output);
-
+            $output = $this->replace($output, $tag, $section_content);
         }
         return $output;
     }
 
     /**
-     * A more general section replace method.
+     * Replace a block in the output with regex.
      *
-     * @param string $section_title     The full section title to replace
-     * @param string $section_content   The section content to insert
-     * @param string $output            The final output
+     * @param string $haystack
+     * @param string $needle
+     * @param string $replacement
+     * @param integer $limit
      * @return string
      */
-    private function replaceSection(string $section_title, string $section_content, string $output): string
+    private function replace(string $haystack, string $needle, string $replacement, int $limit = 1): string
     {
-        // Regex for the tag to find in our $output.
-        $tag_to_replace = '/' . preg_quote($section_title) . '/';
-        $output = preg_replace($tag_to_replace, $section_content, $output);
-        // Return the finished $output.
-        return $output;
+        $regex = '/' . $needle . '/';
+        $regex = preg_quote($regex);
+        $haystack = preg_replace($regex, $replacement, $haystack, $limit);
+        return $haystack;
     }
 
-
-    // @TODO: Write custom functions.
-    // @TODO: Make sure if functions are found, the template is always freshly rendered in View class.
-    private function parseFunctions(string $output): string
+    /**
+     * Remove all the Aurora tags from the template.
+     * This is a housekeeping method to remove any unprocessed instruction tags from the template before rendering.
+     * TODO: currently logic is not very logical. Maybe move caching to another class to allow View class access to the raw output string
+     * TODO: so this could be checked in the View class and not here. Currently user functions and the @function tag are not included in the cleanup
+     * TODO: because the existence of user functions is checked in the View to allow the use of a pre-compiled cache file for speed.
+     *
+     * @param string $output
+     * @param string $regex
+     * @param array $tags
+     * @return string
+     */
+    public function removeTags(string $output, string $regex = '', array $tags = []): string
     {
-        // Initialize variables
-        $regex = '/\(\@function\:\:(?P<function>\w+)\(\'(?P<input>.*?)\'\)\)/';
-        $replacement = '';
-
-        preg_match_all($regex, $output, $matches, PREG_SET_ORDER);
-        if ($matches) {
-            foreach ($matches as $match) {
-                $this->functions[$match['function']]['parameters'] = $this->processMatches($match);
-            }
-            foreach ($this->functions as $key => $value) {
-
-                ${$key . '_params'} = $value['parameters'];
-                $replacement = "$key(...\$key_params)";
-                $output = preg_replace($regex, '<?php ' . $replacement . ' ?>', $output);
-            }
-        }
-        // var_dump($replacement);
-        return $output;
-    }
-
-    // maybe necessary to process function arguments
-    private function processMatches($match)
-    {
-        $input = [];
-        $match = explode(',', $match['input']);
-        foreach ($match as $arr) {
-            $input[] = trim($arr);
-        }
-        return $input;
-    }
-
-    private function removeTags(string $output, string $regex = '', array $tags = []): string
-    {
+        // If no tags are passed in, use the default tags of Aurora.
+        // Otherwise, it is possbile to use this function to remove custom tags from a string.
         if ($tags === []) {
             $tags = Arr::arrayFlatten($this->surrounding_tags);
         } else {
             $tags = Arr::arrayFlatten($tags);
         }
-
+        // Loop through each tag and replace it with nothing.
         foreach ($tags as $tag) {
             $regex = "/{$tag}/";
             while (preg_match($regex, $output)) {
@@ -486,5 +504,361 @@ class Aurora
         }
 
         return $output;
+    }
+
+    /**
+     * Master loop parser method.
+     * Calls all other methods to parse individual loops.
+     *
+     * @param string $output
+     * @return string
+     */
+    private function parseLoops(string $output): string
+    {
+        $output = $this->foreach($output);
+        $output = $this->if($output);
+        $output = $this->cycle($output);
+
+        return $output;
+    }
+
+    private function if(string $output): string
+    {
+        return $output;
+    }
+
+    private function cycle(string $output): string
+    {
+        return $output;
+    }
+
+    private function foreach(string $output): string
+    {
+        $regex = '';
+        $foreach = '';
+        $regex = '/(?P<full>\(\@for\:\:(?P<needle>\w*?)\ in\ (?P<haystack>\w*?)\)(?P<loop>.*?)\(\@endfor\))/s';
+        $matches = $this->findByRegex($regex, $output);
+        foreach ($matches as $match) {
+            $match = array_filter($match, 'is_string', ARRAY_FILTER_USE_KEY);
+            extract($match, EXTR_OVERWRITE);
+            $foreach = "
+            <?php foreach(\${$haystack} as \${$needle}): ?>
+                {$loop}
+            <?php endforeach ?>";
+            $output = preg_replace($regex, $foreach, $output, 1);
+        }
+        return $output;
+    }
+
+    /**
+     * Parse the variable tag into plain php.
+     *
+     * @param string $var
+     * @param string $escape
+     * @param string $needle
+     * @return string
+     */
+    public function parseVarTag(string $var, string $escape = 'escape', string $needle = ''): string
+    {
+        return "<?php echo k_echo(\${$var}, '{$escape}', '{$needle}'); ?>";
+    }
+
+    /**
+     * All heavy lifting work of determining the matches for variables and using correct strategy to parse them.
+     *
+     * @param string $output
+     * @param string $regular_expression
+     * @return string
+     */
+    private function parseVariables(string $output, string $regular_expression = ''): string
+    {
+        if ($regular_expression === '') {
+            // Regex to capture each variable and its tag name sequence.
+            $regex = '/(?P<tag>\{\{*\!*\%*\ *(?P<var>\w+[\.?\w+]*)\ *\%*\!*\}*\})/';
+        } else {
+            $regex = $regular_expression;
+        }
+
+        // Match all variables and parse in echo statements.
+        preg_match_all($regex, $output, $matches, PREG_SET_ORDER);
+
+        foreach ($matches as $match) {
+            $var = '';
+            $match = array_filter($match, 'is_string', ARRAY_FILTER_USE_KEY);
+
+            $regex = '/\{\{*\!*\%*\ *' . preg_quote($match['var']) . '\ *\%*\!*\}*\}/';
+
+            if (Str::contains($match['var'], '.')) {
+                $match['var'] = Str::parseDotSyntax($match['var']);
+            } else {
+                //
+            }
+            // Check what type of vars we are dealing with.
+            // Using if loop here and not switch! Suck it!
+            // This is a nested loop clusterfuck but atm the best solution.
+            // First level of loops determines the escaping strategy.
+            // Current levels to pass as arguments to our k_echo are allow-html, no-escape and escape.
+            // Second level determines if the result of $match['var'] which is our variable name
+            // is an array, in that case we need to treat it as a variable from a loop and pass the expected keys separately.
+            if (Str::contains($match['tag'], $this->surrounding_tags['allow-html'])) {
+                // Limited HTML tags allowed.
+                // TODO: Implement a custom white list of tags.
+                // TODO: Implement a custom white list of tags.
+                // TODO: Implement a custom white list of tags.
+                // TODO: Implement a custom white list of tags.
+                if (!is_array($match['var'])) {
+                    $var = $this->parseVarTag($match['var'], 'allow-html');
+                } else {
+                    $var = $this->parseVarTag($match['var'][0], 'allow-html', $match['var'][1]);
+                }
+            } else if (Str::contains($match['tag'], $this->surrounding_tags['no-escape'])) {
+                // If the developer has chosen the risk of no escape, we will echo that sucker right out. No escape here!
+                // In JavaScript, no one can hear you 'undefined'.
+                if (!is_array($match['var'])) {
+                    $var = $this->parseVarTag($match['var'], 'no-escape');
+                } else {
+                    $var = $this->parseVarTag($match['var'][0], 'no-escape', $match['var'][1]);
+                }
+            } else {
+                // Full escape of all tags, default strategy.
+                if (!is_array($match['var'])) {
+                    $var = $this->parseVarTag($match['var'], 'escape');
+                } else {
+                    $var = $this->parseVarTag($match['var'][0], 'escape', $match['var'][1]);
+                }
+            }
+            $output = preg_replace($regex, $var, $output, 1);
+        }
+        return $output;
+    }
+
+    /**
+     * Parse all assets into the output as tags.
+     * Only accepts local files and assumes directory structure as follows 
+     * css in the /public/css/ folder
+     * javascript in the /public/js/ folder
+     *
+     * @param string $output
+     * @return string
+     */
+    private function parseAssets(string $output): string
+    {
+        $regex = '/\(\@asset\(\'(\w+)\'\,\ \'(\w+)\'\)\)/';
+        // Find all assets and add them to the class assets array.
+        $matches = static::findByRegex($regex, $output);
+        foreach ($matches as $match) {
+            $this->assets[$match[0]] = $this->parseAssetFilename($match[1], $match[2]);
+        }
+        // Loop through all assets and replace the asset tag with the tag that is html ready.
+        foreach ($this->assets as $tag => $link) {
+            $output = preg_replace('/' . preg_quote($tag) . '/', $link, $output);
+        }
+        // Return the finished $output.
+        return $output;
+    }
+
+    /**
+     * Return an array of matches with preg_match_all.
+     *
+     * @param string $needle
+     * @param string $haystack
+     * @param string $flags
+     * @return array
+     */
+    public static function findByRegex(string $needle, string $haystack, string $flags = PREG_SET_ORDER): array
+    {
+        preg_match_all($needle, $haystack, $matches, $flags);
+        return $matches;
+    }
+
+    /**
+     * Save the compiled output to a cache file.
+     *
+     * @param string $output
+     * @return string|bool
+     */
+    public function saveToCachedFile(string $output)
+    {
+        return $this->forceFileContents($output) === true ? $this->cached_view_file : false;
+    }
+
+    /**
+     * Force the file contents.
+     * Create the cache directory if it does not exist.
+     *
+     * @param string $output
+     * @return boolean
+     */
+    private function forceFileContents(string $output): bool
+    {
+        if (!file_exists($this->cache_root) || !is_dir($this->cache_root)) {
+            mkdir($this->cache_root);
+        }
+        return file_put_contents($this->cached_view_file, $output);
+    }
+
+    /**
+     * Check the file modification time.
+     * Default set for 12 hours. Should be sufficient in production environments.
+     * Just send in a boolean variable of true to the output() method to override any checks for a cached template.
+     *
+     * @param string $file
+     * @return bool
+     */
+    private function checkFileTime(string $file): bool
+    {
+        if (time() - filemtime($file) > 12 * 3600) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * Check if a file exists and its modification time is not greater than 12 hours ago.
+     *
+     * @param string $file
+     * @return bool
+     */
+    private function checkForCachedFile(string $file): bool
+    {
+        return file_exists($file) && $this->checkFileTime($file) === true ? true : false;
+    }
+
+    /**
+     * Get the parent template contents.
+     *
+     * @return string
+     */
+    private function getParentTemplateContents(string $file): string
+    {
+        return $this->parent_file_contents = file_get_contents($this->parent_file);
+    }
+
+    /**
+     * Get the indicated template file contents.
+     * Used for setting the base template file contents as well as all the includes.
+     *
+     * @param string $file
+     * @throws Exception
+     * @return string
+     */
+    private function getTemplateFileContents(string $file): string
+    {
+        // Parse the template name.
+        $file = $this->parseFileName($file);
+        // Check if the indicated file exists, throw Exception if it does not.
+        if (!file_exists($file)) {
+            throw new \Exception("Template file - {$file} - is not accessible or does not exist.", 404);
+        }
+        // Return the file contents.
+        return file_get_contents($file);
+    }
+
+    /**
+     * Parse the template file name.
+     * Accepts up to two levels of folder structure.
+     *
+     * @param string $file
+     * @return string
+     */
+    private function parseFileName(string $file): string
+    {
+        // Parse the file name with dot separators
+        $file = Str::parseDotSyntax($file);
+        // If the view file is a first level file in the Views folder, then set the filename.
+        // If it is in a subdirectory, then concatenate indexes 0 and 1 from the parseDotSyntax function array.
+        $file_name = array_key_exists('1', $file) ? "{$file[0]}/{$file[1]}" : "{$file[0]}";
+        // Also allows for a second level folder, eg. Views/home/index/index_part.php
+        // If a third option in the array is not set however, simply use the previous file name
+        $file_name = array_key_exists('2', $file) ? "{$file_name}/{$file[2]}" : "{$file_name}";
+        // Add the file extension, by default, the extensions are filename.aura.php
+        $file_name = $this->assignFileRoot() . $file_name . $this->assignFileExt();
+        // Return the completed file name
+        return $file_name;
+    }
+
+    /**
+     * Parse the asset filename into a readily usable tag.
+     *
+     * @param string $asset
+     * @param string $type
+     * @return string
+     */
+    private function parseAssetFilename(string $asset, string $type): string
+    {
+        // Initialize variables
+        $file_name = '';
+        // Add the file root and extension.
+        $file_name = $this->assignFileRoot($type) . $asset . $this->assignFileExt($type);
+        // Assign the completed tag to insert to html
+        switch ($type) {
+            case 'css':
+                $file_name = "<link href='{$file_name}' rel='stylesheet'>";
+                break;
+            case 'javascript':
+                $file_name = "<script src='{$file_name}'></script>";
+                break;
+        }
+        // Return the completed file name
+        return $file_name;
+    }
+
+    /**
+     * Assign the file extension.
+     * Default is .aura.php as the Aurora default file extension.
+     *
+     * @param string $file_type
+     * @return string
+     */
+    private function assignFileExt(string $file_type = ''): string
+    {
+        // Initialize variables
+        $file_ext = '';
+        // Switch for determining the extension to return.
+        switch ($file_type) {
+            case 'css':
+                $file_ext = '.css';
+                break;
+            case 'javascript':
+                $file_ext = '.js';
+                break;
+            case 'php':
+                $file_ext = '.php';
+                break;
+            case 'html':
+                $file_ext = '.html';
+                break;
+            default:
+                $file_ext = '.aura.php';
+        }
+        // Return file extension.
+        return $file_ext;
+    }
+
+    /**
+     * Assign the file root directory.
+     * Default value is the Views folder in App directory.
+     *
+     * @param string $file_type
+     * @return string
+     */
+    private function assignFileRoot(string $file_type = ''): string
+    {
+        // Initialize variables
+        $file_root = '';
+        // Switch for determining the root to return.
+        switch ($file_type) {
+            case 'css':
+                $file_root = Config::getAssetRoot() . '/css/';
+                break;
+            case 'javascript':
+                $file_root = Config::getAssetRoot() . '/js/';
+                break;
+            default:
+                $file_root = Config::getViewRoot();
+        }
+        // Return the determined file root.
+        return $file_root;
     }
 }

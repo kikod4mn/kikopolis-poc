@@ -10,7 +10,7 @@ class View
         $file_contents = '';
 
         $template = new Aurora($file_name, $template_variables);
-        extract($template_variables);
+        extract($template_variables, EXTR_SKIP);
         // Check to see if user defined functions are present.
         // If the functions array is not empty, the template is recompiled every time with user functions.
         // It is best to write a TODO: and say TODO: write custom extensions and test those.

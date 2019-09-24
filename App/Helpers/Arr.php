@@ -59,4 +59,10 @@ class Arr
 
         return $return;
     }
+
+    public static function arrayFilter(array $array, string $callback = 'is_string', $flags = ARRAY_FILTER_USE_KEY)
+    {
+        $array = array_filter($array, $callback, $flags);
+        return $array;
+    }
 }

@@ -29,16 +29,16 @@
                 <div class="column border border-danger">
                     (@for::user in users)
                     <h4 class="text-danger">User data</h4>
-                    <span>User ID : {{ user.id }}</span><br>
-                    <span>User name : {{ user.name }}</span><br>
-                    <span>User email : {{ user.email }}</span><br>
+                    <span>User ID : {!! user.id !!}</span><br>
+                    <span>User name : {!! user.name !!}</span><br>
+                    <span>User email : {!! user.email !!}</span><br>
                     (@endfor)
                 </div>
                 <div class="border border-danger">
                     (@for::post in posts)
                     <h4 class="text-danger">Post info</h4>
-                    <span>Post ID : {{ post.id }}</span><br>
-                    <span>Post title : {{ post.title }}</span><br>
+                    <span>Post ID : {!% post.id %!}</span><br>
+                    <span>Post title : {!% post.title %!}</span><br>
                     (@endfor)
                 </div>
             </div>

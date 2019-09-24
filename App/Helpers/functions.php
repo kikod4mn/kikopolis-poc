@@ -10,41 +10,31 @@ if (!function_exists('redirect')) {
     }
 }
 
-// Escape the content of a variable for output to HTML.
-if (!function_exists('escape')) {
-    function escape($var)
+if (!function_exists('k_echo')) {
+    function k_echo($var, $escape = 'escape', $key = '')
     {
-        return htmlspecialchars($var, ENT_QUOTES, 'UTF-8');
-    }
-}
-
-// Allow a list of html tags to pass through the escaping.
-if (!function_exists('outputSafeHtml')) {
-    function outputSafeHtml($var)
-    {
-        $var = htmlspecialchars($var, ENT_QUOTES, 'UTF-8');
-        return htmlspecialchars_decode($var);
-    }
-}
-
-// Output misc value to HTML. Array values, object properties etc.
-if (!function_exists('outputMiscValue')) {
-    function outputMiscValue($stack, $key)
-    {
-        switch ($stack) {
-            case is_array($stack);
-                return $stack[$key];
-            case is_object($stack);
-                $stack = get_object_vars($stack);
-                return $stack[$key];
+        // First we determine if the $var passed in is not a string
+        // and pass it back to this function recursively with the $key for echoing to template.
+        switch ($var) {
+            case is_iterable($var) && is_array($var):
+                return k_echo((string) $var[$key], $escape);
+            case is_object($var) || ($var instanceof \Traversable):
+                $var = get_object_vars($var);
+                return k_echo((string) $var[$key], $escape);
                 // return print_r($stack->$key, true);
                 // return $stack->{"$key"};
-            case class_exists($stack):
-                // @TODO: Concept for using class public methods aswell to try and get a property.
-                return $stack->get . $key;
-            default:
-                return null;
         }
-        return null;
+        // Different escape levels, depending on the surrounding tags of the $var.
+        switch ($escape) {
+            case 'escape':
+                return htmlspecialchars($var, ENT_QUOTES, 'UTF-8');
+            case 'allow-html':
+                return htmlspecialchars_decode(htmlspecialchars($var, ENT_QUOTES, 'UTF-8'));
+            case 'no-escape':
+                return $var;
+            default:
+                // var_dump($var);
+                return htmlspecialchars($var, ENT_QUOTES, 'UTF-8');
+        }
     }
 }
