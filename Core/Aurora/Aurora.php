@@ -5,17 +5,17 @@ namespace Kikopolis\Core\Aurora;
 use Kikopolis\App\Config\Config;
 use Kikopolis\App\Helpers\Arr;
 use Kikopolis\App\Helpers\Str;
-use Kikopolis\Core\Aurora\AuroraTraits\ParseVariablesTrait;
+use Kikopolis\Core\Aurora\AuroraTraits\ManageVariablesTrait;
 use Kikopolis\Core\Aurora\AuroraTraits\ManageFileContentsTrait;
-use Kikopolis\Core\Aurora\AuroraTraits\ParseAssetsTrait;
-use Kikopolis\Core\Aurora\AuroraTraits\ParseFunctionsTrait;
-use Kikopolis\Core\Aurora\AuroraTraits\ParseLoopsTrait;
+use Kikopolis\Core\Aurora\AuroraTraits\ManageAssetsTrait;
+use Kikopolis\Core\Aurora\AuroraTraits\ManageFunctionsTrait;
+use Kikopolis\Core\Aurora\AuroraTraits\ManageLoopsTrait;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
 class Aurora
 {
-    use ParseVariablesTrait, ParseAssetsTrait, ParseFunctionsTrait, ParseLoopsTrait, ManageFileContentsTrait;
+    use ManageVariablesTrait, ManageAssetsTrait, ManageFunctionsTrait, ManageLoopsTrait, ManageFileContentsTrait;
     /**
      * The file name for the current template.
      *
@@ -24,25 +24,11 @@ class Aurora
     private $file = '';
 
     /**
-     * Holds the view name. Used in the template cache generating and checking if a cached version exists.
-     *
-     * @var string
-     */
-    private $view_name = '';
-
-    /**
      * Full filename of the cached view if exists.
      *
      * @var string
      */
     private $cached_view_file = '';
-
-    /**
-     * The current template file contents.
-     *
-     * @var string
-     */
-    private $file_contents = '';
 
     /**
      * The parent base template file name if the current template extends another.
@@ -154,11 +140,9 @@ class Aurora
     {
         // Set the current called template.
         $this->file = $file;
-        // Set the name of the current template.
-        $this->view_name = $file;
         // Set the current template cache location.
         $this->cache_root = Config::getViewCacheRoot();
-        $this->cached_view_file = $this->cache_root . $this->view_name . '.php';
+        $this->cached_view_file = $this->cache_root . $file . '.php';
         // Set user defined functions.
         $this->functions = AuroraFunctionHelper::getFunctions();
         if ($this->functions !== []) {
@@ -215,28 +199,10 @@ class Aurora
         // Only initialize these once we are certain that we are going to recompile the template from scratch.
         $output = '';
         $cached_file = '';
-        // Check if the current template file exists.
-        // This is the template file for the route itself, eg the index page route would have an index.aura.php template file.
-        // It's filename is already set in the constructor with the parseFilename method that assumes always
-        // that the template files are in the Views folder in the App main directory.
-        // if (!file_exists($this->file)) {
-        //     throw new \Exception("Template file does not exist or is unreadable. Check the file {$this->file}", 404);
-        // }
-        // Read the template file contents into the class variable.
-        // $this->file_contents = file_get_contents($this->file);
-        // // Check if the current template extends a parent template and merge the two templates.
-        // if ($this->checkExtend($this->file_contents) === true) {
-        //     // Merge current template with its parent.
-        //     $output = $this->mergeWithParent();
-        // } else {
-        //     // Simply assign our file contents to $output since no parent template is detected.
-        //     $output = $this->file_contents;
-        // }
+
         $output = $this->prepareCurrentTemplate($this->file);
         // Parse all linked assets
         $output = $this->parseAssets($output);
-        // Save all variables to an array and replace with placeholder
-        // $output = $this->saveVariables($output);
         // Check and parse the instruction blocks.
         // See individual methods for workflow explanation.
         $output = $this->parseInstructions($output);
@@ -256,6 +222,7 @@ class Aurora
         if ($cached_file === false) {
             throw new \Exception("Unable to create cache file - {$this->cached_view_file} - to  - {$this->cache_root} - directory. Please make sure the folder has sufficient rights set for a script to write to it.", 404);
         }
+        var_dump($output);
         if ($return_type === 'cache') {
             return $cached_file;
         } else if ($return_type === 'contents') {
@@ -271,10 +238,7 @@ class Aurora
         $output = $this->getTemplateFileContents($file);
         if ($this->checkExtend($output) === true) {
             $output = $this->mergeTemplates($output, $this->parent_file);
-        } else {
-            return $this->file_contents;
         }
-
         return $output;
     }
 
@@ -536,17 +500,43 @@ class Aurora
     {
         $regex = '';
         $foreach = '';
-        $regex = '/(?P<full>\(\@for\:\:(?P<needle>\w*?)\ in\ (?P<haystack>\w*?)\)(?P<loop>.*?)\(\@endfor\))/s';
+        // $regex = '/(?P<full>\(\@for\:\:((?P<key>.*?)\,\ )*?(?P<needle>\w*?)\ in\ (?P<haystack>.*?)\)(?P<loop>.*?)\(\@endfor\))/s';
+        $regex = '/(?P<full>\(\@for\:\:((?P<key>.*?)\,\ )*?(?P<needle>\w*?)\ in\ (?P<haystack>.*?)\)(?P<loop>.*?)(?:\(\@endfor\))+)/s';
         $matches = $this->findByRegex($regex, $output);
         foreach ($matches as $match) {
             $match = array_filter($match, 'is_string', ARRAY_FILTER_USE_KEY);
             extract($match, EXTR_OVERWRITE);
-            $foreach = "
-            <?php foreach(\${$haystack} as \${$needle}): ?>
+
+            if (Str::contains($haystack, '..')) {
+                $haystack = explode('..', $haystack);
+                if (is_numeric($haystack[0]) && !is_numeric($haystack[1])) {
+                    throw new \Exception('Mismatching range. Specify a numeric or alphabetical range, not both at once.', 404);
+                }
+                if (ctype_alpha($haystack[0]) && !ctype_alpha($haystack[1])) {
+                    throw new \Exception('Mismatching range. Specify a numeric or alphabetical range, not both at once.', 404);
+                }
+                $range = 'var';
+                $foreach = "
+                <?php \${$range} = range('{$haystack[0]}', '{$haystack[1]}'); ?>
+                <?php foreach(\${$range} as \${$needle}): ?>
                 {$loop}
-            <?php endforeach ?>";
-            $output = preg_replace($regex, $foreach, $output, 1);
+                <?php endforeach ?>";
+                $output = preg_replace($regex, $foreach, $output, 1);
+            } elseif (isset($key) && $key !== '') {
+                $foreach = "
+                <?php foreach(\${$haystack} as \${$key} => \${$needle}): ?>
+                {$loop}
+                <?php endforeach ?>";
+                $output = preg_replace($regex, $foreach, $output, 1);
+            } else {
+                $foreach = "
+                <?php foreach(\${$haystack} as \${$needle}): ?>
+                {$loop}
+                <?php endforeach ?>";
+                $output = preg_replace($regex, $foreach, $output, 1);
+            }
         }
+        var_dump($matches);
         return $output;
     }
 

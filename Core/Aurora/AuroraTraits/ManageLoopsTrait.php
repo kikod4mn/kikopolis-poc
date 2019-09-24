@@ -2,7 +2,9 @@
 
 namespace Kikopolis\Core\Aurora\AuroraTraits;
 
-trait ParseAssetsTrait
+use Kikopolis\App\Helpers\Arr;
+
+trait ManageLoopsTrait
 {
     //
 }

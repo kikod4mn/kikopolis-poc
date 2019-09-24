@@ -2,9 +2,7 @@
 
 namespace Kikopolis\Core\Aurora\AuroraTraits;
 
-use Kikopolis\App\Helpers\Str;
-
-trait ParseVariablesTrait
+trait ManageFunctionsTrait
 {
     //
 }

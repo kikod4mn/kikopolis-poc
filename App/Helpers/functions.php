@@ -15,15 +15,7 @@ if (!function_exists('k_echo')) {
     {
         // First we determine if the $var passed in is not a string
         // and pass it back to this function recursively with the $key for echoing to template.
-        switch ($var) {
-            case is_iterable($var) && is_array($var):
-                return k_echo((string) $var[$key], $escape);
-            case is_object($var) || ($var instanceof \Traversable):
-                $var = get_object_vars($var);
-                return k_echo((string) $var[$key], $escape);
-                // return print_r($stack->$key, true);
-                // return $stack->{"$key"};
-        }
+        $var = k_echo_type($var, $key);
         // Different escape levels, depending on the surrounding tags of the $var.
         switch ($escape) {
             case 'escape':
@@ -33,8 +25,26 @@ if (!function_exists('k_echo')) {
             case 'no-escape':
                 return $var;
             default:
-                // var_dump($var);
                 return htmlspecialchars($var, ENT_QUOTES, 'UTF-8');
+        }
+    }
+}
+
+if (!function_exists('k_echo_type')) {
+    function k_echo_type($var, $key)
+    {
+        switch ($var) {
+            case is_iterable($var) && is_array($var):
+                return (string) $var[$key];
+            case is_object($var) || ($var instanceof \Traversable):
+                $var = get_object_vars($var);
+                return (string) $var[$key];
+                // return print_r($stack->$key, true);
+                // return $stack->{"$key"};
+            case is_int($var):
+                return (string) $var;
+            case is_string($var):
+                return (string) $var;
         }
     }
 }
