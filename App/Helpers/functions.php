@@ -31,21 +31,20 @@ if (!function_exists('outputSafeHtml')) {
 if (!function_exists('outputMiscValue')) {
     function outputMiscValue($stack, $key)
     {
-        $var = '';
         switch ($stack) {
             case is_array($stack);
-                $var = $stack[$key];
-                break;
+                return $stack[$key];
             case is_object($stack);
-                $var = $stack->{"$key"};
-                break;
+                $stack = get_object_vars($stack);
+                return $stack[$key];
+                // return print_r($stack->$key, true);
+                // return $stack->{"$key"};
             case class_exists($stack):
                 // @TODO: Concept for using class public methods aswell to try and get a property.
-                $var = $stack->get . $key;
-                break;
+                return $stack->get . $key;
             default:
-                $var = null;
+                return null;
         }
-        return $var;
+        return null;
     }
 }

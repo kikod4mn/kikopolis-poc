@@ -17,6 +17,7 @@
         <div class="row">
             <h4 class="col-12 text-center"><u>Limited html allowed</u></h4>
             {!! no_escape !!}
+            (@function::countDaysFromBirth(12.04.1987))
             (@section::extend)
         </div>
         <div class="row">
@@ -25,15 +26,21 @@
                 <h1 class="text-center">{{ heading_title }}</h1>
                 <p class="text-justify">{{ content }}</p>
                 (@includes::layouts.pointless.section-main)
-                (@for::user in users)
-                {{ user.id }}
-                {{ user.name }}
-                {{ user.email }}
-                (@endfor)
-                (@for::post in posts)
-                {{ post.id }}
-                {{ post.title }}
-                (@endfor)
+                <div class="column border border-danger">
+                    (@for::user in users)
+                    <h4 class="text-danger">User data</h4>
+                    <span>User ID : {{ user.id }}</span><br>
+                    <span>User name : {{ user.name }}</span><br>
+                    <span>User email : {{ user.email }}</span><br>
+                    (@endfor)
+                </div>
+                <div class="border border-danger">
+                    (@for::post in posts)
+                    <h4 class="text-danger">Post info</h4>
+                    <span>Post ID : {{ post.id }}</span><br>
+                    <span>Post title : {{ post.title }}</span><br>
+                    (@endfor)
+                </div>
             </div>
             <div class="col-3">(@includes::layouts.pointless.sidebar)</div>
         </div>

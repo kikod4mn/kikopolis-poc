@@ -37,8 +37,7 @@ trait ParseVariablesTrait
 
     private function parseLoopVarName(string $haystack, string $needle): string
     {
-        $var = "<?php echo outputMiscValue(\${$haystack}, '{$needle}'); ?>";
-        return $var;
+        return "<?php echo outputMiscValue(\${$haystack}, '{$needle}'); ?>";
     }
 
     private function parseVariables(string $output, string $regular_expression = ''): string

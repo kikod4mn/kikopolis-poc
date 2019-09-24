@@ -14,7 +14,7 @@ trait ManageFileContentsTrait
      * @param string $output
      * @return string|bool
      */
-    private function saveToCachedFile(string $output)
+    public function saveToCachedFile(string $output)
     {
         return $this->forceFileContents($output) === true ? $this->cached_view_file : false;
     }

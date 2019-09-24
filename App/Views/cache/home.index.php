@@ -32,6 +32,7 @@
         <div class="row">
             <h4 class="col-12 text-center"><u>Limited html allowed</u></h4>
             <?php echo $no_escape; ?>
+            11853
             
 <div>
     <h1 class="text-center"><?php echo outputSafeHtml($heading_title); ?></h1>
@@ -53,21 +54,27 @@
     <li><a href="#">Link Item</a></li>
 </ul>
 
-                
+                <div class="column border border-danger">
+                    
             <?php foreach($users as $user): ?>
                 
-                <?php echo outputMiscValue($user, 'id'); ?>
-                <?php echo outputMiscValue($user, 'name'); ?>
-                <?php echo outputMiscValue($user, 'email'); ?>
-                
+                    <h4 class="text-danger">User data</h4>
+                    <span>User ID : <?php echo outputMiscValue($user, 'id'); ?></span><br>
+                    <span>User name : <?php echo outputMiscValue($user, 'name'); ?></span><br>
+                    <span>User email : <?php echo outputMiscValue($user, 'email'); ?></span><br>
+                    
             <?php endforeach ?>
-                
+                </div>
+                <div class="border border-danger">
+                    
             <?php foreach($posts as $post): ?>
                 
-                <?php echo outputMiscValue($post, 'id'); ?>
-                <?php echo outputMiscValue($post, 'title'); ?>
-                
+                    <h4 class="text-danger">Post info</h4>
+                    <span>Post ID : <?php echo outputMiscValue($post, 'id'); ?></span><br>
+                    <span>Post title : <?php echo outputMiscValue($post, 'title'); ?></span><br>
+                    
             <?php endforeach ?>
+                </div>
             </div>
             <div class="col-3">
 <div class="bg-secondary">

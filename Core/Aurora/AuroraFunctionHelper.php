@@ -20,6 +20,6 @@ class AuroraFunctionHelper
 
     public static function addFunction($name, $callback, $arguments = [])
     {
-        static::$functions[$name] = ['closure' => $callback, 'arguments' => $arguments];
+        static::$functions[] = ['name' => $name, 'closure' => $callback, 'arguments' => $arguments];
     }
 }

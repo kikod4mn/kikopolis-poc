@@ -22,9 +22,11 @@ require_once '../Core/Core.php';
 // Instantiate the dependency injection container
 $container = new Container();
 
-View::addFunction('countDaysFromBirth', function ($test_var1, $test_var2) {
-    var_dump($test_var1);
-    var_dump($test_var2);
+View::addFunction('countDaysFromBirth', function ($dob) {
+    $now = time();
+    $your_date = strtotime($dob);
+    $datediff = $now - $your_date;
+    return round($datediff / (60 * 60 * 24));
 });
 
 // Require the route dispatcher

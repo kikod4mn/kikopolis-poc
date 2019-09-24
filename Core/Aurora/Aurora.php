@@ -126,7 +126,7 @@ class Aurora
      *
      * @var array
      */
-    private $values = [];
+    private $custom_values = [];
 
     /**
      * The cache root directory.
@@ -135,7 +135,14 @@ class Aurora
      */
     private $cache_root = '';
 
+    /**
+     * Array of user defined functions to make available at runtime.
+     *
+     * @var array
+     */
     private $functions = [];
+
+    public static $must_run_user_func = false;
 
     /**
      * Class constructor.
@@ -157,14 +164,17 @@ class Aurora
         $this->cached_view_file = $this->cache_root . $this->view_name . '.php';
         // Set the current template variables.
         $this->variables = $variables;
-
+        // Set user defined functions.
         $this->functions = AuroraFunctionHelper::getFunctions();
+        if (AuroraFunctionHelper::getFunctions() !== []) {
+            static::$must_run_user_func = true;
+        }
     }
 
     // @TODO: Maybe method for setting the replaceable tag and its corresponding value.
     public function set($tag, $value)
     {
-        $this->values[$tag] = $value;
+        $this->custom_values[$tag] = $value;
     }
 
     /**
@@ -178,15 +188,24 @@ class Aurora
     }
 
     /**
-     * Main output method.
+     * Main output method. Returns the filename of the cached template.
      * See the individual methods for more detailed explanation of how Aurora works.
      * This is the only intended returning method for template content.
      * 
-     * @param bool $force_compile   Force a new compilation of the template file regardless of any conditions.
+     * @param bool      $force_compile   Force a new compilation of the template file regardless of any conditions.
+     * @param string    $return_type     Determine, the return type of the template. 'cache' returns the filename for
+     *                                   showing the page in the browser. 'contents' returns the raw file contents.
+     *                                   No meaningful reason other than for testing and debugging to see the final
+     *                                   output that the View class receives.
      * @throws \Exception
      * @return string
      */
-    public function output(bool $force_compile = false): string
+    // TODO: Refactor the escape function to be able to use escape arguments with loop vars TODO:
+    // TODO: Refactor the escape function to be able to use escape arguments with loop vars TODO:
+    // TODO: Refactor the escape function to be able to use escape arguments with loop vars TODO:
+    // TODO: Refactor the escape function to be able to use escape arguments with loop vars TODO:
+    // TODO: Refactor the escape function to be able to use escape arguments with loop vars TODO:
+    public function output(bool $force_compile = false, string $return_type = 'cache'): string
     {
         // Check for a compiled file
         // See method checkForCachedFile for specific conditions as to when the cached file is used.
@@ -239,15 +258,17 @@ class Aurora
         }
         // Remove any stray tags
         $output = $this->removeTags($output);
-        var_dump($output);
-        // die;
         // Generate a new cache file with plain php
         $cached_file = $this->saveToCachedFile($output);
         // If an error occurs during cache file creation, throws an Exception.
         if ($cached_file === false) {
             throw new \Exception("Unable to create cache file - {$this->cached_view_file} - to  - {$this->cache_root} - directory. Please make sure the folder has sufficient rights set for a script to write to it.", 404);
         }
-        return $cached_file;
+        if ($return_type === 'cache') {
+            return $cached_file;
+        } else if ($return_type === 'contents') {
+            return $output;
+        }
     }
 
     /**
@@ -276,6 +297,43 @@ class Aurora
         $this->parent_file = $this->parseFileName($matches[1][0]);
         // Return true if no exception and an extends:: has been found.
         return true;
+    }
+
+    public function setCustomValues(string $output): string
+    {
+        return $output;
+    }
+
+    /**
+     * Run user defined functions.
+     *
+     * @param string $output
+     * @return string
+     */
+    public static function runUserFunc(string $output): string
+    {
+        $regex = '';
+
+        $regex = '/(?P<pattern>\(\@function\:\:(?P<func>\w+)\((?P<args>.*?)\)\))/';
+
+        preg_match_all($regex, $output, $matches, PREG_SET_ORDER);
+
+        foreach ($matches as $match) {
+            $match = array_filter($match, 'is_string', ARRAY_FILTER_USE_KEY);
+            foreach (AuroraFunctionHelper::getFunctions() as $func) {
+                if ($func['name'] === $match['func']) {
+                    // $func['closure'](...[$match['args']]);
+                    $output = preg_replace_callback('/' . preg_quote($match['pattern']) . '/', function () use ($match, $func) {
+                        return $func['closure'](...[$match['args']]);
+                    }, $output);
+                    // $output = preg_replace_callback('/' . preg_quote($match['pattern']) . '/', function () use ($match, $func) {
+                    //     return $func['closure'](...[$match['args']]);
+                    // }, $output);
+                }
+            }
+        }
+        // TODO: Remove func code from template
+        return $output;
     }
 
     /**
