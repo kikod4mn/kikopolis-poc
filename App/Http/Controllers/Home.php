@@ -32,6 +32,12 @@ class Home extends Controller
     {
         $lorem_ipsum = new LoremIpsumFactory();
 
+        $american_league = [
+            'Rays', 'Yankees', 'Blue Jays', 'Orioles', 'Red Sox', 'Royals', 'Twins',
+            'Tigers', 'Indians', 'White Sox', 'Astros', 'Rangers', 'Angels',
+            'Mariners', 'Athletics'
+        ];
+
         return View::render('home.index', [
             'page_title' => '<i>The dynamic title of the page in italic</i>',
             'heading_title' => '<i>The title of lorems<script>alert(\'alert\');</script></i>',
@@ -58,7 +64,8 @@ class Home extends Controller
                     'email' => 'jane@doe.com'
                 ]
             ],
-            'posts' => $post->get()
+            'posts' => $post->get(),
+            'teams' => $american_league
         ]);
         // echo "<br><h1>Hi, cruel world of PHP</h1><br>";
         // $string = Str::convertToSnakeCase('This to snake case');

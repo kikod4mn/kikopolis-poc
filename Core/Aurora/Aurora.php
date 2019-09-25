@@ -215,7 +215,7 @@ class Aurora
             throw new \Exception("A template file may only extend one other template file, additionally no included files may extend another template. Only one @extends::('template-name') line per the entire compiled template is allowed and it must be in the current template being rendered. This template is {$this->file} - and it is the current view file being called. No other file may have the extends statement in its code. Check your files for a stray extends statement!!", 404);
         }
         // Remove any stray tags
-        $output = $this->removeTags($output);
+        // $output = $this->removeTags($output);
         // Generate a new cache file with plain php
         $cached_file = $this->saveToCachedFile($output);
         // If an error occurs during cache file creation, throws an Exception.
@@ -500,11 +500,14 @@ class Aurora
     {
         $regex = '';
         $foreach = '';
-        // $regex = '/(?P<full>\(\@for\:\:((?P<key>.*?)\,\ )*?(?P<needle>\w*?)\ in\ (?P<haystack>.*?)\)(?P<loop>.*?)\(\@endfor\))/s';
-        $regex = '/(?P<full>\(\@for\:\:((?P<key>.*?)\,\ )*?(?P<needle>\w*?)\ in\ (?P<haystack>.*?)\)(?P<loop>.*?)(?:\(\@endfor\))+)/s';
-        $matches = $this->findByRegex($regex, $output);
-        foreach ($matches as $match) {
-            $match = array_filter($match, 'is_string', ARRAY_FILTER_USE_KEY);
+        // $regex = '/(?P<full>\(\@for\:\:((?P<key>.*?)\,\ )*?(?P<needle>\w*?)\ in\ (?P<haystack>.*?)\)(?P<loop>.*?)(?:\(\@endfor\))+)/s';
+        $top_of_loop_regex = '/\(\@for\:\:((?P<key>.*?)\,\ )*?(?P<needle>\w*?)\ in\ (?P<haystack>.*?)\)/';
+        $end_of_loop_regex = '/(\(\@endfor\))/';
+        $top_matches = $this->findByRegex($top_of_loop_regex, $output);
+        $end_matches = $this->findByRegex($end_of_loop_regex, $output);
+        // Do loop top parts
+        foreach ($top_matches as $match) {
+            $match = Arr::arrayFilter($match);
             extract($match, EXTR_OVERWRITE);
 
             if (Str::contains($haystack, '..')) {
@@ -519,24 +522,24 @@ class Aurora
                 $foreach = "
                 <?php \${$range} = range('{$haystack[0]}', '{$haystack[1]}'); ?>
                 <?php foreach(\${$range} as \${$needle}): ?>
-                {$loop}
-                <?php endforeach ?>";
-                $output = preg_replace($regex, $foreach, $output, 1);
+                ";
+                $output = preg_replace($top_of_loop_regex, $foreach, $output, 1);
             } elseif (isset($key) && $key !== '') {
-                $foreach = "
-                <?php foreach(\${$haystack} as \${$key} => \${$needle}): ?>
-                {$loop}
-                <?php endforeach ?>";
-                $output = preg_replace($regex, $foreach, $output, 1);
+                $foreach = "<?php foreach(\${$haystack} as \${$key} => \${$needle}): ?>";
+                $output = preg_replace($top_of_loop_regex, $foreach, $output, 1);
             } else {
                 $foreach = "
-                <?php foreach(\${$haystack} as \${$needle}): ?>
-                {$loop}
-                <?php endforeach ?>";
-                $output = preg_replace($regex, $foreach, $output, 1);
+                <?php foreach(\${$haystack} as \${$needle}): ?>";
+                $output = preg_replace($top_of_loop_regex, $foreach, $output, 1);
             }
         }
-        var_dump($matches);
+        foreach ($end_matches as $match) {
+            $match = Arr::arrayFilter($match);
+            extract($match, EXTR_OVERWRITE);
+            $foreach = "<?php endforeach ?>";
+            $output = preg_replace($end_of_loop_regex, $foreach, $output);
+        }
+        var_dump($top_matches);
         return $output;
     }
 
@@ -550,7 +553,7 @@ class Aurora
      */
     public function parseVarTag(string $var, string $escape = 'escape', string $needle = ''): string
     {
-        return "<?php echo k_echo(\${$var}, '{$escape}', '{$needle}'); ?>";
+        return "<?php echo \Kikopolis\Core\Aurora\Aurora::k_echo(\${$var}, '{$escape}', '{$needle}'); ?>";
     }
 
     /**
@@ -850,5 +853,40 @@ class Aurora
         }
         // Return the determined file root.
         return $file_root;
+    }
+
+    public static function k_echo($var, $escape = 'escape', $key = '')
+    {
+        // First we determine if the $var passed in is not a string
+        // and pass it back to this function recursively with the $key for echoing to template.
+        $var = static::k_echo_type($var, $key);
+        // Different escape levels, depending on the surrounding tags of the $var.
+        switch ($escape) {
+            case 'escape':
+                return htmlspecialchars($var, ENT_QUOTES, 'UTF-8');
+            case 'allow-html':
+                return htmlspecialchars_decode(htmlspecialchars($var, ENT_QUOTES, 'UTF-8'));
+            case 'no-escape':
+                return $var;
+            default:
+                return htmlspecialchars($var, ENT_QUOTES, 'UTF-8');
+        }
+    }
+
+    public static function k_echo_type($var, $key)
+    {
+        switch ($var) {
+            case is_iterable($var) && is_array($var):
+                return (string) $var[$key];
+            case is_object($var) || ($var instanceof \Traversable):
+                $var = get_object_vars($var);
+                return (string) $var[$key];
+                // return print_r($stack->$key, true);
+                // return $stack->{"$key"};
+            case is_int($var):
+                return (string) $var;
+            case is_string($var):
+                return (string) $var;
+        }
     }
 }

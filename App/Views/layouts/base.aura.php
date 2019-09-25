@@ -59,12 +59,15 @@
                         (@endfor)
                     </div>
                     <div class="col-12 border border-danger">
+                        (@for::team in teams)
+                        <h5 class="text-center">{{team}}</h5><br>
+                        (@endfor)
+                    </div>
+                    <div class="col-12 border border-danger">
+                        <h4 class="text-danger">User data with keys</h4>
                         (@for::user in users)
                         (@for::key, value in user)
-                        <h4 class="text-danger">User data with keys</h4>
-                        <span>User {{key}} : {!! user.id !!}</span><br>
-                        <span>User {{key}} : {!! user.name !!}</span><br>
-                        <span>User {{key}} : {!! user.email !!}</span><br>
+                        <span>User {{key}} : {!! value !!}</span><br>
                         (@endfor)
                         (@endfor)
                     </div>

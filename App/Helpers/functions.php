@@ -10,12 +10,12 @@ if (!function_exists('redirect')) {
     }
 }
 
-if (!function_exists('k_echo')) {
-    function k_echo($var, $escape = 'escape', $key = '')
+if (!function_exists('escape')) {
+    function escape($var, $escape = 'escape', $key = '')
     {
         // First we determine if the $var passed in is not a string
         // and pass it back to this function recursively with the $key for echoing to template.
-        $var = k_echo_type($var, $key);
+        $var = escape_type($var, $key);
         // Different escape levels, depending on the surrounding tags of the $var.
         switch ($escape) {
             case 'escape':
@@ -30,8 +30,8 @@ if (!function_exists('k_echo')) {
     }
 }
 
-if (!function_exists('k_echo_type')) {
-    function k_echo_type($var, $key)
+if (!function_exists('escape_type')) {
+    function escape_type($var, $key)
     {
         switch ($var) {
             case is_iterable($var) && is_array($var):

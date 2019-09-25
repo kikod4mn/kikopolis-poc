@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title><?php echo k_echo($page_title, 'escape', ''); ?></title>
+    <title><?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($page_title, 'escape', ''); ?></title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
     <link href='http://localhost/kikopolis_poc/public/css/style.css' rel='stylesheet'>
@@ -31,20 +31,20 @@
     <div class="container justify-content-center align-items-center">
         <div class="row">
             <h4 class="col-12 text-center"><u>Limited html allowed</u></h4>
-            <?php echo k_echo($no_escape, 'no-escape', ''); ?>
-            11854
+            <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($no_escape, 'no-escape', ''); ?>
+            11855
             
 <div>
-    <h1 class="text-center"><?php echo k_echo($heading_title, 'allow-html', ''); ?></h1>
-    <p class="text-justify"><?php echo k_echo($content, 'allow-html', ''); ?></p>
+    <h1 class="text-center"><?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($heading_title, 'allow-html', ''); ?></h1>
+    <p class="text-justify"><?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($content, 'allow-html', ''); ?></p>
 </div>
 
         </div>
         <div class="row">
             <h4 class="col-12 text-center"><u>No Html allowed</u></h4>
             <div class="col-9">
-                <h1 class="text-center"><?php echo k_echo($heading_title, 'escape', ''); ?></h1>
-                <p class="text-justify"><?php echo k_echo($content, 'escape', ''); ?></p>
+                <h1 class="text-center"><?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($heading_title, 'escape', ''); ?></h1>
+                <p class="text-justify"><?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($content, 'escape', ''); ?></p>
                 
 <ul>
     <li><a href="#">Link Item</a></li>
@@ -58,60 +58,56 @@
                     <div class="col-12 border border-danger">
                         
                 <?php foreach($users as $user): ?>
-                
                         <h4 class="text-danger">User data</h4>
-                        <span>User ID : <?php echo k_echo($user, 'no-escape', 'id'); ?></span><br>
-                        <span>User name : <?php echo k_echo($user, 'no-escape', 'name'); ?></span><br>
-                        <span>User email : <?php echo k_echo($user, 'no-escape', 'email'); ?></span><br>
-                        
-                <?php endforeach ?>
+                        <span>User ID : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($user, 'no-escape', 'id'); ?></span><br>
+                        <span>User name : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($user, 'no-escape', 'name'); ?></span><br>
+                        <span>User email : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($user, 'no-escape', 'email'); ?></span><br>
+                        <?php endforeach ?>
                     </div>
                     <div class="col-12 border border-danger">
                         
                 <?php foreach($posts as $post): ?>
-                
                         <h4 class="text-danger">Post info</h4>
-                        <span>Post ID : <?php echo k_echo($post, 'allow-html', 'post_id'); ?></span><br>
-                        <span>Post title : <?php echo k_echo($post, 'allow-html', 'post_title'); ?></span><br>
-                        <span>Post body : <?php echo k_echo($post, 'allow-html', 'post_body'); ?></span><br>
-                        <span>Post tags : <?php echo k_echo($post, 'allow-html', 'post_tags'); ?></span><br>
-                        <span>Post image : <?php echo k_echo($post, 'allow-html', 'post_image'); ?></span><br>
-                        <span>Post author : <?php echo k_echo($post, 'allow-html', 'post_author_name'); ?></span><br>
-                        <span>Posted on : <?php echo k_echo($post, 'allow-html', 'post_created_at'); ?></span><br>
-                        <span>Modified on : <?php echo k_echo($post, 'allow-html', 'post_modified_at'); ?></span><br>
-                        
-                <?php endforeach ?>
+                        <span>Post ID : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($post, 'allow-html', 'post_id'); ?></span><br>
+                        <span>Post title : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($post, 'allow-html', 'post_title'); ?></span><br>
+                        <span>Post body : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($post, 'allow-html', 'post_body'); ?></span><br>
+                        <span>Post tags : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($post, 'allow-html', 'post_tags'); ?></span><br>
+                        <span>Post image : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($post, 'allow-html', 'post_image'); ?></span><br>
+                        <span>Post author : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($post, 'allow-html', 'post_author_name'); ?></span><br>
+                        <span>Posted on : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($post, 'allow-html', 'post_created_at'); ?></span><br>
+                        <span>Modified on : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($post, 'allow-html', 'post_modified_at'); ?></span><br>
+                        <?php endforeach ?>
                     </div>
                     <div class="col-12 border border-danger">
                         
                 <?php $var = range('0', '32'); ?>
                 <?php foreach($var as $num): ?>
                 
-                        <?php echo k_echo($num, 'escape', ''); ?>
-                        
-                <?php endforeach ?>
+                        <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($num, 'escape', ''); ?>
+                        <?php endforeach ?>
                     </div>
                     <div class="col-12 border border-danger">
                         
                 <?php $var = range('a', 'z'); ?>
                 <?php foreach($var as $letter): ?>
                 
-                        <?php echo k_echo($letter, 'escape', ''); ?>
-                        
-                <?php endforeach ?>
+                        <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($letter, 'escape', ''); ?>
+                        <?php endforeach ?>
                     </div>
                     <div class="col-12 border border-danger">
                         
-                <?php foreach($users as $user): ?>
-                
-                        
+                <?php foreach($teams as $team): ?>
+                        <h5 class="text-center"><?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($team, 'escape', ''); ?></h5><br>
+                        <?php endforeach ?>
+                    </div>
+                    <div class="col-12 border border-danger">
                         <h4 class="text-danger">User data with keys</h4>
-                        <span>User <?php echo k_echo($key, 'escape', ''); ?> : <?php echo k_echo($user, 'no-escape', 'id'); ?></span><br>
-                        <span>User <?php echo k_echo($key, 'escape', ''); ?> : <?php echo k_echo($user, 'no-escape', 'name'); ?></span><br>
-                        <span>User <?php echo k_echo($key, 'escape', ''); ?> : <?php echo k_echo($user, 'no-escape', 'email'); ?></span><br>
                         
-                <?php endforeach ?>
-                        
+                <?php foreach($users as $user): ?>
+                        <?php foreach($user as $key => $value): ?>
+                        <span>User <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($key, 'escape', ''); ?> : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($value, 'no-escape', ''); ?></span><br>
+                        <?php endforeach ?>
+                        <?php endforeach ?>
                     </div>
                     <div class="col-12 border border-danger">
                         (@if::users)
