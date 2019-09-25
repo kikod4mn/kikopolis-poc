@@ -71,8 +71,14 @@
                 <?php foreach($posts as $post): ?>
                 
                         <h4 class="text-danger">Post info</h4>
-                        <span>Post ID : <?php echo k_echo($post, 'allow-html', 'id'); ?></span><br>
-                        <span>Post title : <?php echo k_echo($post, 'allow-html', 'title'); ?></span><br>
+                        <span>Post ID : <?php echo k_echo($post, 'allow-html', 'post_id'); ?></span><br>
+                        <span>Post title : <?php echo k_echo($post, 'allow-html', 'post_title'); ?></span><br>
+                        <span>Post body : <?php echo k_echo($post, 'allow-html', 'post_body'); ?></span><br>
+                        <span>Post tags : <?php echo k_echo($post, 'allow-html', 'post_tags'); ?></span><br>
+                        <span>Post image : <?php echo k_echo($post, 'allow-html', 'post_image'); ?></span><br>
+                        <span>Post author : <?php echo k_echo($post, 'allow-html', 'post_author_name'); ?></span><br>
+                        <span>Posted on : <?php echo k_echo($post, 'allow-html', 'post_created_at'); ?></span><br>
+                        <span>Modified on : <?php echo k_echo($post, 'allow-html', 'post_modified_at'); ?></span><br>
                         
                 <?php endforeach ?>
                     </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
+use App\Models\Post;
 use Kikopolis\App\Config\Config;
 use Kikopolis\App\Helpers\Str;
 use Kikopolis\App\Utility\Token;
@@ -27,7 +28,7 @@ class Home extends Controller
         // echo FileHelper::getHumanFileSize('34000591231240');
     }
 
-    public function index()
+    public function index(Post $post)
     {
         $lorem_ipsum = new LoremIpsumFactory();
 
@@ -57,16 +58,7 @@ class Home extends Controller
                     'email' => 'jane@doe.com'
                 ]
             ],
-            'posts' => (object) [
-                'post1' => (object) [
-                    'id' => '1',
-                    'title' => 'Foo'
-                ],
-                'post2' => (object) [
-                    'id' => '2',
-                    'title' => 'Bar'
-                ]
-            ]
+            'posts' => $post->get()
         ]);
         // echo "<br><h1>Hi, cruel world of PHP</h1><br>";
         // $string = Str::convertToSnakeCase('This to snake case');

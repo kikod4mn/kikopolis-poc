@@ -38,8 +38,14 @@
                     <div class="col-12 border border-danger">
                         (@for::post in posts)
                         <h4 class="text-danger">Post info</h4>
-                        <span>Post ID : {!% post.id %!}</span><br>
-                        <span>Post title : {!% post.title %!}</span><br>
+                        <span>Post ID : {!% post.post_id %!}</span><br>
+                        <span>Post title : {!% post.post_title %!}</span><br>
+                        <span>Post body : {!% post.post_body %!}</span><br>
+                        <span>Post tags : {!% post.post_tags %!}</span><br>
+                        <span>Post image : {!% post.post_image %!}</span><br>
+                        <span>Post author : {!% post.post_author_name %!}</span><br>
+                        <span>Posted on : {!% post.post_created_at %!}</span><br>
+                        <span>Modified on : {!% post.post_modified_at %!}</span><br>
                         (@endfor)
                     </div>
                     <div class="col-12 border border-danger">
