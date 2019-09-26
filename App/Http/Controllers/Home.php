@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 defined('_KIKOPOLIS') or die('No direct script access!');
 
 use App\Models\Post;
+use App\Models\User;
 use Kikopolis\App\Config\Config;
 use Kikopolis\App\Helpers\Str;
 use Kikopolis\App\Utility\Token;
@@ -28,7 +29,7 @@ class Home extends Controller
         // echo FileHelper::getHumanFileSize('34000591231240');
     }
 
-    public function index(Post $post)
+    public function index(Post $post, User $user)
     {
         $lorem_ipsum = new LoremIpsumFactory();
 
@@ -51,19 +52,7 @@ class Home extends Controller
                 }, 200);
             
             }, false);</script></div>',
-            'users' => [
-                'user1' => [
-                    'id' => '1',
-                    'name' => 'John',
-                    'email' => 'john@doe.com'
-                ],
-
-                'user2' => [
-                    'id' => '1',
-                    'name' => 'Jane',
-                    'email' => 'jane@doe.com'
-                ]
-            ],
+            'users' => $user->get(),
             'posts' => $post->get(),
             'teams' => $american_league
         ]);

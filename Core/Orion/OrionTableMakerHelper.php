@@ -37,11 +37,11 @@ CREATE TABLE `remembered_logins` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `failed_logins` (
-  `id` bigint(20) NOT NULL PRIMARY AUTO_INCREMENT,
-  `user_id` bigint(20) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `failed_login_count` int(2) NOT NULL,
-  `failed_login_last` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+`id` bigint(20) NOT NULL PRIMARY AUTO_INCREMENT,
+`user_id` bigint(20) NOT NULL,
+`email` varchar(255) NOT NULL,
+`failed_login_count` int(2) NOT NULL,
+`failed_login_last` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `page_contents` (
@@ -56,15 +56,15 @@ CREATE TABLE `page_contents` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `site_visitors` (
-  `id` int(255) NOT NULL PRIMARY KEY AUTO_INCREMENT,
-  `ip` varchar(50) DEFAULT NULL,
-  `browser` varchar(255) NOT NULL,
-  `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-  `hour` smallint(2) NOT NULL,
-  `minute` smallint(2) NOT NULL,
-  `day` smallint(2) NOT NULL,
-  `month` smallint(2) NOT NULL,
-  `year` smallint(4) NOT NULL,
-  `referrer` varchar(255) DEFAULT NULL,
-  `page` varchar(255) DEFAULT NULL
+`id` int(255) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+`ip` varchar(50) DEFAULT NULL,
+`browser` varchar(255) NOT NULL,
+`date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+`hour` smallint(2) NOT NULL,
+`minute` smallint(2) NOT NULL,
+`day` smallint(2) NOT NULL,
+`month` smallint(2) NOT NULL,
+`year` smallint(4) NOT NULL,
+`referrer` varchar(255) DEFAULT NULL,
+`page` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

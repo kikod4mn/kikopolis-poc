@@ -876,6 +876,10 @@ class Aurora
     public static function k_echo_type($var, $key)
     {
         switch ($var) {
+            case is_int($var):
+                return (string) $var;
+            case is_string($var):
+                return (string) $var;
             case is_iterable($var) && is_array($var):
                 return (string) $var[$key];
             case is_object($var) || ($var instanceof \Traversable):
@@ -883,10 +887,6 @@ class Aurora
                 return (string) $var[$key];
                 // return print_r($stack->$key, true);
                 // return $stack->{"$key"};
-            case is_int($var):
-                return (string) $var;
-            case is_string($var):
-                return (string) $var;
         }
     }
 }

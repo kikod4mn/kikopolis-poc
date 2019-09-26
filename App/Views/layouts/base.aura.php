@@ -27,12 +27,19 @@
                 <p class="text-justify">{{ content }}</p>
                 (@includes::layouts.pointless.section-main)
                 <div class="row">
+                    <!-- TODO: Write limits and pagination for loops -->
+                    <!-- TODO: Write limits and pagination for loops -->
+                    <!-- TODO: Write limits and pagination for loops -->
+                    <!-- TODO: Write limits and pagination for loops -->
+                    <!-- TODO: Write limits and pagination for loops -->
+                    <!-- TODO: Write limits and pagination for loops -->
                     <div class="col-12 border border-danger">
                         (@for::user in users)
                         <h4 class="text-danger">User data</h4>
                         <span>User ID : {!! user.id !!}</span><br>
-                        <span>User name : {!! user.name !!}</span><br>
+                        <span>User name : {!! user.first_name !!} {!! user.first_name !!}</span><br>
                         <span>User email : {!! user.email !!}</span><br>
+                        <img src="{{ user.image }}" alt=""><br>
                         (@endfor)
                     </div>
                     <div class="col-12 border border-danger">
@@ -42,7 +49,7 @@
                         <span>Post title : {!% post.post_title %!}</span><br>
                         <span>Post body : {!% post.post_body %!}</span><br>
                         <span>Post tags : {!% post.post_tags %!}</span><br>
-                        <span>Post image : {!% post.post_image %!}</span><br>
+                        <img src="{!% post.post_image %!}" alt=""><br>
                         <span>Post author : {!% post.post_author_name %!}</span><br>
                         <span>Posted on : {!% post.post_created_at %!}</span><br>
                         <span>Modified on : {!% post.post_modified_at %!}</span><br>

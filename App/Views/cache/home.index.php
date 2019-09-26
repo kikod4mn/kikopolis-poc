@@ -55,13 +55,20 @@
 </ul>
 
                 <div class="row">
+                    <!-- TODO: Write limits and pagination for loops -->
+                    <!-- TODO: Write limits and pagination for loops -->
+                    <!-- TODO: Write limits and pagination for loops -->
+                    <!-- TODO: Write limits and pagination for loops -->
+                    <!-- TODO: Write limits and pagination for loops -->
+                    <!-- TODO: Write limits and pagination for loops -->
                     <div class="col-12 border border-danger">
                         
                 <?php foreach($users as $user): ?>
                         <h4 class="text-danger">User data</h4>
                         <span>User ID : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($user, 'no-escape', 'id'); ?></span><br>
-                        <span>User name : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($user, 'no-escape', 'name'); ?></span><br>
+                        <span>User name : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($user, 'no-escape', 'first_name'); ?> <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($user, 'no-escape', 'first_name'); ?></span><br>
                         <span>User email : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($user, 'no-escape', 'email'); ?></span><br>
+                        <img src="<?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($user, 'escape', 'image'); ?>" alt=""><br>
                         <?php endforeach ?>
                     </div>
                     <div class="col-12 border border-danger">
@@ -72,7 +79,7 @@
                         <span>Post title : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($post, 'allow-html', 'post_title'); ?></span><br>
                         <span>Post body : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($post, 'allow-html', 'post_body'); ?></span><br>
                         <span>Post tags : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($post, 'allow-html', 'post_tags'); ?></span><br>
-                        <span>Post image : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($post, 'allow-html', 'post_image'); ?></span><br>
+                        <img src="<?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($post, 'allow-html', 'post_image'); ?>" alt=""><br>
                         <span>Post author : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($post, 'allow-html', 'post_author_name'); ?></span><br>
                         <span>Posted on : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($post, 'allow-html', 'post_created_at'); ?></span><br>
                         <span>Modified on : <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($post, 'allow-html', 'post_modified_at'); ?></span><br>

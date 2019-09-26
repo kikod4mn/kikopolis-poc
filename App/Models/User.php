@@ -6,7 +6,7 @@ use Kikopolis\Core\Database;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
-class Post extends Database
+class User extends Database
 {
     protected $stmt;
 
@@ -35,17 +35,7 @@ class Post extends Database
 
     public function get()
     {
-        $this->query('SELECT * FROM posts');
+        $this->query('SELECT * FROM users');
         return $this->resultSet();
-    }
-
-    public function show()
-    {
-        $this->post = [
-            'title' => 'Title',
-            'body' => 'Body',
-            'slug' => 'slug-of-post'
-        ];
-        return $this->post;
     }
 }
