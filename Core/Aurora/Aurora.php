@@ -222,7 +222,7 @@ class Aurora
         if ($cached_file === false) {
             throw new \Exception("Unable to create cache file - {$this->cached_view_file} - to  - {$this->cache_root} - directory. Please make sure the folder has sufficient rights set for a script to write to it.", 404);
         }
-        var_dump($output);
+        // var_dump($output);
         if ($return_type === 'cache') {
             return $cached_file;
         } else if ($return_type === 'contents') {
@@ -539,7 +539,7 @@ class Aurora
             $foreach = "<?php endforeach ?>";
             $output = preg_replace($end_of_loop_regex, $foreach, $output);
         }
-        var_dump($top_matches);
+        // var_dump($top_matches);
         return $output;
     }
 
@@ -857,9 +857,10 @@ class Aurora
 
     public static function k_echo($var, $escape = 'escape', $key = '')
     {
+        $var = static::k_echo_type($var, $key);
         // First we determine if the $var passed in is not a string
         // and pass it back to this function recursively with the $key for echoing to template.
-        $var = static::k_echo_type($var, $key);
+
         // Different escape levels, depending on the surrounding tags of the $var.
         switch ($escape) {
             case 'escape':
@@ -876,17 +877,21 @@ class Aurora
     public static function k_echo_type($var, $key)
     {
         switch ($var) {
-            case is_int($var):
-                return (string) $var;
-            case is_string($var):
-                return (string) $var;
-            case is_iterable($var) && is_array($var):
+            case !empty($var) && empty($key):
+                return $var;
+            case is_array($var):
                 return (string) $var[$key];
-            case is_object($var) || ($var instanceof \Traversable):
+            case is_object($var):
                 $var = get_object_vars($var);
                 return (string) $var[$key];
                 // return print_r($stack->$key, true);
                 // return $stack->{"$key"};
+            case is_int($var):
+                return (string) $var;
+            case is_string($var):
+                return (string) $var;
+            case $var === '' || $key === '':
+                return 'Empty values passed in';
         }
     }
 }

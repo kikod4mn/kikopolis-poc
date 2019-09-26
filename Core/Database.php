@@ -11,7 +11,9 @@ use Kikopolis\App\Config\Config;
 
 class Database
 {
+
     protected $stmt;
+
     protected $db = null;
 
     /**
@@ -103,9 +105,15 @@ class Database
     // Get result set as array of objects
     public function resultClass()
     {
-        $this->stmt->setFetchMode(PDO::FETCH_CLASS, get_called_class());
         $this->execute();
-        return $this->stmt->fetch();
+        return $this->stmt->fetch(PDO::FETCH_CLASS, get_called_class());
+    }
+
+    // Get result set as array of objects
+    public function resultSetClass()
+    {
+        $this->execute();
+        return $this->stmt->fetchAll(PDO::FETCH_CLASS, get_called_class());
     }
 
     // Get result set as array of objects

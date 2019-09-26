@@ -15,7 +15,13 @@ class User extends Database
      *
      * @var array
      */
-    public $errors = [];
+    protected $errors = [];
+
+    protected $fillable = [];
+
+    protected $visible = [];
+
+    protected $hidden = [];
 
     /**
      * Last inserted ID
@@ -36,6 +42,6 @@ class User extends Database
     public function get()
     {
         $this->query('SELECT * FROM users');
-        return $this->resultSet();
+        return $this->resultSetClass();
     }
 }

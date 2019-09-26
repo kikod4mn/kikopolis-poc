@@ -15,7 +15,7 @@ class Post extends Database
      *
      * @var array
      */
-    public $errors = [];
+    protected $errors = [];
 
     /**
      * Last inserted ID
