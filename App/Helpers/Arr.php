@@ -65,12 +65,4 @@ class Arr
         $array = array_filter($array, $callback, $flags);
         return $array;
     }
-
-    public static function except($array, $keys)
-    {
-        $test = array_intersect_key($array, array_flip((array) $keys));
-        var_dump($test);
-        var_dump($array);
-        die;
-    }
 }

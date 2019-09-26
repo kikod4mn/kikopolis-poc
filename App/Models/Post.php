@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\User;
 use Kikopolis\Core\Orion\Model;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
@@ -33,13 +32,9 @@ class Post extends Model
      */
     public $lastInsertedId = null;
 
-    public function __construct($data = [], User $user)
+    public function __child_construct()
     {
-        $this->db = $this->getDb();
-        // var_dump($user->get());
-        foreach ($data as $key => $value) {
-            $this->$key = $value;
-        }
+        //
     }
 
     // public function get()

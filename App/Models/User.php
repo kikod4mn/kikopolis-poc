@@ -32,6 +32,11 @@ class User extends Model
      */
     public $lastInsertedId = null;
 
+    public function __child_construct()
+    {
+        //
+    }
+
     // public function get()
     // {
     //     $this->query('SELECT * FROM users');
