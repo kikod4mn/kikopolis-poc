@@ -32,7 +32,7 @@
         <div class="row">
             <h4 class="col-12 text-center"><u>Limited html allowed</u></h4>
             <?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($no_escape, 'no-escape', ''); ?>
-            11855
+            11856
             
 <div>
     <h1 class="text-center"><?php echo \Kikopolis\Core\Aurora\Aurora::k_echo($heading_title, 'allow-html', ''); ?></h1>
