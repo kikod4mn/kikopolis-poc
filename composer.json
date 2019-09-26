@@ -1,0 +1,16 @@
+{
+    "require": {
+        "ext-pdo": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Kikopolis\\Core\\": "Core/",
+            "Kikopolis\\App\\": "App/",
+            "App\\": "App/"
+        },
+        "files": [
+            "App/Helpers/functions.php"
+        ]
+    }
+}

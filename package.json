@@ -1,0 +1,16 @@
+{
+    "name": "kikopolis-mvc",
+    "version": "0.0.1",
+    "description": "An mvc pattern content management system.<br><br>",
+    "main": "index.js",
+    "dependencies": {
+        "tailwindcss": "^1.0.6"
+    },
+    "devDependencies": {},
+    "scripts": {
+        "build:css": "tailwind build src/base_style.css -o public/css/style.css"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC"
+}
