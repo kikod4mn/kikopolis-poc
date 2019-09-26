@@ -6,7 +6,7 @@ defined('_KIKOPOLIS') or die('No direct script access!');
 
 use Kikopolis\App\Framework\Controllers\Controller;
 use Kikopolis\App\Helpers\Str;
-use Kikopolis\Core\Container;
+use Kikopolis\Core\Container\Container;
 
 /**
  * The Router class for Kikopolis MVC.
@@ -69,7 +69,7 @@ class Router
     /**
      * The IoC container.
      *
-     * @var \Kikopolis\Core\Container
+     * @var \Kikopolis\Core\Container\Container
      */
     protected $container = '';
 

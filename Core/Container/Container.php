@@ -1,6 +1,6 @@
 <?php
 
-namespace Kikopolis\Core;
+namespace Kikopolis\Core\Container;
 
 use ReflectionClass;
 use ReflectionMethod;
@@ -23,10 +23,10 @@ class Container
     protected $instances = [];
 
     /**
-     * Set the class names with namespace to instances array.
+     * Set the class name to instances array.
      *
      * @param string $abstract The name of the class
-     * @param string $concrete The name of the class
+     * @param string $concrete The name of the class with namespace
      * @return void
      */
     public function set(string $abstract, string $concrete = ''): void
@@ -63,7 +63,7 @@ class Container
      * @param string $method
      * @return mixed|object
      */
-    protected function resolve(string $concrete, array $parameters, string $method)
+    protected function resolve(string $concrete, array $parameters, string $method = '')
     {
         // Initialize variables
         $reflector = null;
@@ -73,7 +73,7 @@ class Container
         // Check if the $concrete passed in is an instance of Closure and if it is
         // we can immediately return it
         if ($concrete instanceof Closure) {
-            return $concrete($this, $parameters);
+            return $concrete($this, ...$parameters);
         }
         $reflector = new ReflectionClass($concrete);
         // Check if the class is instantiable.
@@ -84,7 +84,7 @@ class Container
         }
         // If there is a method called with the class and not just the base class itself
         // then we will resolve the method and its dependencies
-        if ($method) {
+        if ($method !== '') {
             $method_instance = new ReflectionMethod($concrete, $method);
             $method_dependencies = $method_instance->getParameters();
             $method_dependencies = $this->getDependencies($method_dependencies);
@@ -103,10 +103,11 @@ class Container
             $constructor_params = $constructor->getParameters();
             if ($constructor_params !== []) {
                 $dependencies = $this->getDependencies($constructor_params);
-                $constructor = $reflector->newInstanceArgs($dependencies);
+                $constructor = $this->getInstance($reflector, $dependencies);
+                // $constructor = $reflector->newInstanceArgs($dependencies);
             } else {
-                // If constructor has no dependencies specified, just save a new instance of if.
-                $constructor = $reflector->newInstance();
+                // If constructor has no dependencies specified, make a new instance of the class.
+                $constructor = $this->getInstance($reflector);
             }
         }
         // Get new instance with method dependencies resolved
@@ -122,6 +123,22 @@ class Container
                 // Return the resolved constructor
                 return $constructor;
             }
+        }
+    }
+
+    /**
+     * Get some instance
+     *
+     * @param ReflectionClass $reflector
+     * @param array $dependencies
+     * @return mixed
+     */
+    private function getInstance(ReflectionClass $reflector, $dependencies = [])
+    {
+        if ($dependencies !== []) {
+            return $reflector->newInstanceArgs($dependencies);
+        } else {
+            return $reflector->newInstance();
         }
     }
 

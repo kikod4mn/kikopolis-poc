@@ -1,7 +1,7 @@
 <?php
 
 use Kikopolis\Core\Aurora\View;
-use Kikopolis\Core\Container;
+use Kikopolis\Core\Container\Container;
 
 /**
  * Define constant to prevent direct access to scripts
