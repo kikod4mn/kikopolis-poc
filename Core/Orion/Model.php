@@ -1,22 +1,27 @@
 <?php
 
-namespace Kikopolis\Core;
+namespace Kikopolis\Core\Orion;
 
 use PDO;
 use Kikopolis\App\Config\Config;
-use Kikopolis\Core\Orion\OrionTraits\ManagePropertiesTrait;
+use Kikopolis\Core\Orion\Orion;
 
 /**
  * The base model with PDO connection
  */
 
-class Database
+class Model extends Orion
 {
-    use ManagePropertiesTrait;
-
     protected $stmt;
 
     protected $db = null;
+
+    public function __construct(array $attributes = [])
+    {
+        var_dump($attributes);
+        $this->db = $this->getDb();
+        $this->fill($attributes);
+    }
 
     /**
      * PDO Database connection

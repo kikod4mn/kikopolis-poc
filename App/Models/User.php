@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use Kikopolis\Core\Database;
+use Kikopolis\Core\Orion\Model;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
-class User extends Database
+class User extends Model
 {
     protected $stmt;
 
@@ -21,7 +21,9 @@ class User extends Database
 
     protected $visible = [];
 
-    protected $hidden = [];
+    protected $guarded = [];
+
+    protected $hidden = ['password_hash', 'password_reset_hash', 'password_reset_expires_at', 'activation_hash', 'remember_token_hash', 'remember_token_expires_at', 'is_active', 'is_disabled', 'status', 'api_key'];
 
     /**
      * Last inserted ID
@@ -30,18 +32,9 @@ class User extends Database
      */
     public $lastInsertedId = null;
 
-    public function __construct($data = [])
-    {
-        $this->db = $this->getDb();
-
-        foreach ($data as $key => $value) {
-            $this->$key = $value;
-        }
-    }
-
-    public function get()
-    {
-        $this->query('SELECT * FROM users');
-        return $this->resultSetClass();
-    }
+    // public function get()
+    // {
+    //     $this->query('SELECT * FROM users');
+    //     return $this->resultSetClass();
+    // }
 }

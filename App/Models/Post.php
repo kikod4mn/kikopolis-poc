@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use Kikopolis\Core\Database;
 use App\Models\User;
+use Kikopolis\Core\Orion\Model;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
-class Post extends Database
+class Post extends Model
 {
     protected $stmt;
 
@@ -17,6 +17,14 @@ class Post extends Database
      * @var array
      */
     protected $errors = [];
+
+    protected $fillable = [];
+
+    protected $visible = [];
+
+    protected $guarded = [];
+
+    protected $hidden = [];
 
     /**
      * Last inserted ID
@@ -34,11 +42,11 @@ class Post extends Database
         }
     }
 
-    public function get()
-    {
-        $this->query('SELECT * FROM posts');
-        return $this->resultSet();
-    }
+    // public function get()
+    // {
+    //     $this->query('SELECT * FROM posts');
+    //     return $this->resultSet();
+    // }
 
     public function show()
     {

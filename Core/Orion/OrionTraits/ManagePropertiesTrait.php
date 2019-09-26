@@ -34,6 +34,18 @@ trait ManagePropertiesTrait
      */
     protected $hidden = [];
 
+    protected $attributes = [];
+
+    public function fill(array $attributes)
+    {
+        foreach ($attributes as $key => $value) {
+            if ($this->isFillable($key)) {
+                $this->attributes[$key] = $value;
+            }
+        }
+        return $this;
+    }
+
     public function getFillable(): array
     {
         return $this->fillable;

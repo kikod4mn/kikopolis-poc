@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Kikopolis\Core\Database;
+use Kikopolis\Core\Orion\Model;
 
-class Testmodel extends Database
+class Testmodel extends Model
 {
     //
 }
