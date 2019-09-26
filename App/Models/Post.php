@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Kikopolis\Core\Database;
+use App\Models\User;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
@@ -24,10 +25,10 @@ class Post extends Database
      */
     public $lastInsertedId = null;
 
-    public function __construct($data = [])
+    public function __construct($data = [], User $user)
     {
         $this->db = $this->getDb();
-
+        // var_dump($user->get());
         foreach ($data as $key => $value) {
             $this->$key = $value;
         }

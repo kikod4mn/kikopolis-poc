@@ -270,7 +270,7 @@ class Router
     {
         // Check if the route is in our array.
         foreach ($this->routes as $route) {
-            if (preg_match($route['uri'], $url, $matches)) {
+            if (preg_match($route['uri'], $url)) {
                 // If the route is found, set it as the route and break from the loop.
                 $this->route = $route;
                 // Set the route namespace.
@@ -298,12 +298,12 @@ class Router
         }
         // Assign the controller and unset its array value.
         if (!$this->controller = $this->route['options']['namespace'] . Str::convertToStudlyCase($this->route['action'][0])) {
-            throw new \Exception('Error setting controller property.');
+            throw new \Exception("Error setting controller property - {$this->route['action'][0]}");
         }
         unset($this->route['action'][0]);
         // Assign the method and unset its array value.
         if (!$this->method = Str::convertToCamelCase($this->route['action'][1])) {
-            throw new \Exception('Error setting method property.');
+            throw new \Exception("Error setting method property - {$this->route['action'][0]}");
         }
         unset($this->route['action'][1]);
         // Get extra parameters from the url if they exist.

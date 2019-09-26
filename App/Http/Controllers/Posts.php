@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
+use App\Models\Post;
 use Kikopolis\App\Framework\Controllers\Controller;
 
 class Posts extends Controller
@@ -27,8 +28,9 @@ class Posts extends Controller
      *
      * @return void
      */
-    public function show()
+    public function show(Post $post)
     {
+        var_dump($post->get());
         echo "<h1>The id of the post is {$this->params['id']}</h1>";
         echo "<h1>The slug of the post is {$this->params['slug']}</h1>";
         echo "Well done on reaching here, young padawan!!";

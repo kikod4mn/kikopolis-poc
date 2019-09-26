@@ -25,8 +25,8 @@ class Container
     /**
      * Set the class name to instances array.
      *
-     * @param string $abstract The name of the class
-     * @param string $concrete The name of the class with namespace
+     * @param string $abstract The name of the class.
+     * @param string $concrete The name of the class with namespace.
      * @return void
      */
     public function set(string $abstract, string $concrete = ''): void
@@ -47,109 +47,87 @@ class Container
      */
     public function get(string $abstract, string $method = '', array $parameters = [])
     {
-        // If not registered, then do so
+        // If not registered, then register the $abstract first.
         if (!isset($this->instances[$abstract])) {
             $this->set($abstract);
         }
-        return $this->resolve($this->instances[$abstract], $parameters, $method);
+        return $this->buildInstances($this->instances[$abstract], $parameters, $method);
     }
 
     /**
-     * Resolve a class
+     * Make and resolve a namespaced class instance.
      *
+     * @param       string      $concrete
+     * @param       array       $parameters
+     * @param       string      $method
      * @throws Exception
-     * @param string $concrete
-     * @param array $parameters
-     * @param string $method
-     * @return mixed|object
+     * @return      mixed
      */
-    protected function resolve(string $concrete, array $parameters, string $method = '')
+    private function buildInstances(string $concrete, array $parameters, string $method = '')
     {
-        // Initialize variables
-        $reflector = null;
-        $constructor_params = [];
-        $method_instance = null;
-        $method_dependencies = [];
-        // Check if the $concrete passed in is an instance of Closure and if it is
-        // we can immediately return it
+        // If $concrete is a closure, return it immediately.
         if ($concrete instanceof Closure) {
             return $concrete($this, ...$parameters);
         }
+        // Initialize variables.
+        $reflector = null;
+        $dependencies = [];
+        $instances = [];
+        // Get a new ReflectionClass for our $concrete.
         $reflector = new ReflectionClass($concrete);
-        // Check if the class is instantiable.
-        // If it isn't, we are most likely dealing with an invalid argument such as an Interface
-        // and in that case we will want to throw an error
+        // If $reflector is not instantiable, meaning it is an Abstract or Interface class.
         if (!$reflector->isInstantiable()) {
             throw new \Exception("Class {$concrete} is not instantiable!");
         }
-        // If there is a method called with the class and not just the base class itself
-        // then we will resolve the method and its dependencies
-        if ($method !== '') {
-            $method_instance = new ReflectionMethod($concrete, $method);
-            $method_dependencies = $method_instance->getParameters();
-            $method_dependencies = $this->getDependencies($method_dependencies);
-        }
-        // Get class constructor
+        // Get class constructor.
         $constructor = $reflector->getConstructor();
-        //If constructor is null meaning there is no constructor we will then store the class instance
-        // and return it below to the calling function
+        // If no constructor, then no dependencies - simply return new class instance.
         if (is_null($constructor)) {
-            // Get new instance of our reflection class
-            $constructor = $reflector->newInstance();
-        } else {
-            // If there is a class constructor present, we check for its dependencies.
-            // and if there are dependencies required, we will then resolve them and 
-            // save the constructor with dependencies resolved for return below.
-            $constructor_params = $constructor->getParameters();
-            if ($constructor_params !== []) {
-                $dependencies = $this->getDependencies($constructor_params);
-                $constructor = $this->getInstance($reflector, $dependencies);
-                // $constructor = $reflector->newInstanceArgs($dependencies);
-            } else {
-                // If constructor has no dependencies specified, make a new instance of the class.
-                $constructor = $this->getInstance($reflector);
-            }
+            return new $concrete;
         }
-        // Get new instance with method dependencies resolved
-        if ($method_dependencies !== []) {
-            $method_dependencies = $method_instance->invokeArgs($constructor, $method_dependencies);
-        } else {
-            // If we have a method resolved then instantiate the method for display in the browser
-            // If not, simply return the constructor to the calling function
-            if ($method !== '') {
-                // If there is a method defined then instantiate the class with the method for display
-                return $constructor->$method();
-            } else {
-                // Return the resolved constructor
-                return $constructor;
-            }
+        // Get constructor params.
+        $dependencies = $constructor->getParameters();
+        // Resolve constructor params.
+        $instances = $this->resolve($dependencies);
+        // If a method is passed in, resolve the methods dependencies.
+        // The method would most likely come from the Router class.
+        if ($method !== '') {
+            return $this->resolveMethod($concrete, $method);
         }
+        // Instantiate the class with arguments.
+        return $reflector->newInstanceArgs($instances);
     }
 
     /**
-     * Get some instance
+     * Instantiates method with resolved dependencies.
      *
-     * @param ReflectionClass $reflector
-     * @param array $dependencies
+     * @param string $concrete
+     * @param string $method
      * @return mixed
      */
-    private function getInstance(ReflectionClass $reflector, $dependencies = [])
+    private function resolveMethod(string $concrete, string $method)
     {
-        if ($dependencies !== []) {
-            return $reflector->newInstanceArgs($dependencies);
-        } else {
-            return $reflector->newInstance();
-        }
+        // Initialize variables
+        $instance = null;
+        $dependencies = [];
+        $instances = [];
+        // Get new ReflectionMethod instance for our $method.
+        $instance = new ReflectionMethod($concrete, $method);
+        // Get the $method dependencies and resolve them.
+        $dependencies = $instance->getParameters();
+        $instances = $this->resolve($dependencies);
+        // Instantiate the method with its parameters resolved.
+        return $instance->invokeArgs(new $concrete, $instances);
     }
 
     /**
-     * Resolve the dependencies of a class constructor or method
+     * Resolve the dependencies of a class or method.
      *
-     * @throws Exception
      * @param array $parameters
+     * @throws Exception
      * @return array
      */
-    protected function getDependencies(array $parameters): array
+    private function resolve(array $parameters): array
     {
         // Initialize variables
         $dependency = null;

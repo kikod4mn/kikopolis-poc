@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 defined('_KIKOPOLIS') or die('No direct script access!');
 
 use App\Models\Post;
+use App\Models\Testmodel;
 use App\Models\User;
 use Kikopolis\App\Config\Config;
 use Kikopolis\App\Helpers\Str;
@@ -29,7 +30,7 @@ class Home extends Controller
         // echo FileHelper::getHumanFileSize('34000591231240');
     }
 
-    public function index(Post $post, User $user)
+    public function index(Post $post, User $user, Testmodel $testmodel)
     {
         $lorem_ipsum = new LoremIpsumFactory();
 
