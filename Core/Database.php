@@ -4,6 +4,7 @@ namespace Kikopolis\Core;
 
 use PDO;
 use Kikopolis\App\Config\Config;
+use Kikopolis\Core\Orion\OrionTraits\ManagePropertiesTrait;
 
 /**
  * The base model with PDO connection
@@ -11,6 +12,7 @@ use Kikopolis\App\Config\Config;
 
 class Database
 {
+    use ManagePropertiesTrait;
 
     protected $stmt;
 

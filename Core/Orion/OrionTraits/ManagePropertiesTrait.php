@@ -6,7 +6,6 @@ defined('_KIKOPOLIS') or die('No direct script access!');
 
 trait ManagePropertiesTrait
 {
-
     /**
      * Visible and fillable properties of the class.
      *
