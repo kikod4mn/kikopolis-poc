@@ -16,11 +16,11 @@ class Model extends Orion
 
     protected $db = null;
 
-    final protected function __construct(array $attributes = [])
+    final public function __construct(array $attributes = [])
     {
         $this->db = $this->getDb();
-        if (method_exists(get_called_class(), '__child_construct')) {
-            $this->__child_construct();
+        if (method_exists(get_called_class(), '__constructor')) {
+            $this->__constructor();
         }
         $this->fill($attributes);
     }

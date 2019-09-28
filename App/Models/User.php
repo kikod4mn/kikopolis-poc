@@ -32,7 +32,7 @@ class User extends Model
      */
     public $lastInsertedId = null;
 
-    public function __child_construct()
+    public function __constructor()
     {
         //
     }
