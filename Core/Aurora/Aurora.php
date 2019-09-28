@@ -507,12 +507,14 @@ class Aurora
 
         $top_matches = $this->findByRegex($top_of_loop_regex, $output);
         foreach ($top_matches as $match) {
+            $not_isset = false;
             $match = Arr::arrayFilter($match);
             extract($match, EXTR_OVERWRITE);
 
             var_dump($match);
 
             if (trim($not) === 'not') {
+                $not_isset = true;
                 $if_top = '<?php if (!isset(';
             } else {
                 $if_top = '<?php if (';
@@ -538,6 +540,8 @@ class Aurora
                 $if_top .= "{$conditional}): ?>";
             } elseif (Str::contains(trim($conditional), ['array()', '[]', "''", '""'])) {
                 $if_top .= "{$conditional}): ?>";
+            } elseif ($not_isset === true) {
+                $if_top .= "\${$conditional})): ?>";
             } else {
                 $if_top .= "\${$conditional}): ?>";
             }
@@ -550,9 +554,11 @@ class Aurora
 
         $middle_matches = $this->findByRegex($middle_of_loop_regex, $output);
         foreach ($middle_matches as $match) {
+            $not_isset = false;
             $match = Arr::arrayFilter($match);
             extract($match, EXTR_OVERWRITE);
             if (trim($not) === 'not') {
+                $not_isset = true;
                 $if_middle = '<?php elseif (!isset(';
             } else {
                 $if_middle = '<?php elseif (';
@@ -578,6 +584,8 @@ class Aurora
                 $if_middle .= "{$conditional}): ?>";
             } elseif (Str::contains(trim($conditional), ['array', '[]', "''", '""'])) {
                 $if_middle .= "{$conditional}): ?> ";
+            } elseif ($not_isset === true) {
+                $if_top .= "\${$conditional})): ?>";
             } else {
                 $if_middle .= "\${$conditional}): ?>";
             }
