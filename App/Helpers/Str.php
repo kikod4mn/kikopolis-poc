@@ -7,22 +7,35 @@ defined('_KIKOPOLIS') or die('No direct script access!');
 class Str
 {
     /**
-     * Sanitize data for HTML output with HTMLSPECIALCHARS.
+     * Sanitize data for HTML output.
      * 
      * @param string $string
-     * 
+     * @param mixed $tags
+     * @param string $encoding
      * @return string $string
      */
-    public static function h(string $string)
+    public static function h(string $string, $tags = ENT_QUOTES, $encoding = 'UTF-8')
     {
-        return htmlspecialchars($string);
+        return htmlspecialchars($string, $tags, $encoding);
+    }
+
+    /**
+     * Sanitize data for HTML output but allow html tags.
+     * 
+     * @param string $string
+     * @param mixed $tags
+     * @param string $encoding
+     * @return string $string
+     */
+    public static function hWithHtml(string $string, $tags = ENT_QUOTES, $encoding = 'UTF-8')
+    {
+        return htmlspecialchars_decode(htmlspecialchars($string, $tags, $encoding));
     }
 
     /**
      * JSON Encode the string
      * 
      * @param string $string
-     * 
      * @return string $string
      */
     public static function j(string $string)
@@ -34,7 +47,6 @@ class Str
      * Sanitize and url encode the string.
      * 
      * @param string $string
-     * 
      * @return string $string
      */
     public static function u(string $string)
@@ -47,7 +59,6 @@ class Str
      * Double protection really since twig is awesome at escaping data but still. security doesn't hurt
      * 
      * @param string $string
-     * 
      * @return string $string
      */
     public static function removeForbiddenCharsFromString(string $string)

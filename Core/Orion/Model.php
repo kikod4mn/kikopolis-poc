@@ -30,7 +30,7 @@ class Model extends Orion
      * 
      * @return mixed
      */
-    protected function getDb()
+    private function getDb()
     {
         $db = null;
 

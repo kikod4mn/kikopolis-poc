@@ -488,6 +488,115 @@ class Aurora
 
     private function if(string $output): string
     {
+        $top_of_loop_regex = '';
+        $middle_of_loop_regex = '';
+        $end_of_loop_regex = '';
+        $if_top = '';
+        $if_middle = '';
+        $else = '';
+        $if_bottom = '';
+        $top_matches = [];
+        $middle_matches = [];
+        $else_matches = [];
+        $end_matches = [];
+
+        $top_of_loop_regex = '/\(\@if\:\:((?P<not>not)\ )*((?P<needle>\w+)*(?P<is_same_as>\ is\ (\w+\ )*))*(?P<conditional>[a-zA-Z0-9_\'\"\[\]]*?)\)/';
+        $middle_of_loop_regex = '/\(\@elseif\:\:((?P<not>not)\ )*((?P<needle>\w+)*(?P<is_same_as>\ is\ (\w+\ )*))*(?P<conditional>[a-zA-Z0-9_\'\"\[\]]*?)\)/';
+        $middle_of_else_regex = '/\(\@else\)/';
+        $end_of_loop_regex = '/\(\@endif\)/';
+
+        $top_matches = $this->findByRegex($top_of_loop_regex, $output);
+        foreach ($top_matches as $match) {
+            $match = Arr::arrayFilter($match);
+            extract($match, EXTR_OVERWRITE);
+
+            var_dump($match);
+
+            if (trim($not) === 'not') {
+                $if_top = '<?php if (!isset(';
+            } else {
+                $if_top = '<?php if (';
+            }
+
+            if (trim($needle) === '') {
+                //
+            } else {
+                $if_top .= "\${$needle}";
+            }
+
+            if (trim($is_same_as) === 'is') {
+                $if_top .= ' == ';
+            } elseif (trim($is_same_as) === 'is same as') {
+                $if_top .= ' === ';
+            } else if (trim($is_same_as) === 'is not') {
+                $if_top .= ' != ';
+            } elseif (trim($is_same_as) === 'is not same as') {
+                $if_top .= ' !== ';
+            }
+
+            if (trim($conditional) === 'true' || trim($conditional) === 'false') {
+                $if_top .= "{$conditional}): ?>";
+            } elseif (Str::contains(trim($conditional), ['array()', '[]', "''", '""'])) {
+                $if_top .= "{$conditional}): ?>";
+            } else {
+                $if_top .= "\${$conditional}): ?>";
+            }
+
+            var_dump($if_top);
+
+            $output = preg_replace($top_of_loop_regex, $if_top, $output, 1);
+            var_dump($output);
+        }
+
+        $middle_matches = $this->findByRegex($middle_of_loop_regex, $output);
+        foreach ($middle_matches as $match) {
+            $match = Arr::arrayFilter($match);
+            extract($match, EXTR_OVERWRITE);
+            if (trim($not) === 'not') {
+                $if_middle = '<?php elseif (!isset(';
+            } else {
+                $if_middle = '<?php elseif (';
+            }
+
+            if (trim($needle) === '') {
+                //
+            } else {
+                $if_middle .= "\${$needle}";
+            }
+
+            if (trim($is_same_as) === 'is') {
+                $if_middle .= ' == ';
+            } elseif (trim($is_same_as) === 'is same as') {
+                $if_middle .= ' === ';
+            } else if (trim($is_same_as) === 'is not') {
+                $if_middle .= ' != ';
+            } elseif (trim($is_same_as) === 'is not same as') {
+                $if_middle .= ' !== ';
+            }
+
+            if (trim($conditional) === 'true' || trim($conditional) === 'false') {
+                $if_middle .= "{$conditional}): ?>";
+            } elseif (Str::contains(trim($conditional), ['array', '[]', "''", '""'])) {
+                $if_middle .= "{$conditional}): ?> ";
+            } else {
+                $if_middle .= "\${$conditional}): ?>";
+            }
+
+            $output = preg_replace($middle_of_loop_regex, $if_middle, $output, 1);
+        }
+
+        $else_matches = $this->findByRegex($middle_of_else_regex, $output);
+        $else = "<?php else: ?>";
+        foreach ($else_matches as $match) {
+            $output = preg_replace($middle_of_else_regex, $else, $output);
+        }
+
+        $end_matches = $this->findByRegex($end_of_loop_regex, $output);
+        $if_bottom = "<?php endif; ?>";
+        foreach ($end_matches as $match) {
+            $output = preg_replace($end_of_loop_regex, $if_bottom, $output, 1);
+        }
+
         return $output;
     }
 
@@ -498,9 +607,12 @@ class Aurora
 
     private function foreach(string $output): string
     {
-        $regex = '';
         $foreach = '';
-        // $regex = '/(?P<full>\(\@for\:\:((?P<key>.*?)\,\ )*?(?P<needle>\w*?)\ in\ (?P<haystack>.*?)\)(?P<loop>.*?)(?:\(\@endfor\))+)/s';
+        $top_of_loop_regex = '';
+        $end_of_loop_regex = '';
+        $top_matches = [];
+        $end_matches = [];
+
         $top_of_loop_regex = '/\(\@for\:\:((?P<key>.*?)\,\ )*?(?P<needle>\w*?)\ in\ (?P<haystack>.*?)\)/';
         $end_of_loop_regex = '/(\(\@endfor\))/';
         $top_matches = $this->findByRegex($top_of_loop_regex, $output);
@@ -533,13 +645,13 @@ class Aurora
                 $output = preg_replace($top_of_loop_regex, $foreach, $output, 1);
             }
         }
+        // Do loop end parts
         foreach ($end_matches as $match) {
             $match = Arr::arrayFilter($match);
             extract($match, EXTR_OVERWRITE);
             $foreach = "<?php endforeach ?>";
             $output = preg_replace($end_of_loop_regex, $foreach, $output);
         }
-        // var_dump($top_matches);
         return $output;
     }
 
@@ -864,13 +976,13 @@ class Aurora
         // Different escape levels, depending on the surrounding tags of the $var.
         switch ($escape) {
             case 'escape':
-                return htmlspecialchars($var, ENT_QUOTES, 'UTF-8');
+                return Str::h($var);
             case 'allow-html':
-                return htmlspecialchars_decode(htmlspecialchars($var, ENT_QUOTES, 'UTF-8'));
+                return Str::hWithHtml($var);
             case 'no-escape':
                 return $var;
             default:
-                return htmlspecialchars($var, ENT_QUOTES, 'UTF-8');
+                return Str::h($var);
         }
     }
 

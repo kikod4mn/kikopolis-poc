@@ -79,13 +79,21 @@
                         (@endfor)
                     </div>
                     <div class="col-12 border border-danger">
-                        (@if::users)
-                        <h4 class="text-danger">User data is present and can be echoed</h4>
+                        (@if::cars is same as [])
+                        <h4 class="text-danger text-center">Cars === empty array</h4>
+                        (@elseif::cars)
+                        <h1 class="text-warning bg-dark text-center">Cars isset()</h1>
+                        (@for::car in cars)
+                        {{car}}
+                        (@endfor)
                         (@endif)
-                    </div>
-                    <div class="col-12 border border-danger">
-                        (@if::not cars)
-                        <h4 class="text-danger">Car data is not present!!!!</h4>
+
+                        (@if::users)
+                        <h4 class="text-danger text-center">Users isset()</h4>
+                        (@endif)
+
+                        (@if::users is true)
+                        <h4 class="text-danger text-center">Users == true</h4>
                         (@endif)
                     </div>
                 </div>

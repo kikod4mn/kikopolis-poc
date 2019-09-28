@@ -55,7 +55,10 @@ class Home extends Controller
             }, false);</script></div>',
             'users' => $user->get(),
             'posts' => $post->get(),
-            'teams' => $american_league
+            'teams' => $american_league,
+            'cars' => [
+                'Volvo', 'VolksWagen', 'Skoda', 'Audi'
+            ]
         ]);
         // echo "<br><h1>Hi, cruel world of PHP</h1><br>";
         // $string = Str::convertToSnakeCase('This to snake case');

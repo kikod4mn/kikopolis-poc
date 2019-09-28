@@ -1,5 +1,6 @@
 <?php
 
+use Kikopolis\App\Config\Config;
 use Kikopolis\Core\Aurora\View;
 use Kikopolis\Core\Container\Container;
 
@@ -30,4 +31,4 @@ View::addFunction('countDaysFromBirth', function ($dob) {
 });
 
 // Require the route dispatcher
-require_once $approot . '/Core/Route/RouteDispatcher.php';
+require_once Config::getAppRoot() . '/Core/Route/RouteDispatcher.php';
