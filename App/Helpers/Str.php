@@ -108,6 +108,87 @@ class Str
         return $string;
     }
 
+
+    /**
+     * Check if string is alphabetical only, no numbers or extra characters allowed
+     * Uses trim() to remove empty spaces from the beginning and end of the string
+     * 
+     * @param   string  $data   The string to test for letters
+     * 
+     * @return void
+     */
+    public static function isStringAlphabetical(string $data)
+    {
+        if (static::hasValue($data)) {
+            $array = [' ', "'", '-', '_', '.', '!', '?'];
+            $data = str_replace($array, '', $data);
+            // Ctype returns false on empty string, this is to avoid false positive
+            if (strlen($data) == 0) {
+                return true;
+            }
+            return ctype_alpha($data);
+        }
+    }
+
+    /**
+     * Check if string is alphanumerical only, only letters and numbers allowed
+     * Uses trim() to remove empty spaces from the beginning and end of the string
+     * 
+     * @param   string  $data   The string to test for alphanumerical characters
+     * 
+     * @return void
+     */
+    public static function isStringAlphaNumerical(string $data)
+    {
+        if (static::hasValue($data)) {
+            $array = [' ', "'", '-', '_', '.', '!', '?'];
+            $data = str_replace($array, '', $data);
+            // Ctype returns false on empty string, this is to avoid false positive
+            if (strlen($data) == 0) {
+                return true;
+            }
+            return ctype_alnum($data);
+        }
+    }
+
+    public static function isStringAFolder(string $data)
+    {
+        if (static::hasValue($data)) {
+            $array = ['/', '\\', '-', '_', '.'];
+            $data = str_replace($array, '', $data);
+            // Ctype returns false on empty string, this is to avoid false positive
+            if (strlen($data) == 0) {
+                return true;
+            }
+            return ctype_alnum($data);
+        }
+    }
+
+    public static function isStringAValidDate(string $string)
+    {
+        return (bool) strtotime($string);
+    }
+
+    public static function isValidPhoneNumber($phone_number)
+    {
+        $array = ['-', '.', ' ', '_', '+'];
+        $phone_number = str_replace($phone_number, '', $array);
+        return preg_match('/^[0-9]{10}+$/', $phone_number);
+    }
+
+    /**
+     * Check if string matches a valid email address format
+     * Uses trim to remove empty spaces from the beginning and end of the string
+     * 
+     * @param   string  $data   The string to validate
+     * 
+     * @return void
+     */
+    public static function isValidEmailAddress(string $data)
+    {
+        return filter_var(trim($data), FILTER_VALIDATE_EMAIL);
+    }
+
     /**
      * Limit word count in a string to the optional specified number and append the optional parameter '...'.
      *

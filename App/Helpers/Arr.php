@@ -65,4 +65,41 @@ class Arr
         $array = array_filter($array, $callback, $flags);
         return $array;
     }
+
+
+    /**
+     * Check that value is present in array
+     * 
+     * @param   mixed   $value  The value to search for in the array
+     * @param   array   $data   The array to search for the value
+     * @return void
+     */
+    public static function isIncludedInArray($key, array $data)
+    {
+        return in_array($key, $data);
+    }
+
+    /**
+     * Check that value would not be present in array
+     * 
+     * @param   mixed   $value  The value to make sure is excluded in array
+     * @param   array   $data   The array to search for the value
+     * @return void
+     */
+    public static function isExcludedInArray($key, array $data)
+    {
+        return !in_array($key, $data);
+    }
+
+
+    public static function checkArrayIndexes(array $haystack, $needles)
+    {
+        if (is_array($needles)) {
+            foreach ($needles as $needle) {
+                return in_array($needle, $haystack);
+            }
+        } else {
+            return in_array($needles, $haystack);
+        }
+    }
 }

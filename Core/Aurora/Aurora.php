@@ -210,6 +210,8 @@ class Aurora
         $output = $this->parseLoops($output);
         // Parse the variables
         $output = $this->parseVariables($output);
+
+        $output = $this->parseCsrf($output);
         // Final check for any stray extends:: in the code
         if ($this->checkExtend($output) === true) {
             throw new \Exception("A template file may only extend one other template file, additionally no included files may extend another template. Only one @extends::('template-name') line per the entire compiled template is allowed and it must be in the current template being rendered. This template is {$this->file} - and it is the current view file being called. No other file may have the extends statement in its code. Check your files for a stray extends statement!!", 404);
@@ -470,6 +472,17 @@ class Aurora
         return $output;
     }
 
+    private function parseCsrf(string $output): string
+    {
+        $regex = '/\(\@csrf\_token\(\)\)/';
+        $token = '<?php echo csrf_token() ?>';
+        $matches = $this->findByRegex($regex, $output);
+        foreach ($matches as $match) {
+            $output = preg_replace($regex, $token, $output);
+        }
+        return $output;
+    }
+
     /**
      * Master loop parser method.
      * Calls all other methods to parse individual loops.
@@ -511,7 +524,7 @@ class Aurora
             $match = Arr::arrayFilter($match);
             extract($match, EXTR_OVERWRITE);
 
-            var_dump($match);
+            // var_dump($match);
 
             if (trim($not) === 'not') {
                 $not_isset = true;
@@ -546,10 +559,10 @@ class Aurora
                 $if_top .= "\${$conditional}): ?>";
             }
 
-            var_dump($if_top);
+            // var_dump($if_top);
 
             $output = preg_replace($top_of_loop_regex, $if_top, $output, 1);
-            var_dump($output);
+            // var_dump($output);
         }
 
         $middle_matches = $this->findByRegex($middle_of_loop_regex, $output);

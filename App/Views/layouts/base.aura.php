@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="csrf-token" content="(@csrf_token())">
     <title>{{page_title}}</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
@@ -25,7 +26,6 @@
             <div class="col-9">
                 <h1 class="text-center">{{ heading_title }}</h1>
                 <p class="text-justify">{{ content }}</p>
-                (@includes::layouts.pointless.section-main)
                 <div class="row">
                     <!-- TODO: Write limits and pagination for loops -->
                     <!-- TODO: Write limits and pagination for loops -->
@@ -87,6 +87,10 @@
 
                         (@if::not drivers)
                         <h1>No drivers</h1>
+                        (@elseif::drivers)
+                        (@for::driver in drivers)
+                        {{driver}}
+                        (@endfor)
                         (@endif)
 
                         (@if::users)
@@ -99,10 +103,9 @@
                     </div>
                 </div>
             </div>
-            <div class="col-3">(@includes::layouts.pointless.sidebar)</div>
         </div>
         <div class="row justify-content-center">(@includes::layouts.footer)</div>
-        (@asset('main', 'javascript'))
+        (@asset('app', 'javascript'))
     </div>
 </body>
 

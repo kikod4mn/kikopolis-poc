@@ -65,20 +65,35 @@ class Token
     private function destroyCSRFToken()
     {
         $_SESSION['csrf_token'] = null;
+        $_SESSION['token_confirmation'] = null;
         $_SESSION['csrf_token_time'] = null;
         return true;
     }
 
-    /**
-     * Create a csrf token tag for insertion into HTML.
-     *
-     * @return string
-     */
-    public function csrfTokenTag()
+    public function csrfTokenIsValid()
     {
-        // Create new token and get its hashed value. Bad idea to give out the token directly.
-        $token = $this->createCsrfToken();
-        // Return the html field with token value.
-        return '<input type=\"hidden\" name=\"csrf_token\" value=\"' . Str::h(($token)) . '\">';
+        if (!Validate::hasValue($_POST['csrf_token'])) {
+            throw new \Exception('Form Token not present. Stop the press and call the office!');
+        } else {
+            if (!$this->csrfTokenIsRecent()) {
+                throw new \Exception('Form token has expired. Please try again.');
+            }
+            if ($_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+                throw new \Exception('CSRF Tokens from form are mismatched. Stopping everything and running away scared!!!');
+            } else {
+                return true;
+            }
+        }
+    }
+
+    public function csrfTokenIsRecent()
+    {
+        $max_elapsed = 60 * 60 * 24;
+        if (!Validate::hasValue($_SESSION['csrf_token'])) {
+            $this->destroyCSRFToken();
+            return false;
+        } else {
+            return ($_SESSION['csrf_token_time'] + $max_elapsed) >= time();
+        }
     }
 }

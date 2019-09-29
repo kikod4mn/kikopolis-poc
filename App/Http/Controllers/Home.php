@@ -58,6 +58,9 @@ class Home extends Controller
             'teams' => $american_league,
             'cars' => [
                 'Volvo', 'VolksWagen', 'Skoda', 'Audi'
+            ],
+            'drivers' => [
+                'Michael Schumacher', 'Jille Villeneuve', 'Mika Häkkinene'
             ]
         ]);
         // echo "<br><h1>Hi, cruel world of PHP</h1><br>";
