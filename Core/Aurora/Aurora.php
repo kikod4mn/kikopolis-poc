@@ -866,8 +866,8 @@ class Aurora
      * Used for setting the base template file contents as well as all the includes.
      *
      * @param string $file
+     * @throws Exception
      * @return string
-     * @throws \Exception
      */
     private function getTemplateFileContents(string $file): string
     {

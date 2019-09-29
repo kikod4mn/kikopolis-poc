@@ -1,7 +1,5 @@
 <?php
 
-use Kikopolis\App\Config\Config;
-
 /**
  * Autoloading
  */

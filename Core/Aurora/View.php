@@ -16,19 +16,13 @@ class View
         // It is best to write a TODO: and say TODO: write custom extensions and test those.
         if (Aurora::$must_run_user_func === true) {
             $template_file_contents = '';
-            try {
-                $template_file_contents = $template->output(true);
-            } catch (\Exception $e) {
-            }
+            $template_file_contents = $template->output(true);
             $file_contents = file_get_contents($template_file_contents);
             $file_contents = Aurora::runUserFunc($file_contents);
             $template_file = $template->saveToCachedFile($file_contents);
         } else {
             // Set it to true for testing, always get a recompiled template.
-            try {
-                $template_file = $template->output();
-            } catch (\Exception $e) {
-            }
+            $template_file = $template->output();
         }
 
         // Show the template page

@@ -16,7 +16,8 @@ abstract class Orion
      * Returns all results found in the specified columns.
      *
      * @param array $columns
-     * @return void
+     * @param int $limit
+     * @return array
      */
     final public function get(array $columns = ['*'], int $limit = 5)
     {
