@@ -123,7 +123,7 @@ class Aurora
     private $functions = [];
 
     /**
-     * Boolean to determine wether user functions are present in the template.
+     * Boolean to determine whether user functions are present in the template.
      * If user functions have been defined, the template will be rendered fresh every time.
      *
      * @var boolean
@@ -866,8 +866,8 @@ class Aurora
      * Used for setting the base template file contents as well as all the includes.
      *
      * @param string $file
-     * @throws Exception
      * @return string
+     * @throws \Exception
      */
     private function getTemplateFileContents(string $file): string
     {

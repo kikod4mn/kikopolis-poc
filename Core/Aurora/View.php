@@ -9,20 +9,26 @@ class View
         $template_file = '';
         $file_contents = '';
 
-        $template = new Aurora($file_name, $template_variables);
+        $template = new Aurora($file_name);
         extract($template_variables, EXTR_SKIP);
         // Check to see if user defined functions are present.
         // If the functions array is not empty, the template is recompiled every time with user functions.
         // It is best to write a TODO: and say TODO: write custom extensions and test those.
         if (Aurora::$must_run_user_func === true) {
             $template_file_contents = '';
-            $template_file_contents = $template->output(true);
+            try {
+                $template_file_contents = $template->output(true);
+            } catch (\Exception $e) {
+            }
             $file_contents = file_get_contents($template_file_contents);
             $file_contents = Aurora::runUserFunc($file_contents);
             $template_file = $template->saveToCachedFile($file_contents);
         } else {
             // Set it to true for testing, always get a recompiled template.
-            $template_file = $template->output();
+            try {
+                $template_file = $template->output();
+            } catch (\Exception $e) {
+            }
         }
 
         // Show the template page
