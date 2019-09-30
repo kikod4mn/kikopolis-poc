@@ -2,6 +2,7 @@ const path = require('path');
 const TerserJSPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const tailwindcss = require('tailwindcss');
 
 module.exports = {
     optimization: {
@@ -52,6 +53,9 @@ module.exports = {
                             // engine: 'rework',
                             engine: 'postcss'
                         }
+                    },
+                    {
+                        loader: "postcss-loader"
                     }
                 ]
                 // use: [

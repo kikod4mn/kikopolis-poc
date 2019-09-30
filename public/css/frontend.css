@@ -1,10 +1,1 @@
-@import url(https://fonts.googleapis.com/css?family=Mansalva&display=swap);
-body {
-  background: red;
-  font-family: 'Mansalva', cursive;
-}
-
-h1 {
-  background: black;
-}
-
+@import url(https://fonts.googleapis.com/css?family=Be+Vietnam&display=swap);@tailwind base;@tailwind components;@tailwind utilities;body{background-color:#276749;font-family:Be Vietnam,sans-serif}h1{background:#000}

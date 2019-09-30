@@ -1,11 +1,15 @@
 @import '~variables';
 @import '~foundation';
-@import url('https://fonts.googleapis.com/css?family=Mansalva&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Be+Vietnam&display=swap');
+@import "~tailwindcss/base";
+@import "~tailwindcss/components";
+@import "~tailwindcss/utilities";
 
 body {
-  background: red;
-  font-family: 'Mansalva', cursive;
+  @apply bg-green-800;
+  font-family: 'Be Vietnam', sans-serif;
 }
 h1 {
   background: black;
 }
+
