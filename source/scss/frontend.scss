@@ -1,15 +1,6 @@
-@import '~variables';
-@import '~foundation';
-@import url('https://fonts.googleapis.com/css?family=Be+Vietnam&display=swap');
-@import "~tailwindcss/base";
-@import "~tailwindcss/components";
-@import "~tailwindcss/utilities";
+@import "~tailwindcss/base.css";
+@import "~tailwindcss/components.css";
+@import "~tailwindcss/utilities.css";
+@import "foundation";
 
-body {
-  @apply bg-green-800;
-  font-family: 'Be Vietnam', sans-serif;
-}
-h1 {
-  background: black;
-}
 

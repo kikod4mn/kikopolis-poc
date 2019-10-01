@@ -17,7 +17,9 @@ class Post extends Model
      */
     protected $errors = [];
 
-    protected $fillable = [];
+    public $attributes = [];
+
+    protected $fillable = ['id', 'title', 'category_id', 'category_title', 'body', 'tags', 'image_id', 'image', 'comment_count', 'author_id', 'author_name', 'created_at', 'modified_at', 'is_active', 'view_count'];
 
     protected $visible = [];
 

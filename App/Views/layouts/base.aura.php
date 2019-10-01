@@ -12,75 +12,84 @@
 
 <body>
     (@section::layouts.header)
-    <div class="container justify-content-center align-items-center">
+    <div class="wrapper">
         <div class="row">
-            <h4 class="col-12 text-center"><u>Limited html allowed</u></h4>
+            <h4 class=""><u>Limited html allowed</u></h4>
             {!! no_escape !!}
             (@function::countDaysFromBirth(12.04.1987))
+            (@function::coinFlip())<br>
+            (@function::coinFlip())<br>
+            (@function::coinFlip())<br>
+            (@function::coinFlip())<br>
+            (@function::coinFlip())<br>
+            (@function::coinFlip())<br>
+            (@function::coinFlip())<br>
+            (@function::coinFlip())<br>
+            (@function::coinFlip())<br>
             (@section::extend)
         </div>
-        <div class="row">
-            <h4 class="col-12 text-center"><u>No Html allowed</u></h4>
-            <div class="col-9">
-                <h1 class="text-center">{{ heading_title }}</h1>
-                <p class="text-justify">{{ content }}</p>
-                <div class="row">
+        <div class="">
+            <h4 class=""><u>No Html allowed</u></h4>
+            <div class="">
+                <h1 class="">{{ heading_title }}</h1>
+                <p class="">{{ content }}</p>
+                <div class="">
                     <!-- TODO: Write limits and pagination for loops -->
                     <!-- TODO: Write limits and pagination for loops -->
                     <!-- TODO: Write limits and pagination for loops -->
                     <!-- TODO: Write limits and pagination for loops -->
                     <!-- TODO: Write limits and pagination for loops -->
                     <!-- TODO: Write limits and pagination for loops -->
-                    <div class="col-12 border border-danger">
+                    <div class="">
                         (@for::user in users)
-                        <h4 class="text-danger">User data</h4>
+                        <h4 class="">User data</h4>
                         <span>User ID : {!! user.id !!}</span><br>
                         <span>User name : {!! user.first_name !!} {!! user.first_name !!}</span><br>
                         <span>User email : {!! user.email !!}</span><br>
                         <img src="{{ user.image }}" alt=""><br>
                         (@endfor)
                     </div>
-                    <div class="col-12 border border-danger">
+                    <div class="">
                         (@for::post in posts)
-                        <h4 class="text-danger">Post info</h4>
-                        <span>Post ID : {!% post.post_id %!}</span><br>
-                        <span>Post title : {!% post.post_title %!}</span><br>
-                        <span>Post body : {!% post.post_body %!}</span><br>
-                        <span>Post tags : {!% post.post_tags %!}</span><br>
-                        <img src="{!% post.post_image %!}" alt=""><br>
-                        <span>Post author : {!% post.post_author_name %!}</span><br>
-                        <span>Posted on : {!% post.post_created_at %!}</span><br>
-                        <span>Modified on : {!% post.post_modified_at %!}</span><br>
+                        <h4 class="">Post info</h4>
+                        <span>Post ID : {!% post.id %!}</span><br>
+                        <span>Post title : {!% post.title %!}</span><br>
+                        <span>Post body : {!% post.body %!}</span><br>
+                        <span>Post tags : {!% post.tags %!}</span><br>
+                        <img src="{!% post.image %!}" alt=""><br>
+                        <span>Post author : {!% post.author_name %!}</span><br>
+                        <span>Posted on : {!% post.created_at %!}</span><br>
+                        <span>Modified on : {!% post.modified_at %!}</span><br>
                         (@endfor)
                     </div>
-                    <div class="col-12 border border-danger">
+                    <div class="">
                         (@for::num in 0..32)
                         {{num}}
                         (@endfor)
                     </div>
-                    <div class="col-12 border border-danger">
+                    <div class="">
                         (@for::letter in a..z)
                         {{letter}}
                         (@endfor)
                     </div>
-                    <div class="col-12 border border-danger">
+                    <div class="">
                         (@for::team in teams)
-                        <h5 class="text-center">{{team}}</h5><br>
+                        <h5 class="">{{team}}</h5><br>
                         (@endfor)
                     </div>
-                    <div class="col-12 border border-danger">
-                        <h4 class="text-danger">User data with keys</h4>
+                    <div class="">
+                        <h4 class="">User data with keys</h4>
                         (@for::user in users)
                         (@for::key, value in user)
                         <span>User {{key}} : {!! value !!}</span><br>
                         (@endfor)
                         (@endfor)
                     </div>
-                    <div class="col-12 border border-danger">
+                    <div class=>
                         (@if::cars is same as [])
-                        <h4 class="text-danger text-center">Cars === []</h4>
+                        <h4 class="">Cars === []</h4>
                         (@elseif::cars)
-                        <h1 class="text-warning bg-dark text-center">Cars isset()</h1>
+                        <h1 class="">Cars isset()</h1>
                         (@endif)
 
                         (@if::not drivers)
@@ -92,17 +101,17 @@
                         (@endif)
 
                         (@if::users)
-                        <h4 class="text-danger text-center">Users isset()</h4>
+                        <h4 class="">Users isset()</h4>
                         (@endif)
 
                         (@if::cars is not [])
-                        <h4 class="text-danger text-center">Cars is not []</h4>
+                        <h4 class="">Cars is not []</h4>
                         (@endif)
                     </div>
                 </div>
             </div>
         </div>
-        <div class="row justify-content-center">(@includes::layouts.footer)</div>
+        <div class="">(@includes::layouts.footer)</div>
         (@asset('app', 'javascript'))
     </div>
 </body>

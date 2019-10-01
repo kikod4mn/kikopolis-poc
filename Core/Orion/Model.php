@@ -12,13 +12,29 @@ use Kikopolis\Core\Orion\Orion;
 
 class Model extends Orion
 {
+    public $attributes = [];
+
     protected $stmt;
 
     protected $db = null;
 
-    final public function __construct(array $attributes = [])
+    protected $fillable = [];
+
+    protected $visible = [];
+
+    protected $guarded = [];
+
+    protected $hidden = [];
+
+    /**
+     * Model constructor.
+     * @param array $attributes The attributes of a model Class. Will be mapped according to fillable array.
+     */
+    final public function __construct($attributes = [])
     {
-        $this->db = $this->getDb();
+        if (!isset($this->db)) {
+            $this->db = $this->getDb();
+        }
         if (method_exists(get_called_class(), '__constructor')) {
             $this->__constructor();
         }
@@ -26,9 +42,8 @@ class Model extends Orion
     }
 
     /**
-     * PDO Database connection
-     * 
-     * @return mixed
+     * Database connection.
+     * @return PDO|null
      */
     private function getDb()
     {

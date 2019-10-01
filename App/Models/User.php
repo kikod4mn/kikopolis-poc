@@ -17,7 +17,9 @@ class User extends Model
      */
     protected $errors = [];
 
-    protected $fillable = [];
+    public $attributes = [];
+
+    protected $fillable = ['id', 'first_name', 'last_name', 'email', 'image', 'phone_number', 'gender', 'date_of_birth', 'street', 'house_or_apartment', 'city', 'state_or_province', 'post_code', 'country', 'created_at'];
 
     protected $visible = [];
 
@@ -36,10 +38,4 @@ class User extends Model
     {
         //
     }
-
-    // public function get()
-    // {
-    //     $this->query('SELECT * FROM users');
-    //     return $this->resultSetClass();
-    // }
 }

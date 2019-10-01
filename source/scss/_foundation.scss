@@ -1,0 +1,30 @@
+@import "variables";
+
+body {
+  background: $page_background;
+  font-family: $text_font;
+  color: $text_primary;
+}
+
+.wrapper {
+  @apply container;
+  @apply mx-auto;
+  margin: 0 240px;
+}
+
+.heading-font {
+  font-family: $heading_font;
+}
+
+.text-font {
+  font-family: $text_font;
+}
+
+.special-font {
+  font-family: $special_font;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: $text_secondary;
+  @apply heading-font;
+}

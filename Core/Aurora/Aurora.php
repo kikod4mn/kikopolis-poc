@@ -66,7 +66,8 @@ class Aurora
         'section' => ['\@section\(.+\)', '\@endsection', '\@section\:\:.+'],
         'includes' => ['\(\@includes::.+\)'],
         'asset' => ['\(\@asset\(.+\)\)'],
-        'foreach' => ['\(\@for\:\:.+\)', '\(\@endfor\)']
+        'foreach' => ['\(\@for\:\:.+\)', '\(\@endfor\)'],
+        'if' => ['\(\@if\:\:(?:.+)\)', '\(\@elseif\:\:(?:.+)\)', '\(\@endif\)']
     ];
 
     /**
@@ -131,10 +132,8 @@ class Aurora
     public static $must_run_user_func = false;
 
     /**
-     * Class constructor.
-     *
-     * @param string $file The current template file that is called from View.
-     * @return void
+     * Aurora constructor.
+     * @param string $file The current template file.
      */
     public function __construct(string $file)
     {
@@ -157,8 +156,7 @@ class Aurora
     }
 
     /**
-     * Public getter for the $is_compiled class variable.
-     *
+     * Template compiled status getter.
      * @return bool
      */
     public function getIsCompiled(): bool
@@ -179,11 +177,6 @@ class Aurora
      * @throws \Exception
      * @return string
      */
-    // TODO: Refactor the escape function to be able to use escape arguments with loop vars TODO:
-    // TODO: Refactor the escape function to be able to use escape arguments with loop vars TODO:
-    // TODO: Refactor the escape function to be able to use escape arguments with loop vars TODO:
-    // TODO: Refactor the escape function to be able to use escape arguments with loop vars TODO:
-    // TODO: Refactor the escape function to be able to use escape arguments with loop vars TODO:
     public function output(bool $force_compile = false, string $return_type = 'cache'): string
     {
         // Check for a compiled file
@@ -232,7 +225,12 @@ class Aurora
         }
     }
 
-
+    /**
+     * Prepare the current template and merge it with its parent if applicable.
+     * @param string $file
+     * @throws \Exception
+     * @return string
+     */
     private function prepareCurrentTemplate(string $file): string
     {
         $output = '';
@@ -246,11 +244,11 @@ class Aurora
 
     /**
      * Merge two templates together.
-     *
      * @param string $current_template
      * @param string $parent_template
      * @param string $regex
      * @param string $output
+     * @throws \Exception
      * @return string
      */
     private function mergeTemplates(string $current_template, string $parent_template, string $regex = '', string $output = ''): string
@@ -276,9 +274,8 @@ class Aurora
     /**
      * Check the template file contents for an extends:: statement.
      * The parent template is not allowed to extend another template.
-     *
      * @param string $output The contents of the current template
-     * @throws Exception
+     * @throws \Exception
      * @return boolean
      */
     private function checkExtend(string $output)
@@ -303,7 +300,6 @@ class Aurora
 
     /**
      * Set custom tag values
-     *
      * @param string $output
      * @return string
      */
@@ -314,7 +310,6 @@ class Aurora
 
     /**
      * Run user defined functions.
-     *
      * @param string $output
      * @return string
      */
@@ -343,7 +338,6 @@ class Aurora
 
     /**
      * Strip the tags that surround the content in the included template file.
-     *
      * @param string $content
      * @return string
      */
@@ -364,7 +358,6 @@ class Aurora
     /**
      * Parse the instruction blocks.
      * Defined as an array of acceptable instructions.
-     *
      * @param string $output
      * @return string
      */
@@ -380,7 +373,6 @@ class Aurora
 
     /**
      * Save the instruction blocks to an array.
-     *
      * @param string $output
      * @return void
      */
@@ -409,8 +401,8 @@ class Aurora
 
     /**
      * Replace all the individual instruction blocks.
-     *
      * @param string $output
+     * @throws \Exception
      * @return string
      */
     private function replaceInstructionBlocks(string $output): string
@@ -425,7 +417,6 @@ class Aurora
 
     /**
      * Replace a block in the output with regex.
-     *
      * @param string $haystack
      * @param string $needle
      * @param string $replacement
@@ -446,7 +437,6 @@ class Aurora
      * TODO: currently logic is not very logical. Maybe move caching to another class to allow View class access to the raw output string
      * TODO: so this could be checked in the View class and not here. Currently user functions and the @function tag are not included in the cleanup
      * TODO: because the existence of user functions is checked in the View to allow the use of a pre-compiled cache file for speed.
-     *
      * @param string $output
      * @param string $regex
      * @param array $tags
@@ -472,6 +462,11 @@ class Aurora
         return $output;
     }
 
+    /**
+     * Parse CSRF token tag into the template.
+     * @param string $output
+     * @return string
+     */
     private function parseCsrf(string $output): string
     {
         $regex = '/\(\@csrf\_token\(\)\)/';
@@ -486,8 +481,8 @@ class Aurora
     /**
      * Master loop parser method.
      * Calls all other methods to parse individual loops.
-     *
      * @param string $output
+     * @throws \Exception
      * @return string
      */
     private function parseLoops(string $output): string
@@ -499,8 +494,14 @@ class Aurora
         return $output;
     }
 
+    /**
+     * Parse all if loops into the $output.
+     * @param string $output
+     * @return string
+     */
     private function if(string $output): string
     {
+        // Initialize variables.
         $top_of_loop_regex = '';
         $middle_of_loop_regex = '';
         $end_of_loop_regex = '';
@@ -512,20 +513,18 @@ class Aurora
         $middle_matches = [];
         $else_matches = [];
         $end_matches = [];
-
+        // Initialize the power of regex.
         $top_of_loop_regex = '/\(\@if\:\:((?P<not>not)\ )*((?P<needle>\w+)*(?P<is_same_as>\ is\ (\w+\ )*))*(?P<conditional>[a-zA-Z0-9_\'\"\[\]]*?)\)/';
         $middle_of_loop_regex = '/\(\@elseif\:\:((?P<not>not)\ )*((?P<needle>\w+)*(?P<is_same_as>\ is\ (\w+\ )*))*(?P<conditional>[a-zA-Z0-9_\'\"\[\]]*?)\)/';
         $middle_of_else_regex = '/\(\@else\)/';
         $end_of_loop_regex = '/\(\@endif\)/';
-
+        // Find the matches for top loop parts and replace them with appropriate parts.
         $top_matches = $this->findByRegex($top_of_loop_regex, $output);
         foreach ($top_matches as $match) {
             $not_isset = false;
             $match = Arr::arrayFilter($match);
             extract($match, EXTR_OVERWRITE);
-
-            // var_dump($match);
-
+            // NOTE: do not be alarmed if PHPStorm yells at undefined variables, these do infact come from extracting the $match.
             if (trim($not) === 'not') {
                 $not_isset = true;
                 $if_top = '<?php if (!isset(';
@@ -558,18 +557,15 @@ class Aurora
             } else {
                 $if_top .= "\${$conditional}): ?>";
             }
-
-            // var_dump($if_top);
-
             $output = preg_replace($top_of_loop_regex, $if_top, $output, 1);
-            // var_dump($output);
         }
-
+        // Find all the middle elseif loop parts if there are any and parse them.
         $middle_matches = $this->findByRegex($middle_of_loop_regex, $output);
         foreach ($middle_matches as $match) {
             $not_isset = false;
             $match = Arr::arrayFilter($match);
             extract($match, EXTR_OVERWRITE);
+            // NOTE: do not be alarmed if PHPStorm yells at undefined variables, these do infact come from extracting the $match.
             if (trim($not) === 'not') {
                 $not_isset = true;
                 $if_middle = '<?php elseif (!isset(';
@@ -602,22 +598,21 @@ class Aurora
             } else {
                 $if_middle .= "\${$conditional}): ?>";
             }
-
             $output = preg_replace($middle_of_loop_regex, $if_middle, $output, 1);
         }
-
+        // Parse all the regular else lines.
         $else_matches = $this->findByRegex($middle_of_else_regex, $output);
         $else = "<?php else: ?>";
         foreach ($else_matches as $match) {
             $output = preg_replace($middle_of_else_regex, $else, $output);
         }
-
+        // And all the ends of the loop.
         $end_matches = $this->findByRegex($end_of_loop_regex, $output);
         $if_bottom = "<?php endif; ?>";
         foreach ($end_matches as $match) {
             $output = preg_replace($end_of_loop_regex, $if_bottom, $output, 1);
         }
-
+        // Done!
         return $output;
     }
 
@@ -626,14 +621,21 @@ class Aurora
         return $output;
     }
 
+    /**
+     * Parse all the foreach loops into the $output.
+     * @param string $output
+     * @throws \Exception
+     * @return string
+     */
     private function foreach(string $output): string
     {
+        // Initialize variables
         $foreach = '';
         $top_of_loop_regex = '';
         $end_of_loop_regex = '';
         $top_matches = [];
         $end_matches = [];
-
+        // Initialize regex.
         $top_of_loop_regex = '/\(\@for\:\:((?P<key>.*?)\,\ )*?(?P<needle>\w*?)\ in\ (?P<haystack>.*?)\)/';
         $end_of_loop_regex = '/(\(\@endfor\))/';
         $top_matches = $this->findByRegex($top_of_loop_regex, $output);
@@ -704,16 +706,12 @@ class Aurora
         } else {
             $regex = $regular_expression;
         }
-
         // Match all variables and parse in echo statements.
         preg_match_all($regex, $output, $matches, PREG_SET_ORDER);
-
         foreach ($matches as $match) {
             $var = '';
             $match = array_filter($match, 'is_string', ARRAY_FILTER_USE_KEY);
-
             $regex = '/\{\{*\!*\%*\ *' . preg_quote($match['var']) . '\ *\%*\!*\}*\}/';
-
             if (Str::contains($match['var'], '.')) {
                 $match['var'] = Str::parseDotSyntax($match['var']);
             } else {
@@ -866,7 +864,7 @@ class Aurora
      * Used for setting the base template file contents as well as all the includes.
      *
      * @param string $file
-     * @throws Exception
+     * @throws \Exception
      * @return string
      */
     private function getTemplateFileContents(string $file): string
@@ -996,8 +994,8 @@ class Aurora
 
         // Different escape levels, depending on the surrounding tags of the $var.
         switch ($escape) {
-            case 'escape':
-                return Str::h($var);
+//            case 'escape':
+//                return Str::h($var);
             case 'allow-html':
                 return Str::hWithHtml($var);
             case 'no-escape':

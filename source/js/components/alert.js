@@ -1,3 +1,3 @@
 export default [
-    alert('Alert.js required and watched!!!')
+    // alert('Alert.js required and watched!!!')
 ]

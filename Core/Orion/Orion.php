@@ -2,6 +2,7 @@
 
 namespace Kikopolis\Core\Orion;
 
+use App\Models\User;
 use Kikopolis\App\Helpers\Arr;
 use Kikopolis\Core\Orion\OrionTraits\ManagePropertiesTrait;
 use Kikopolis\Core\Orion\OrionTraits\ManageQueryTempTrait;
@@ -21,15 +22,19 @@ abstract class Orion
      */
     final public function get(array $columns = ['*'], int $limit = 5)
     {
+        $return_obj = (object) [];
         $cols = implode(',', $columns);
         $class = explode('\\', get_called_class());
         $this->query('SELECT ' . $cols . ' FROM ' . end($class) . 's LIMIT ' . $limit);
-        // return $this->resultSet();
         $raw = $this->resultSet();
         foreach ($raw as $single) {
-            $new_arr[] = array_diff_key((array) $single, array_flip((array) $this->hidden));
+            foreach ($single as $col => $value) {
+                $model = new $this($single);
+            }
+            $name = random_bytes(8).random_int(1111, 9999).rand(0000, 9999);
+            $return_obj->{$name} = $model->attributes;
         }
-        return $new_arr;
+        return $return_obj;
     }
 
     final public function find()

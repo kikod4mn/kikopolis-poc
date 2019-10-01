@@ -4,6 +4,11 @@ namespace Kikopolis\Core\Aurora;
 
 class View
 {
+    /**
+     * @param $file_name
+     * @param $template_variables
+     * @throws \Exception
+     */
     public static function render($file_name, $template_variables)
     {
         $template_file = '';

@@ -30,5 +30,9 @@ View::addFunction('countDaysFromBirth', function ($dob) {
     return round($datediff / (60 * 60 * 24));
 });
 
+View::addFunction('coinFlip', function () {
+    return rand(0,1);
+});
+
 // Require the route dispatcher
 require_once Config::getAppRoot() . '/Core/Route/RouteDispatcher.php';

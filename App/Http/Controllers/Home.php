@@ -40,16 +40,18 @@ class Home extends Controller
             'Mariners', 'Athletics'
         ];
 
-        return View::render('home.index', [
+        View::render('home.index', [
             'page_title' => '<i>The dynamic title of the page in italic</i>',
             'heading_title' => '<i>The title of lorems<script>alert(\'alert\');</script></i>',
             'content' => '<a href="#">The link</a><br>' . $lorem_ipsum->getLoremWords(250),
             'no_escape' => '
-            <div class="container" id="blink"><h1 class="text-center">No escaping here!!! JavaScript injects supreme!!!!!</h1>
+            <div class="container" id="blink"><h1 id="blink_h" class="text-center">No escaping here!!! JavaScript injects supreme!!!!!</h1>
             <script>window.addEventListener("load", function() {
                 var f = document.getElementById("blink");
+                var g = document.getElementById("blink_h");
                 setInterval(function() {
-                    f.style.color = (f.style.color == "red" ? "" : "red");
+                    f.style.background = (f.style.background === "black" ? "" : "black");
+                    g.style.color = (g.style.color === "red" ? "" : "red");
                 }, 200);
             
             }, false);</script></div>',

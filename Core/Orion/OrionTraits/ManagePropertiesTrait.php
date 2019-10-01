@@ -86,7 +86,7 @@ trait ManagePropertiesTrait
         return in_array($key, $this->hidden);
     }
 
-    public function fill(array $attributes)
+    public function fill($attributes)
     {
         foreach ($attributes as $key => $value) {
             if ($this->isFillable($key)) {
