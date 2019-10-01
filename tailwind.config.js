@@ -1,7 +1,8 @@
 module.exports = {
   theme: {
     container: {
-      center: true
+      center: true,
+      margin: '0 240px'
     },
     extend: {}
   },
@@ -9,5 +10,5 @@ module.exports = {
   plugins: [],
   corePlugins: {
       // container: false,
-}
+  }
 };

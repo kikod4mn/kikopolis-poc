@@ -1,22 +1,11 @@
-const path = require('path');
 const TerserJSPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-const tailwindcss = require('tailwindcss');
+const autoprefixer = require('autoprefixer');
 
 module.exports = {
     optimization: {
         minimizer: [new TerserJSPlugin({}), new OptimizeCSSAssetsPlugin({})],
-        // splitChunks: {
-        //     cacheGroups: {
-        //         styles: {
-        //             name: 'styles',
-        //             test: /\.css$/,
-        //             chunks: 'all',
-        //             enforce: true,
-        //         },
-        //     },
-        // },
     },
     plugins: [
         new MiniCssExtractPlugin({
@@ -25,9 +14,9 @@ module.exports = {
         }),
     ],
     entry:{
-        app: __dirname + "/source/js/app.js",
-        frontend: __dirname + "/source/scss/frontend.scss",
-        editor:__dirname + "/source/scss/editor.scss"
+        app: __dirname + "/src/js/app.js",
+        frontend: __dirname + "/src/scss/frontend.scss",
+        editor:__dirname + "/src/scss/editor.scss"
     },
     output: {
         filename: 'js/[name].js',
@@ -38,38 +27,24 @@ module.exports = {
             {test: /\.s[ac]ss$/i,
                 loaders: [
                     MiniCssExtractPlugin.loader,
-                    'css-loader',
+                    { loader: 'css-loader', options: { importLoaders: 1 } },
+                    {
+                        loader: 'postcss-loader'
+                    },
                     {
                         loader: 'sass-loader',
                         options: {
-                            precision: 8,
-                            outputStyle: 'expanded'
+                            plugins: () => [autoprefixer()]
                         }
                     },
                     {
                         loader: 'resolve-url-loader',
                         options: {
                             sourceMap: false,
-                            // engine: 'rework',
                             engine: 'postcss'
                         }
                     },
-                    {
-                        loader: "postcss-loader"
-                    }
                 ]
-                // use: [
-                //     // {loader: 'file-loader',
-                //     //     options: {
-                //     //         name: 'public/css/[name].css',
-                //     //     }
-                //     // },
-                //     {loader: MiniCssExtractPlugin.loader},
-                //     {loader: 'extract-loader'},
-                //     {loader: 'css-loader?-url'},
-                //     {loader: 'postcss-loader'},
-                //     {loader: 'sass-loader'}
-                // ]
             },
             {test: /\.js$/i,
                 loader: "babel-loader",

@@ -4,6 +4,7 @@ namespace Kikopolis\Core\Orion;
 
 use Kikopolis\App\Helpers\Str;
 use PDO;
+use PDOException;
 use Kikopolis\App\Config\Config;
 use Kikopolis\Core\Orion\OrionTraits\ManagePropertiesTrait;
 use Kikopolis\Core\Orion\OrionTraits\ManageQueryTempTrait;
@@ -79,7 +80,6 @@ abstract class Orion
                 $model = new $this($single);
             }
             $name = random_int(1111, 9999).rand(0000, 9999);
-            $model->attributes['password_hash'] = '';
 
             $return_obj->{$name} = $this->show($model->attributes);
         }

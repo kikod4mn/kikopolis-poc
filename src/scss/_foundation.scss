@@ -7,7 +7,7 @@ body {
 }
 
 .wrapper {
-  @apply container;
+
   @apply mx-auto;
   margin: 0 240px;
 }
@@ -27,4 +27,23 @@ body {
 h1, h2, h3, h4, h5, h6 {
   color: $text_secondary;
   @apply heading-font;
+}
+
+h1 {
+  @apply text-4xl;
+}
+h2 {
+  @apply text-3xl;
+}
+h3 {
+  @apply text-2xl;
+}
+h4 {
+  @apply text-xl;
+}
+h5, h6 {
+  @apply text-lg;
+}
+a {
+  @apply text-blue-700;
 }
