@@ -34,8 +34,6 @@ trait ManagePropertiesTrait
      */
     protected $hidden = ['stmt', 'errors'];
 
-    protected $attributes = [];
-
     public function getFillable(): array
     {
         return $this->fillable;
@@ -68,7 +66,7 @@ trait ManagePropertiesTrait
 
     public function isFillable(string $key): bool
     {
-        return in_array($key, $this->fillable);
+        return in_array($key, $this->fillable) && !in_array($key, $this->hidden) ? $key : false;
     }
 
     public function isVisible(string $key): bool
@@ -89,11 +87,21 @@ trait ManagePropertiesTrait
     public function fill($attributes)
     {
         foreach ($attributes as $key => $value) {
-            if ($this->isFillable($key)) {
                 $this->attributes[$key] = $value;
-            }
         }
         return $this;
+    }
+
+    public function show($attributes)
+    {
+        foreach ($attributes as $key => $value) {
+            if (!$this->isHidden($key)) {
+                $this->attributes[$key] = $value;
+            } else {
+                unset($this->attributes[$key]);
+            }
+        }
+        return $this->attributes;
     }
 
     public function guard(array $attributes)

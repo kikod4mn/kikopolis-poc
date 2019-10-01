@@ -1,1 +1,30 @@
-@import url(https://fonts.googleapis.com/css?family=Be+Vietnam|Big+Shoulders+Display|Nanum+Gothic&display=swap);body{background:#f7fafc;font-family:Nanum Gothic,sans-serif;color:grey}.wrapper{@apply container;@apply mx-auto;margin:0 240px}.heading-font{font-family:Be Vietnam,sans-serif}.text-font{font-family:Nanum Gothic,sans-serif}.special-font{font-family:Big Shoulders Display,cursive}h1,h2,h3,h4,h5,h6{color:#00f;@apply heading-font}
+@import url(https://fonts.googleapis.com/css?family=Be+Vietnam|Big+Shoulders+Display|Raleway&display=swap);
+body {
+  background: #f7fafc;
+  font-family: "Raleway", sans-serif;
+  color: gray;
+}
+
+.wrapper {
+  @apply container;
+  @apply mx-auto;
+  margin: 0 240px;
+}
+
+.heading-font {
+  font-family: "Be Vietnam", sans-serif;
+}
+
+.text-font {
+  font-family: "Raleway", sans-serif;
+}
+
+.special-font {
+  font-family: "Big Shoulders Display", cursive;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: blue;
+  @apply heading-font;
+}
+

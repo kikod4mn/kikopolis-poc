@@ -55,15 +55,31 @@ class Home extends Controller
                 }, 200);
             
             }, false);</script></div>',
-            'users' => $user->get(),
-            'posts' => $post->get(),
             'teams' => $american_league,
             'cars' => [
                 'Volvo', 'VolksWagen', 'Skoda', 'Audi'
             ],
             'drivers' => [
-                'Michael Schumacher', 'Jille Villeneuve', 'Mika Häkkinene'
-            ]
+                'Michael Schumacher', 'Jille Villeneuve', 'Mika Häkkinen'
+            ],
+            $pst = [
+                    'title' => 'Title',
+                    'category_id' => rand(1, 10),
+                    'category_title' => 'Photography',
+                    'body' => $lorem_ipsum->getLoremWords(50),
+                    'tags' => 'lorem, ipsum, argonium',
+                    'author_name' => 'Kristo Leas'
+                    ],
+            $usr = [
+                'first_name' => ucwords($lorem_ipsum->getRandomWord()),
+                'last_name' => ucwords($lorem_ipsum->getRandomWord()),
+                'email' => $lorem_ipsum->getRandomWord(). '@' . $lorem_ipsum->getRandomWord() . '.' . $lorem_ipsum->getRandomWord(),
+                'password_hash' => $lorem_ipsum->getRandomWord()
+            ],
+            'user' => $user->insert($usr),
+            'post' => $post->insert($pst),
+            'users' => $user->get(2),
+            'posts' => $post->get(2),
         ]);
         // echo "<br><h1>Hi, cruel world of PHP</h1><br>";
         // $string = Str::convertToSnakeCase('This to snake case');

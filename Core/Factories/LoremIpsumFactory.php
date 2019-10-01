@@ -44,4 +44,9 @@ class LoremIpsumFactory
         $lorem_return = rtrim($lorem_return, ' ') . '.';
         return $lorem_return;
     }
+
+    public function getRandomWord()
+    {
+        return $this->lorem_ipsum_base_array[(array_rand($this->lorem_ipsum_base_array))];
+    }
 }

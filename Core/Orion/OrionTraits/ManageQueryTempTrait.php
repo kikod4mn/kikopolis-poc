@@ -66,15 +66,17 @@ trait ManageQueryTempTrait
     // Get result set as array of objects
     protected function resultClass()
     {
+        $this->stmt->setFetchMode(PDO::FETCH_CLASS, get_called_class());
         $this->execute();
-        return $this->stmt->fetch(PDO::FETCH_CLASS, get_called_class());
+        return $this->stmt->fetch();
     }
 
     // Get result set as array of objects
     protected function resultSetClass()
     {
+        $this->stmt->setFetchMode(PDO::FETCH_CLASS, get_called_class());
         $this->execute();
-        return $this->stmt->fetchAll(PDO::FETCH_CLASS, get_called_class());
+        return $this->stmt->fetchAll();
     }
 
     // Get result set as array of objects
