@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Kikopolis\App\Utility;
 
@@ -62,6 +64,7 @@ class Token
     {
         $this->createCsrfToken();
         $this->csrf_token = $this->getTokenHash('sha256', $_SESSION['token_confirmation']);
+
         return $this->csrf_token;
     }
 
@@ -98,6 +101,7 @@ class Token
         $_SESSION['csrf_token'] = $this->csrf_token;
         $_SESSION['token_confirmation'] = Str::randomString(16);
         $_SESSION['csrf_token_time'] = time();
+
         return $this->csrf_token;
     }
 
@@ -111,8 +115,10 @@ class Token
             $_SESSION['csrf_token'] = null;
             $_SESSION['token_confirmation'] = null;
             $_SESSION['csrf_token_time'] = null;
+
             return true;
         }
+
         return false;
     }
 
@@ -132,6 +138,7 @@ class Token
             if (!hash_equals($_POST['csrf_token'], $_SESSION['csrf_token'])) {
                 throw new \Exception('CSRF Tokens from form are mismatched. Stopping everything and running away scared!!!');
             } else {
+
                 return true;
             }
         }
@@ -146,8 +153,10 @@ class Token
         $max_elapsed = 60 * 60 * 24;
         if (!Validate::hasValue($_SESSION['csrf_token'])) {
             $this->destroyCSRFToken();
+
             return false;
         } else {
+
             return ($_SESSION['csrf_token_time'] + $max_elapsed) >= time();
         }
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Kikopolis\Core\Aurora\AuroraTraits;
 
 defined('_KIKOPOLIS') or die('No direct script access!');

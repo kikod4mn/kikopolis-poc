@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Kikopolis\App\Helpers;
 
@@ -35,6 +37,7 @@ class Arr
             }
             $object->$key = $value;
         }
+
         return $object;
     }
 
@@ -59,6 +62,7 @@ class Arr
             }
             $array[$key] = $value;
         }
+
         return $array;
     }
 
@@ -79,6 +83,7 @@ class Arr
                 $return[] = $value;
             }
         }
+
         return $return;
     }
 
@@ -92,6 +97,7 @@ class Arr
     public static function arrayFilter(array $array, string $callback = 'is_string', $flags = ARRAY_FILTER_USE_KEY): array
     {
         $array = array_filter($array, $callback, $flags);
+
         return $array;
     }
 
@@ -131,9 +137,11 @@ class Arr
     {
         if (is_array($needles)) {
             foreach ($needles as $needle) {
+
                 return in_array($needle, $haystack);
             }
         } else {
+
             return in_array($needles, $haystack);
         }
     }
