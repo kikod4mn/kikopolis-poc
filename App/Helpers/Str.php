@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Kikopolis\App\Helpers;
 
@@ -69,6 +71,7 @@ class Str
     {
         $invalid_chars = ['/', '\\', '.', ';', '<', '>', '`', '^'];
         $string = str_replace($invalid_chars, '', $string);
+
         return $string;
     }
 
@@ -83,14 +86,17 @@ class Str
         if ($needles instanceof \Traversable || is_array($needles)) {
             foreach ($needles as $needle) {
                 if ($needle !== '' && mb_strpos($haystack, $needle) !== false) {
+
                     return true;
                 }
             }
         } else {
             if ($needles !== '' && mb_strpos($haystack, $needles) !== false) {
+
                 return true;
             }
         }
+
         return false;
     }
 
@@ -108,6 +114,7 @@ class Str
             $bytes = random_bytes($size);
             $string .= substr(str_replace(['/', '+', '='], '', base64_encode($bytes)), 0, $size);
         }
+
         return $string;
     }
 
@@ -125,8 +132,10 @@ class Str
             $string = str_replace($array, '', $string);
             // Ctype returns false on empty string, this is to avoid false positive
             if (strlen($string) == 0) {
+
                 return true;
             }
+
             return ctype_alpha($string);
         }
     }
@@ -144,8 +153,10 @@ class Str
             $string = str_replace($array, '', $string);
             // Ctype returns false on empty string, this is to avoid false positive
             if (strlen($string) == 0) {
+
                 return true;
             }
+
             return ctype_alnum($string);
         }
     }
@@ -162,8 +173,10 @@ class Str
             $string = str_replace($array, '', $string);
             // Ctype returns false on empty string, this is to avoid false positive
             if (strlen($string) == 0) {
+
                 return true;
             }
+
             return ctype_alnum($string);
         }
     }
@@ -187,6 +200,7 @@ class Str
     {
         $array = ['-', '.', ' ', '_', '+'];
         $string = str_replace($string, '', $array);
+
         return (bool) preg_match('/^[0-9]{10}+$/', $string);
     }
 
@@ -212,8 +226,10 @@ class Str
     {
         preg_match('/^\s*+(?:\S++\s*+){1,' . $limit . '}/u', $string, $matches);
         if (!$matches[0] || strlen($string) === strlen($matches[0])) {
+
             return $string;
         }
+
         return rtrim($matches[0]) . $append;
     }
 
@@ -238,7 +254,7 @@ class Str
         $string = preg_replace('![^' . preg_quote($separator) . '\pL\pN\s]+!u', '', strtolower($string));
         // Replace all whitespace and separator with single separator
         $string = preg_replace('![' . preg_quote($separator) . '\s]+!u', $separator, $string);
-        // Return the string
+
         return trim($string, $separator);
     }
 
@@ -252,6 +268,7 @@ class Str
     {
         $string = preg_replace('/\s+/u', '', ucwords($string));
         $string = strtolower(preg_replace('/(.)(?=[A-Z])/u', '$1' . $separator, $string));
+
         return $string;
     }
 
@@ -263,6 +280,7 @@ class Str
     public static function convertToStudlyCase(string $string): string
     {
         $string = ucwords(str_replace(['-', '_'], ' ', $string));
+
         return str_replace(' ', '', $string);
     }
 
@@ -329,12 +347,16 @@ class Str
     public static function hasLength(string $string, array $options): bool
     {
         if (isset($options['min']) && !static::hasLengthGreaterThan($string, $options['min'] - 1)) {
+
             return false;
         } elseif (isset($options['max']) && !static::hasLengthLessThan($string, $options['max'] + 1)) {
+
             return false;
         } elseif (isset($options['exact']) && !static::hasLengthExact($string, $options['exact'])) {
+
             return false;
         } else {
+
             return true;
         }
     }

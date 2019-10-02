@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Kikopolis\App\Helpers;
 
@@ -23,6 +25,7 @@ class Validate
     public static function hasValue($data)
     {
         $data = trim($data);
+
         return isset($data);
     }
 }

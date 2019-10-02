@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
@@ -10,7 +12,7 @@ use App\Models\User;
 use Kikopolis\App\Config\Config;
 use Kikopolis\App\Helpers\Str;
 use Kikopolis\App\Utility\Token;
-use Kikopolis\Core\Factories\LoremIpsumFactory;
+use Kikopolis\Core\Fakers\LoremFaker;
 use Kikopolis\App\Framework\Controllers\Controller;
 use Kikopolis\App\Helpers\FileHelper;
 use Kikopolis\Core\Http\Request;
@@ -46,7 +48,7 @@ class Home extends Controller
      */
     public function index(Post $post, User $user, Testmodel $testmodel)
     {
-        $lorem_ipsum = new LoremIpsumFactory();
+        $lorem_ipsum = new LoremFaker();
 
         $american_league = [
             'Rays', 'Yankees', 'Blue Jays', 'Orioles', 'Red Sox', 'Royals', 'Twins',

@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Kikopolis\Core\Aurora;
 
@@ -79,6 +81,7 @@ class View
         static::$template_file = static::$template->output();
         static::$template_file_contents = file_get_contents(static::$template_file);
         static::$template_file_contents = Aurora::runUserFunc(static::$template_file_contents);
+
         return static::$template->saveToCachedFile(static::$template_file_contents);
     }
 

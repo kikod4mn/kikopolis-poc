@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 use Kikopolis\App\Config\Config;
 use Kikopolis\App\Helpers\Str;
@@ -24,6 +26,7 @@ if (!function_exists('csrf_token')) {
     function csrf_token()
     {
         $token = new Token();
+
         return $token->getCsrfToken();
     }
 }
@@ -35,6 +38,7 @@ if (!function_exists('csrf_token_tag')) {
         $token = new Token();
         $token_value = $token->getCsrfToken();
         // Return the html field with token value.
+
         return '<input type=\"hidden\" name=\"csrf_token\" value=\"' . Str::h(($token_value)) . '\">';
     }
 }

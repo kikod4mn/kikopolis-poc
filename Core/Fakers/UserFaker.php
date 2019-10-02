@@ -1,10 +1,10 @@
 <?php
 
-namespace Kikopolis\Core\Factories;
+namespace Kikopolis\Core\Fakers;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
-class UserFactory
+class UserFaker
 {
     //
 }

@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Kikopolis\App\Helpers;
 
@@ -24,11 +26,14 @@ class Num
     public static function isValueAnInt($number)
     {
         if (!Validate::hasValue($number)) {
+
             return false;
         }
         if ($number === (int) $number) {
+
             return true;
         } else {
+
             return false;
         }
     }
