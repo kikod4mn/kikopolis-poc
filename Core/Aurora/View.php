@@ -2,53 +2,94 @@
 
 namespace Kikopolis\Core\Aurora;
 
+defined('_KIKOPOLIS') or die('No direct script access!');
+
+/**
+ * View class. This class is the public access for Aurora template engine and static template files.
+ * Part of the Kikopolis MVC Framework.
+ * @author Kristo Leas <admin@kikopolis.com>
+ * @version 0.0.0.1000
+ * PHP Version 7.3.5
+ */
+
 class View
 {
     /**
-     * @param $file_name
-     * @param $template_variables
+     * @var Aurora
+     */
+    private static $template;
+
+    /**
+     * @var string
+     */
+    private static $output_file = '';
+
+    /**
+     * @var string
+     */
+    private static $template_file = '';
+
+    /**
+     * @var string
+     */
+    private static $template_file_contents = '';
+
+    /**
+     * Render the template and require the file.
+     * @param string $file_name
+     * @param array $template_variables
+     * @param bool $force_compile
+     * @return void
      * @throws \Exception
      */
-    public static function render($file_name, $template_variables)
+    public static function render(string $file_name, array $template_variables = [], bool $force_compile = false)
     {
-        $template_file = '';
-        $file_contents = '';
-
-        $template = new Aurora($file_name);
-        extract($template_variables, EXTR_SKIP);
-        // Check to see if user defined functions are present.
-        // If the functions array is not empty, the template is recompiled every time with user functions.
-        // It is best to write a TODO: and say TODO: write custom extensions and test those.
+        // Initialize a new instance of Aurora with the template name.
+        static::$template = new Aurora($file_name);
+        // Check if user has defined custom functions.
+        // If defined, the template will be recompiled on every request.
         if (Aurora::$must_run_user_func === true) {
-            $template_file_contents = '';
-            $template_file_contents = $template->output(true);
-            $file_contents = file_get_contents($template_file_contents);
-            $file_contents = Aurora::runUserFunc($file_contents);
-            $template_file = $template->saveToCachedFile($file_contents);
+            static::$output_file = static::getTemplateWithUserFunc();
         } else {
-            // Set it to true for testing, always get a recompiled template.
-            $template_file = $template->output();
+            if (static::$template->getCacheExists() === true && $force_compile === false) {
+                // Cache exists, no force compile.
+                static::$output_file = static::$template->getCachedFile();
+            } else if ($force_compile === true) {
+                // Force compile set, dont even care about cache.
+                static::$output_file = static::$template->output();
+            } else {
+                // No cache, no force compile. Default to recompile.
+                static::$output_file = static::$template->output();
+            }
         }
-
+        // Extract template variables
+        extract($template_variables, EXTR_SKIP);
         // Show the template page
-        require_once $template_file;
-
-        // Test to see how the template generation after template serving to the browser works out.
-        // sleep(5);
-        die;
-        $test_var = file_get_contents($template->output(true));
-        $cached_contents = file_get_contents($template_file);
-        // @TODO: Due to the nature of php, this works on refresh if we refresh twice, meaning first time it still sends compiled if file exists and time is good
-        // and then checks for differences, rendering the new page.
-        if ($test_var !== $cached_contents) {
-            $template->output(true);
-        } elseif ($test_var === $cached_contents) {
-            echo '<h2 style="color:red;background-color:black;text-align:center;">Contents match, no re-compile necessary</h2>';
-        }
+        require_once static::$output_file;
     }
 
-    // @TODO: write custom functions into render
-    public static function addFunction($name, $callback, $arguments = [])
+    /**
+     * Get the template file contents with user functions parsed.
+     * @return bool|string
+     * @throws \Exception
+     * @return string
+     */
+    private static function getTemplateWithUserFunc(): string
+    {
+        static::$template_file = static::$template->output();
+        static::$template_file_contents = file_get_contents(static::$template_file);
+        static::$template_file_contents = Aurora::runUserFunc(static::$template_file_contents);
+        return static::$template->saveToCachedFile(static::$template_file_contents);
+    }
+
+    /**
+     * Add a custom function to the user functions array.
+     * @param $name
+     * @param $callback
+     * @param array $arguments
+     * @return void
+     */
+    public static function addFunction(string $name, \Closure $callback, array $arguments = []): void
     {
         AuroraFunctionHelper::addFunction($name, $callback, $arguments);
     }

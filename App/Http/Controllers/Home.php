@@ -16,6 +16,14 @@ use Kikopolis\App\Helpers\FileHelper;
 use Kikopolis\Core\Http\Request;
 use Kikopolis\Core\Aurora\View;
 
+/**
+ * Home controller.
+ * Part of the Kikopolis MVC Framework.
+ * @author Kristo Leas <admin@kikopolis.com>
+ * @version 0.0.0.1000
+ * PHP Version 7.3.5
+ */
+
 class Home extends Controller
 {
     public function __construct()
@@ -30,6 +38,12 @@ class Home extends Controller
         // echo FileHelper::getHumanFileSize('34000591231240');
     }
 
+    /**
+     * @param Post $post
+     * @param User $user
+     * @param Testmodel $testmodel
+     * @throws \Exception
+     */
     public function index(Post $post, User $user, Testmodel $testmodel)
     {
         $lorem_ipsum = new LoremIpsumFactory();

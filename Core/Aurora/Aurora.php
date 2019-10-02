@@ -13,40 +13,48 @@ use Kikopolis\Core\Aurora\AuroraTraits\ManageLoopsTrait;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
+/**
+ * Template engine Aurora for the Kikopolis framework.
+ * Part of the Kikopolis MVC Framework.
+ * @author Kristo Leas <admin@kikopolis.com>
+ * @version 0.0.0.1000
+ * PHP Version 7.3.5
+ */
+
 class Aurora
 {
     use ManageVariablesTrait, ManageAssetsTrait, ManageFunctionsTrait, ManageLoopsTrait, ManageFileContentsTrait;
     /**
      * The file name for the current template.
-     *
      * @var string
      */
     private $file = '';
 
     /**
      * Full filename of the cached view if exists.
-     *
      * @var string
      */
-    private $cached_view_file = '';
+    private $cached_file = '';
+
+    /**
+     * @var bool
+     */
+    private $cache_exists = false;
 
     /**
      * The parent base template file name if the current template extends another.
-     *
      * @var string
      */
     private $parent_file = '';
 
     /**
      * The parent base template contents if the current template extends another.
-     *
      * @var string
      */
     private $parent_file_contents = '';
 
     /**
      * Array to hold the linked asset values of the current template.
-     *
      * @var array
      */
     private $assets = [];
@@ -55,7 +63,6 @@ class Aurora
      * All the different tags that Aurora uses.
      * Used mostly for removing either stray tags or looping through variables to determine the type.
      * Recommended not to modify this.
-     *
      * @var array
      */
     private $surrounding_tags = [
@@ -76,11 +83,9 @@ class Aurora
      * Then it will find and count all the instruction blocks described here and parse them into the code.
      * If either extends or includes blocks do not point to valid files, an error will be thrown and no template will be shown.
      * This is to avoid incomplete or partial pages being rendered.
-     * Extends blocks are not included here because they are only 
-     * 
+     * Extends blocks are not included here because they are only
      * @section      May come from the current template or any of the extending templates.
      * @includes     May come from any template but must point to a valid file
-     *
      * @var array
      */
     private $instructions = [
@@ -90,35 +95,29 @@ class Aurora
 
     /**
      * Instruction blocks will be added into this array and later looped through to replace them with content.
-     *
      * @var array
      */
     private $instruction_blocks = [];
 
     /**
      * Boolean for determining the presence of a compiled script file.
-     *
      * @var boolean
      */
     private $is_compiled = false;
 
     /**
      * @TODO: Idea to be able to set with a public method the tags that Aurora replaces.
-     *
      * @var array
      */
     private $custom_values = [];
 
     /**
-     * The cache root directory.
-     *
      * @var string
      */
     private $cache_root = '';
 
     /**
      * Array of user defined functions to make available at runtime.
-     *
      * @var array
      */
     private $functions = [];
@@ -126,10 +125,33 @@ class Aurora
     /**
      * Boolean to determine whether user functions are present in the template.
      * If user functions have been defined, the template will be rendered fresh every time.
-     *
      * @var boolean
      */
     public static $must_run_user_func = false;
+
+    /**
+     * @return bool
+     */
+    public function getIsCompiled(): bool
+    {
+        return $this->is_compiled;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getCacheExists(): bool
+    {
+        return $this->cache_exists;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCachedFile(): string
+    {
+        return $this->cached_file;
+    }
 
     /**
      * Aurora constructor.
@@ -141,7 +163,10 @@ class Aurora
         $this->file = $file;
         // Set the current template cache location.
         $this->cache_root = Config::getViewCacheRoot();
-        $this->cached_view_file = $this->cache_root . $file . '.php';
+        $this->cached_file = $this->cache_root . $file . '.php';
+        if (file_exists($this->cached_file)) {
+            $this->cache_exists = true;
+        }
         // Set user defined functions.
         $this->functions = AuroraFunctionHelper::getFunctions();
         if ($this->functions !== []) {
@@ -153,15 +178,6 @@ class Aurora
     public function set($tag, $value)
     {
         $this->custom_values[$tag] = $value;
-    }
-
-    /**
-     * Template compiled status getter.
-     * @return bool
-     */
-    public function getIsCompiled(): bool
-    {
-        return (bool) $this->is_compiled;
     }
 
     /**
@@ -181,11 +197,11 @@ class Aurora
     {
         // Check for a compiled file
         // See method checkForCachedFile for specific conditions as to when the cached file is used.
-        $this->is_compiled = $this->checkForCachedFile($this->cached_view_file);
+        $this->is_compiled = $this->checkForCachedFile($this->cached_file);
         // If no $force_compile variable is passed in and there is a compiled template present,
         // simply return the cached view filename.
         if ($this->is_compiled === true && $force_compile === false) {
-            return $this->cached_view_file;
+            return $this->cached_file;
         }
         // Initialize variables
         // Variable to hold the output of the rendered page and the cached file name in the end.
@@ -215,7 +231,7 @@ class Aurora
         $cached_file = $this->saveToCachedFile($output);
         // If an error occurs during cache file creation, throws an Exception.
         if ($cached_file === false) {
-            throw new \Exception("Unable to create cache file - {$this->cached_view_file} - to  - {$this->cache_root} - directory. Please make sure the folder has sufficient rights set for a script to write to it.", 404);
+            throw new \Exception("Unable to create cache file - {$this->cached_file} - to  - {$this->cache_root} - directory. Please make sure the folder has sufficient rights set for a script to write to it.", 404);
         }
         // var_dump($output);
         if ($return_type === 'cache') {
@@ -262,7 +278,7 @@ class Aurora
         $regex = '/\@section\(\'extend\'\)(?P<content>.*?)\@endsection/s';
         $matches = $this->findByRegex($regex, $current_template);
         if (count($matches) > 1) {
-            throw new \Exception('Multiple sections in the template file, please enclose all content into one @section::(\'extend\')//content//@endsection', 404);
+            throw new \Exception('Multiple sections in the template file, please enclose all content into one @section::(\'extend\')content@endsection', 404);
         }
         if (!array_key_exists('content', $matches[0])) {
             throw new \Exception('No target section found in the parent template. Please make sure the parent template you are trying to extend has an (@section::extend) tag in the place where you wish to place the content of the called template.', 404);
@@ -786,10 +802,10 @@ class Aurora
      *
      * @param string $needle
      * @param string $haystack
-     * @param string $flags
+     * @param int $flags
      * @return array
      */
-    public static function findByRegex(string $needle, string $haystack, string $flags = PREG_SET_ORDER): array
+    public static function findByRegex(string $needle, string $haystack, int $flags = PREG_SET_ORDER): array
     {
         preg_match_all($needle, $haystack, $matches, $flags);
         return $matches;
@@ -803,7 +819,7 @@ class Aurora
      */
     public function saveToCachedFile(string $output)
     {
-        return $this->forceFileContents($output) === true ? $this->cached_view_file : false;
+        return $this->forceFileContents($output) === true ? $this->cached_file : false;
     }
 
     /**
@@ -818,7 +834,7 @@ class Aurora
         if (!file_exists($this->cache_root) || !is_dir($this->cache_root)) {
             mkdir($this->cache_root);
         }
-        return file_put_contents($this->cached_view_file, $output);
+        return (bool) file_put_contents($this->cached_file, $output);
     }
 
     /**
@@ -997,11 +1013,11 @@ class Aurora
 //            case 'escape':
 //                return Str::h($var);
             case 'allow-html':
-                return Str::hWithHtml($var);
+                return Str::hWithHtml((string) $var);
             case 'no-escape':
                 return $var;
             default:
-                return Str::h($var);
+                return Str::h((string) $var);
         }
     }
 
@@ -1020,7 +1036,7 @@ class Aurora
             case is_int($var):
                 return (string) $var;
             case is_string($var):
-                return (string) $var;
+                return $var;
             case $var === '' || $key === '':
                 return 'Empty values passed in';
         }

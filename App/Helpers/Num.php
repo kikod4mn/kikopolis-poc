@@ -2,7 +2,17 @@
 
 namespace Kikopolis\App\Helpers;
 
+use Kikopolis\App\Helpers\Validate;
+
 defined('_KIKOPOLIS') or die('No direct script access!');
+
+/**
+ * Numerical helper methods.
+ * Part of the Kikopolis MVC Framework.
+ * @author Kristo Leas <admin@kikopolis.com>
+ * @version 0.0.0.1000
+ * PHP Version 7.3.5
+ */
 
 class Num
 {
@@ -13,7 +23,7 @@ class Num
      */
     public static function isValueAnInt($number)
     {
-        if (!static::hasValue($number)) {
+        if (!Validate::hasValue($number)) {
             return false;
         }
         if ($number === (int) $number) {

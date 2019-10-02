@@ -2,25 +2,30 @@
 
 namespace Kikopolis\Core;
 
+use Kikopolis\App\Config\Config;
+use Kikopolis\Core\Aurora\View;
+
 defined('_KIKOPOLIS') or die('No direct script access!');
 
-use Kikopolis\App\Config\Config;
-
 /**
- * Error and exception handler
+ * Error handler.
+ * Part of the Kikopolis MVC Framework.
+ * @author Kristo Leas <admin@kikopolis.com>
+ * @version 0.0.0.1000
+ * PHP Version 7.3.5
  */
+
 class Error
 {
     /**
      * Error handler
      * Convert all errors to Exceptions by throwing an ErrorException
-     * 
      * @param int $level Error level
      * @param string $message Error message
      * @param string $file Filename the error was raised in
      * @param int $line Line number in the file
-     * 
      * @return void
+     * @throws \ErrorException
      */
     public static function errorHandler($level, $message, $file, $line)
     {
@@ -31,10 +36,9 @@ class Error
 
     /**
      * Exception handler
-     * 
-     * @param Exception @exception
-     * 
+     * @param \Exception @exception
      * @return void
+     * @throws \Exception
      */
     public static function exceptionHandler($exception)
     {
@@ -61,7 +65,7 @@ class Error
             $message .= "\nThrown in '" . $exception->getFile() . "' on line " . $exception->getLine();
 
             error_log($message);
-            View::renderTemplate("$code.html.twig");
+            View::render("$code");
         }
     }
 }

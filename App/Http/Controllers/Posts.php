@@ -25,8 +25,9 @@ class Posts extends Controller
 
     /**
      * Show posts
-     *
+     * @param Post $post
      * @return void
+     * @throws \Exception
      */
     public function show(Post $post)
     {

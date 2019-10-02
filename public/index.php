@@ -21,8 +21,7 @@ define('_KIKOPOLIS', 1);
 require_once '../Core/Core.php';
 
 // Instantiate the dependency injection container
-$container = new Container();
-
+//$container = new Container();
 View::addFunction('countDaysFromBirth', function ($dob) {
     $now = time();
     $your_date = strtotime($dob);

@@ -19,25 +19,25 @@ class Str
     /**
      * Sanitize data for HTML output.
      * @param string $string
-     * @param mixed $tags
+     * @param int $flags
      * @param string $encoding
      * @return string
      */
-    public static function h(string $string, $tags = ENT_QUOTES, $encoding = 'UTF-8'): string
+    public static function h(string $string, int $flags = ENT_QUOTES, $encoding = 'UTF-8'): string
     {
-        return htmlspecialchars($string, $tags, $encoding);
+        return htmlspecialchars($string, $flags, $encoding);
     }
 
     /**
      * Sanitize data for HTML output but allow html tags.
      * @param string $string
-     * @param mixed $tags
+     * @param mixed $flags
      * @param string $encoding
      * @return string
      */
-    public static function hWithHtml(string $string, $tags = ENT_QUOTES, $encoding = 'UTF-8'): string
+    public static function hWithHtml(string $string, int $flags = ENT_QUOTES, $encoding = 'UTF-8'): string
     {
-        return htmlspecialchars_decode(htmlspecialchars($string, $tags, $encoding));
+        return htmlspecialchars_decode(htmlspecialchars($string, $flags, $encoding));
     }
 
     /**

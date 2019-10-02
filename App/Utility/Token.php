@@ -8,6 +8,14 @@ use Kikopolis\App\Helpers\Validate;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
+/**
+ * Token utility class. Generate and validate basic tokens and csrf tokens.
+ * Part of the Kikopolis MVC Framework.
+ * @author Kristo Leas <admin@kikopolis.com>
+ * @version 0.0.0.1000
+ * PHP Version 7.3.5
+ */
+
 class Token
 {
     /**
@@ -47,12 +55,13 @@ class Token
 
     /**
      * Create a csrf token from a random string and hash it.
+     * @throws \Exception
      * @return string
      */
     public function getCsrfToken(): string
     {
         $this->createCsrfToken();
-        $this->csrf_token = $this->getTokenHash($_SESSION['csrf_token'], 'sha256', $_SESSION['token_confirmation']);
+        $this->csrf_token = $this->getTokenHash('sha256', $_SESSION['token_confirmation']);
         return $this->csrf_token;
     }
 
@@ -68,7 +77,19 @@ class Token
     }
 
     /**
+     * Compare token to its verification, saved in where ever, DB, session etc.
+     * @param string $token
+     * @param string $verification
+     * @return bool
+     */
+    public function tokenIsValid(string $token, string $verification): bool
+    {
+        return hash_equals($token, $verification);
+    }
+
+    /**
      * Create and set the CSRF token into session.
+     * @throws \Exception
      * @return string
      */
     private function createCsrfToken(): string
@@ -92,9 +113,15 @@ class Token
             $_SESSION['csrf_token_time'] = null;
             return true;
         }
+        return false;
     }
 
-    public function csrfTokenIsValid()
+    /**
+     * Verify that the csrf token is valid.
+     * @throws \Exception
+     * @return bool
+     */
+    public function csrfTokenIsValid(): bool
     {
         if (!Validate::hasValue($_POST['csrf_token'])) {
             throw new \Exception('Form Token not present. Stop the press and call the office!');
@@ -102,7 +129,7 @@ class Token
             if (!$this->csrfTokenIsRecent()) {
                 throw new \Exception('Form token has expired. Please try again.');
             }
-            if ($_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+            if (!hash_equals($_POST['csrf_token'], $_SESSION['csrf_token'])) {
                 throw new \Exception('CSRF Tokens from form are mismatched. Stopping everything and running away scared!!!');
             } else {
                 return true;
@@ -110,7 +137,11 @@ class Token
         }
     }
 
-    public function csrfTokenIsRecent()
+    /**
+     * Verify the csrf token is recent.
+     * @return bool
+     */
+    private function csrfTokenIsRecent(): bool
     {
         $max_elapsed = 60 * 60 * 24;
         if (!Validate::hasValue($_SESSION['csrf_token'])) {

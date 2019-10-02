@@ -43,7 +43,8 @@ class Container
      * @param string $abstract
      * @param string $method
      * @param array $parameters
-     * @return void
+     * @return array
+     * @throws \ReflectionException
      */
     public function get(string $abstract, string $method = '', array $parameters = [])
     {
@@ -57,16 +58,17 @@ class Container
     /**
      * Make and resolve a namespaced class instance.
      *
-     * @param       string      $concrete
-     * @param       array       $parameters
-     * @param       string      $method
-     * @throws Exception
+     * @param string $concrete
+     * @param array $parameters
+     * @param string $method
      * @return      mixed
+     * @throws \ReflectionException
+     * @throws \Exception
      */
     private function buildInstances(string $concrete, array $parameters, string $method = '')
     {
         // If $concrete is a closure, return it immediately.
-        if ($concrete instanceof Closure) {
+        if ($concrete instanceof \Closure) {
             return $concrete($this, ...$parameters);
         }
         // Initialize variables.
@@ -104,6 +106,8 @@ class Container
      * @param string $concrete
      * @param string $method
      * @return mixed
+     * @throws \ReflectionException
+     * @throws \Exception
      */
     private function resolveMethod(string $concrete, string $method)
     {
@@ -115,7 +119,9 @@ class Container
         $instance = new ReflectionMethod($concrete, $method);
         // Get the $method dependencies and resolve them.
         $dependencies = $instance->getParameters();
-        $instances = $this->resolve($dependencies);
+        if ($dependencies) {
+            $instances = $this->resolve($dependencies);
+        }
         // Instantiate the method with its parameters resolved.
         return $instance->invokeArgs(new $concrete, $instances);
     }
@@ -124,8 +130,8 @@ class Container
      * Resolve the dependencies of a class or method.
      *
      * @param array $parameters
-     * @throws Exception
      * @return array
+     * @throws \Exception
      */
     private function resolve(array $parameters): array
     {

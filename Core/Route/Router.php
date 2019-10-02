@@ -109,7 +109,7 @@ class Router
      * @param string $uri
      * @param string $action
      * @param array $options
-     * @return this
+     * @return Router
      */
     public function head($uri, $action, $options = [])
     {
@@ -123,7 +123,7 @@ class Router
      * @param string $uri
      * @param string $action
      * @param array $options
-     * @return this
+     * @return Router
      */
     public function get($uri, $action, $options = [])
     {
@@ -137,7 +137,7 @@ class Router
      * @param string $uri
      * @param string $action
      * @param array $options
-     * @return this
+     * @return Router
      */
     public function post($uri, $action, $options = [])
     {
@@ -151,7 +151,7 @@ class Router
      * @param string $uri
      * @param string $action
      * @param array $options
-     * @return this
+     * @return Router
      */
     public function put($uri, $action, $options = [])
     {
@@ -165,7 +165,7 @@ class Router
      * @param string $uri
      * @param string $action
      * @param array $options
-     * @return this
+     * @return Router
      */
     public function patch($uri, $action, $options = [])
     {
@@ -179,7 +179,7 @@ class Router
      * @param string $uri
      * @param string $action
      * @param array $options
-     * @return this
+     * @return Router
      */
     public function delete($uri, $action, $options = [])
     {
@@ -192,6 +192,7 @@ class Router
      *
      * @param string $uri
      * @return void
+     * @throws \Exception
      */
     public function dispatch(string $uri = ''): void
     {
@@ -264,7 +265,8 @@ class Router
      * Match the url to a route
      *
      * @param string $url
-     * @return this
+     * @return Router
+     * @throws \Exception
      */
     protected function match(string $url)
     {
@@ -308,6 +310,7 @@ class Router
         unset($this->route['action'][1]);
         // Get extra parameters from the url if they exist.
         $this->route['params'] = $this->extractRouteParameters($url);
+
         return $this;
     }
 
