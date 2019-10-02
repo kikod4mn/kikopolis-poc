@@ -1,7 +1,16 @@
-<?php
+<?php declare(strict_types=1);
 
 use Kikopolis\App\Config\Config;
+use Kikopolis\App\Helpers\Str;
 use Kikopolis\App\Utility\Token;
+
+/**
+ * Misc helper functions.
+ * Part of the Kikopolis MVC Framework.
+ * @author Kristo Leas <admin@kikopolis.com>
+ * @version 0.0.0.1000
+ * PHP Version 7.3.5
+ */
 
 if (!function_exists('redirect')) {
     function redirect($page)

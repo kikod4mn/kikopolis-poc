@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 use Kikopolis\App\Config\Config;
 use Kikopolis\Core\Aurora\View;
@@ -10,8 +10,8 @@ use Kikopolis\Core\Container\Container;
 define('_KIKOPOLIS', 1);
 
 /**
- * The Front Controller
- * 
+ * The front controller, entry point from the web to the framework.
+ * Part of the Kikopolis MVC Framework.
  * @author Kristo Leas <admin@kikopolis.com>
  * @version 0.0.0.1000
  * PHP Version 7.3.5

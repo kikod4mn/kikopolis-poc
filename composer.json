@@ -1,7 +1,9 @@
 {
     "require": {
         "ext-pdo": "*",
-        "ext-json": "*"
+        "ext-json": "*",
+      "ext-mbstring": "*",
+      "ext-ctype": "*"
     },
     "autoload": {
         "psr-4": {

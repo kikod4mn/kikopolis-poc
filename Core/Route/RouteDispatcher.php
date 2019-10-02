@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 use Kikopolis\App\Config\Config;
 use Kikopolis\Core\Route\Router;
