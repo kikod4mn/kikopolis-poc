@@ -2,21 +2,19 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
-
-use Kikopolis\Core\Orion\Model;
+namespace App\Http\Controllers\Authorization;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
 /**
- * Testmodel testing model
+ * Login
  * Part of the Kikopolis MVC Framework.
  * @author Kristo Leas <admin@kikopolis.com>
  * @version 0.0.0.1000
  * PHP Version 7.3.5
  */
 
-class Testmodel extends Model
+class Login
 {
     //
 }

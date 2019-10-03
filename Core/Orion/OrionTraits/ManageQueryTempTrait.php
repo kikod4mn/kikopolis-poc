@@ -4,13 +4,23 @@ declare(strict_types=1);
 
 namespace Kikopolis\Core\Orion\OrionTraits;
 
+use Kikopolis\App\Helpers\Str;
 use PDO;
+
+defined('_KIKOPOLIS') or die('No direct script access!');
+
+/**
+ * OrionTrait
+ * Part of the Kikopolis MVC Framework.
+ * @author Kristo Leas <admin@kikopolis.com>
+ * @version 0.0.0.1000
+ * PHP Version 7.3.5
+ */
 
 trait ManageQueryTempTrait
 {
     /**
      * Prepare the query with prepared statement
-     * 
      * @return void
      */
     protected function query($sql)
@@ -20,7 +30,6 @@ trait ManageQueryTempTrait
 
     /**
      * Bind the values in the query automatically depending on type
-     * 
      * @param string $param The Database table field name in the PDO prepared statement
      * @param mixed $value The value to be added to the database
      * @param null $type The type of value, to be determined in this function
@@ -92,5 +101,21 @@ trait ManageQueryTempTrait
     protected function rowCount()
     {
         return $this->stmt->rowCount();
+    }
+
+    protected function getLastId() {
+        return $this->db->lastInsertId();
+    }
+
+    protected function whatIsKey($key)
+    {
+        switch ($key) {
+            case is_int($key) || is_numeric($key):
+                return 'id';
+            case Str::contains((string) $key, '@'):
+                return 'email';
+            case is_string($key):
+                return $key;
+        }
     }
 }

@@ -4,18 +4,20 @@ declare(strict_types=1);
 
 namespace Kikopolis\Core\Route;
 
-defined('_KIKOPOLIS') or die('No direct script access!');
-
 use Kikopolis\App\Framework\Controllers\Controller;
 use Kikopolis\App\Helpers\Str;
 use Kikopolis\Core\Container\Container;
 
+defined('_KIKOPOLIS') or die('No direct script access!');
+
 /**
- * The Router class for Kikopolis MVC.
- * 
+ * Cookie
+ * Part of the Kikopolis MVC Framework.
  * @author Kristo Leas <admin@kikopolis.com>
+ * @version 0.0.0.1000
  * PHP Version 7.3.5
  */
+
 class Router
 {
     /**

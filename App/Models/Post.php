@@ -8,6 +8,14 @@ use Kikopolis\Core\Orion\Model;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
+/**
+ * Post testing model
+ * Part of the Kikopolis MVC Framework.
+ * @author Kristo Leas <admin@kikopolis.com>
+ * @version 0.0.0.1000
+ * PHP Version 7.3.5
+ */
+
 class Post extends Model
 {
     protected $fillable = ['id', 'title', 'category_id', 'category_title', 'body', 'tags', 'image_id', 'image', 'comment_count', 'author_id', 'author_name', 'created_at', 'modified_at', 'is_active', 'view_count'];
@@ -21,9 +29,5 @@ class Post extends Model
     public function __constructor()
     {
         //
-    }
-
-    public function insert(array $data) {
-        return $this->save($data);
     }
 }

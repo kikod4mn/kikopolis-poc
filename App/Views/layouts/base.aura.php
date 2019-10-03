@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="(@csrf_token())">
+    <meta name="description" content="<?php echo '$template_description with ca 300, only alphanumeric chars';?>">
+    <?php echo '<meta name="og:? property="og:? content="content of the tag here'; ?>
+    <meta name="og:<?php echo '$template_og_property_name'; ?>" property="<?php echo '$template_og_property_name'; ?>"
+          type="<?php echo '$template_og_property_type'; ?>" content="<?php echo '$template_og_property_content'; ?>" >
+    <meta name="robots" content="index, follow">
+    <link href="<?php echo '$template_canonical_url'; ?>" rel="canonical">
     <title>{{page_title}}</title>
     (@asset('frontend', 'css'))
 </head>

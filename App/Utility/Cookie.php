@@ -13,6 +13,7 @@ defined('_KIKOPOLIS') or die('No direct script access!');
  * @version 0.0.0.1000
  * PHP Version 7.3.5
  */
+
 class Cookie
 {
     //

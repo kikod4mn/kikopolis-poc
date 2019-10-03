@@ -6,17 +6,20 @@ namespace App\Http\Controllers;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
+use App\Http\Controllers\Authorization\Register;
 use App\Models\Post;
 use App\Models\Testmodel;
 use App\Models\User;
 use Kikopolis\App\Config\Config;
 use Kikopolis\App\Helpers\Str;
+use Kikopolis\App\Utility\Hash;
 use Kikopolis\App\Utility\Token;
 use Kikopolis\Core\Fakers\LoremFaker;
 use Kikopolis\App\Framework\Controllers\Controller;
 use Kikopolis\App\Helpers\FileHelper;
 use Kikopolis\Core\Http\Request;
 use Kikopolis\Core\Aurora\View;
+use Kikopolis\Core\Orion\ModelGuard\RegisterUser;
 
 /**
  * Home controller.
@@ -46,7 +49,7 @@ class Home extends Controller
      * @param Testmodel $testmodel
      * @throws \Exception
      */
-    public function index(Post $post, User $user, Testmodel $testmodel)
+    public function index(Post $post, User $user, Testmodel $testmodel, Register $register)
     {
         $lorem_ipsum = new LoremFaker();
 
@@ -92,10 +95,22 @@ class Home extends Controller
                 'email' => $lorem_ipsum->getRandomWord(). '@' . $lorem_ipsum->getRandomWord() . '.' . $lorem_ipsum->getRandomWord(),
                 'password_hash' => $lorem_ipsum->getRandomWord()
             ],
-            'user' => $user->insert($usr),
-            'post' => $post->insert($pst),
+            'user' => $user->save($usr),
+            'post' => $post->save($pst),
             'users' => $user->get(2),
             'posts' => $post->get(2),
+            $user_reg = [
+                'first_name' => 'Kiko',
+                'last_name' => 'Kikopolis',
+                'email' => 'kiko@kiko.com',
+                'password' => 'secret'
+            ],
+            'register' => $register->register([
+                'first_name' => $user_reg['first_name'],
+                'last_name' => $user_reg['last_name'],
+                'email' => $user_reg['email'],
+                'password' => Hash::getHash($user_reg['password']),
+            ])
         ]);
         // echo "<br><h1>Hi, cruel world of PHP</h1><br>";
         // $string = Str::convertToSnakeCase('This to snake case');

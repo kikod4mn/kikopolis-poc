@@ -20,9 +20,6 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
  */
 session_start();
 
-// $route_compiler = new RouteCompiler();
-// print_r($route_compiler->getBindings());
-
 /**
  * Cookie settings
  */

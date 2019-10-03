@@ -9,7 +9,7 @@ use Kikopolis\Core\Orion\Model;
 defined('_KIKOPOLIS') or die('No direct script access!');
 
 /**
- * Kikopolis Core. Handle bootstrapping and configuring the environment.
+ * User testing model
  * Part of the Kikopolis MVC Framework.
  * @author Kristo Leas <admin@kikopolis.com>
  * @version 0.0.0.1000
@@ -18,7 +18,6 @@ defined('_KIKOPOLIS') or die('No direct script access!');
 
 class User extends Model
 {
-
     protected $fillable = [
         'id',
         'first_name',
@@ -85,10 +84,10 @@ class User extends Model
         //
     }
 
-    public function insert(array $data) {
-        if(isset($data['password_hash'])) {
-            $data['password_hash'] = password_hash($data['password_hash'], PASSWORD_DEFAULT);
-        }
-        return $this->save($data);
-    }
+//    public function insert(array $data) {
+//        if(isset($data['password_hash'])) {
+//            $data['password_hash'] = password_hash($data['password_hash'], PASSWORD_DEFAULT);
+//        }
+//        return $this->save($data);
+//    }
 }

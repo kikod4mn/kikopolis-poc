@@ -8,23 +8,45 @@ use ReflectionMethod;
 defined('_KIKOPOLIS') or die('No direct script access!');
 
 /**
- * IoC Dependency Injection Container class.
- * 
+ * IoC Container class.
+ * Part of the Kikopolis MVC Framework.
  * @author Kristo Leas <admin@kikopolis.com>
+ * @version 0.0.0.1000
  * PHP Version 7.3.5
  */
+
 class Container
 {
     /**
      * Array of class instances.
-     *
      * @var array
      */
     protected $instances = [];
 
     /**
+     * @var \ReflectionClass
+     */
+    protected $reflector;
+
+    /**
+     * @var \ReflectionClass __construct
+     */
+    protected $construct;
+
+    /**
+     * An array of static bindings for the container to search.
+     * @var array
+     */
+    private $bindings = [
+        'Config' => Kikopolis\App\Config\Config::class,
+        'Home' => App\Http\Controllers\Home::class,
+        'Posts' => App\Http\Controllers\Posts::class,
+        'User' => App\Models\User::class,
+        'Post' => App\Models\Post::class
+    ];
+
+    /**
      * Set the class name to instances array.
-     *
      * @param string $abstract The name of the class.
      * @param string $concrete The name of the class with namespace.
      * @return void
@@ -39,12 +61,11 @@ class Container
 
     /**
      * Get the class together with its dependencies.
-     *
      * @param string $abstract
      * @param string $method
      * @param array $parameters
-     * @return array
      * @throws \ReflectionException
+     * @return array
      */
     public function get(string $abstract, string $method = '', array $parameters = [])
     {
@@ -52,52 +73,59 @@ class Container
         if (!isset($this->instances[$abstract])) {
             $this->set($abstract);
         }
+
         return $this->buildInstances($this->instances[$abstract], $parameters, $method);
     }
 
     /**
      * Make and resolve a namespaced class instance.
-     *
-     * @param string $concrete
+     * @param $concrete
      * @param array $parameters
      * @param string $method
-     * @return      mixed
      * @throws \ReflectionException
      * @throws \Exception
+     * @return      mixed
      */
-    private function buildInstances(string $concrete, array $parameters, string $method = '')
+    private function buildInstances($concrete, array $parameters, string $method = '')
     {
         // If $concrete is a closure, return it immediately.
         if ($concrete instanceof \Closure) {
+
             return $concrete($this, ...$parameters);
         }
-        // Initialize variables.
-        $reflector = null;
         $dependencies = [];
         $instances = [];
         // Get a new ReflectionClass for our $concrete.
-        $reflector = new ReflectionClass($concrete);
-        // If $reflector is not instantiable, meaning it is an Abstract or Interface class.
-        if (!$reflector->isInstantiable()) {
+        $this->reflector = new ReflectionClass($concrete);
+        // If reflector is not instantiable, meaning it is an Abstract or an Interface.
+        if (!$this->reflector->isInstantiable()) {
             throw new \Exception("Class {$concrete} is not instantiable!");
         }
         // Get class constructor.
-        $constructor = $reflector->getConstructor();
+        $this->construct = $this->reflector->getConstructor();
         // If no constructor, then no dependencies - simply return new class instance.
-        if (is_null($constructor)) {
+        if (is_null($this->construct)) {
+            // If a method is passed in, resolve and instantiate the method.
+            if ($method !== '') {
+
+                return $this->resolveMethod($concrete, $method);
+            }
+
             return new $concrete;
         }
         // Get constructor params.
-        $dependencies = $constructor->getParameters();
+        $dependencies = $this->construct->getParameters();
         // Resolve constructor params.
         $instances = $this->resolve($dependencies);
-        // If a method is passed in, resolve the methods dependencies.
+        // If a method is passed in, resolve the methods dependencies and instantiate a new instance.
         // The method would most likely come from the Router class.
         if ($method !== '') {
+
             return $this->resolveMethod($concrete, $method);
         }
+
         // Instantiate the class with arguments.
-        return $reflector->newInstanceArgs($instances);
+        return $this->reflector->newInstanceArgs($instances);
     }
 
     /**
@@ -105,9 +133,9 @@ class Container
      *
      * @param string $concrete
      * @param string $method
-     * @return mixed
      * @throws \ReflectionException
      * @throws \Exception
+     * @return mixed
      */
     private function resolveMethod(string $concrete, string $method)
     {
@@ -122,6 +150,7 @@ class Container
         if ($dependencies) {
             $instances = $this->resolve($dependencies);
         }
+
         // Instantiate the method with its parameters resolved.
         return $instance->invokeArgs(new $concrete, $instances);
     }
@@ -130,8 +159,8 @@ class Container
      * Resolve the dependencies of a class or method.
      *
      * @param array $parameters
-     * @return array
      * @throws \Exception
+     * @return array
      */
     private function resolve(array $parameters): array
     {
@@ -155,6 +184,7 @@ class Container
                 $dependencies[] = $this->get($dependency->name);
             }
         }
+
         // Return the resolved dependencies array
         return $dependencies;
     }

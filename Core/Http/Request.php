@@ -3,6 +3,16 @@
 
 namespace Kikopolis\Core\Http;
 
+defined('_KIKOPOLIS') or die('No direct script access!');
+
+/**
+ * Request
+ * Part of the Kikopolis MVC Framework.
+ * @author Kristo Leas <admin@kikopolis.com>
+ * @version 0.0.0.1000
+ * PHP Version 7.3.5
+ */
+
 class Request
 {
     public $query = [];

@@ -25,17 +25,40 @@ class Posts extends Controller
         $this->params = Controller::getRouteParams();
     }
 
-    /**
-     * Show posts
-     * @param Post $post
-     * @return void
-     * @throws \Exception
-     */
-    public function show(Post $post)
+    public function index()
     {
-        var_dump($post->get());
+        // TODO: Implement method
+    }
+
+    public function show()
+    {
         echo "<h1>The id of the post is {$this->params['id']}</h1>";
         echo "<h1>The slug of the post is {$this->params['slug']}</h1>";
         echo "Well done on reaching here, young padawan!!";
+    }
+
+    public function create()
+    {
+        // TODO: Implement method
+    }
+
+    public function save()
+    {
+        // TODO: Implement method
+    }
+
+    public function edit()
+    {
+        // TODO: Implement method
+    }
+
+    public function update()
+    {
+        // TODO: Implement method
+    }
+
+    public function delete()
+    {
+        // TODO: Implement method
     }
 }

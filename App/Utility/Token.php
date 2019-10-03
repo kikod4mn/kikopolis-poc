@@ -74,9 +74,9 @@ class Token
      * @param string $hmac_key
      * @return string
      */
-    public function getTokenHash($algorithm = 'sha256', $hmac_key = Config::STRING): string
+    public function getTokenHash(): string
     {
-        return hash_hmac($algorithm, $this->token , $hmac_key);
+        return Hash::getHash($this->token);
     }
 
     /**
@@ -87,7 +87,7 @@ class Token
      */
     public function tokenIsValid(string $token, string $verification): bool
     {
-        return hash_equals($token, $verification);
+        return Hash::compare($token, $verification);
     }
 
     /**
@@ -135,7 +135,7 @@ class Token
             if (!$this->csrfTokenIsRecent()) {
                 throw new \Exception('Form token has expired. Please try again.');
             }
-            if (!hash_equals($_POST['csrf_token'], $_SESSION['csrf_token'])) {
+            if (!Hash::compare($_POST['csrf_token'], $_SESSION['csrf_token'])) {
                 throw new \Exception('CSRF Tokens from form are mismatched. Stopping everything and running away scared!!!');
             } else {
 

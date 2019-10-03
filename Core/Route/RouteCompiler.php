@@ -4,29 +4,44 @@ declare(strict_types=1);
 
 namespace Kikopolis\Core\Route;
 
+defined('_KIKOPOLIS') or die('No direct script access!');
+
+/**
+ * Cookie
+ * Part of the Kikopolis MVC Framework.
+ * @author Kristo Leas <admin@kikopolis.com>
+ * @version 0.0.0.1000
+ * PHP Version 7.3.5
+ */
+
 class RouteCompiler
 {
-    private $bindings_array = [
-        'home' => \App\Controllers\Http\Home::class,
-        'posts' => \App\Controllers\Posts::class,
+    /**
+     * Array of controllers for uri comparison.
+     * @var array
+     */
+    private $bindings = [
+        'home' => App\Http\Controllers\Home::class,
+        'posts' => App\Http\Controllers\Posts::class,
     ];
 
     /**
      * @var string
      */
     private $pattern = '';
+
     /**
      * @var string
      */
     private $controller = '';
+
     /**
      * @var string
      */
     private $method = '';
 
     /**
-     * RouteCompiler constructor
-     *
+     * RouteCompiler construct
      * @param string $pattern
      * @param string $controller
      * @param string $method
@@ -40,6 +55,6 @@ class RouteCompiler
 
     public function getBindings()
     {
-        return $this->bindings_array;
+        return $this->bindings;
     }
 }
