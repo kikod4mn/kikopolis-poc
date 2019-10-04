@@ -20,8 +20,15 @@
     (@section::layouts.header)
     <div class="wrapper">
         <div class="row">
+            <div>
+                <?php echo \Kikopolis\App\Utility\Form::text('first_name', 'first_name', 'Enter first name', 'First name'); ?>
+                <?php echo \Kikopolis\App\Utility\Form::text('last_name', 'last_name', 'Enter last name', 'Last name'); ?>
+                <?php echo \Kikopolis\App\Utility\Form::email('email', 'email', 'Enter a valid email', 'Email'); ?>
+                <?php echo \Kikopolis\App\Utility\Form::password('password', 'password', 'Choose a password', 'Password'); ?>
+                <?php echo \Kikopolis\App\Utility\Form::textarea('test_textarea', 'test_textarea','Textarea'); ?>
+            </div>
             <h4 class=""><u>Limited html allowed</u></h4>
-            {!! no_escape !!}
+            {{ no_escape }}
             (@function::countDaysFromBirth(12.04.1987))
             (@function::coinFlip())<br>
             (@function::coinFlip())<br>

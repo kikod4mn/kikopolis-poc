@@ -99,18 +99,18 @@ class Home extends Controller
             'post' => $post->save($pst),
             'users' => $user->get(2),
             'posts' => $post->get(2),
-            $user_reg = [
-                'first_name' => 'Kiko',
-                'last_name' => 'Kikopolis',
-                'email' => 'kiko@kiko.com',
-                'password' => 'secret'
-            ],
-            'register' => $register->register([
-                'first_name' => $user_reg['first_name'],
-                'last_name' => $user_reg['last_name'],
-                'email' => $user_reg['email'],
-                'password' => Hash::getHash($user_reg['password']),
-            ])
+//            $user_reg = [
+//                'first_name' => 'Kiko',
+//                'last_name' => 'Kikopolis',
+//                'email' => 'kiko@kiko.com',
+//                'password' => 'secret'
+//            ],
+//            'register' => $register->register([
+//                'first_name' => $user_reg['first_name'],
+//                'last_name' => $user_reg['last_name'],
+//                'email' => $user_reg['email'],
+//                'password_hash' => Hash::getHash($user_reg['password']),
+//            ])
         ]);
         // echo "<br><h1>Hi, cruel world of PHP</h1><br>";
         // $string = Str::convertToSnakeCase('This to snake case');

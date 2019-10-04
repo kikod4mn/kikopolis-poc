@@ -44,12 +44,13 @@ class View
      * @return void
      * @throws \Exception
      */
-    public static function render(string $file_name, array $template_variables = [], bool $force_compile = false)
+    public static function render(string $file_name, array $template_variables = [], bool $force_compile = true)
     {
         // Initialize a new instance of Aurora with the template name.
         static::$template = new Aurora($file_name);
         // Check if user has defined custom functions.
         // If defined, the template will be recompiled on every request.
+        // TODO: Extract user functions to separate class static function to enable running them on a compiled template.
         if (Aurora::$must_run_user_func === true) {
             static::$output_file = static::getTemplateWithUserFunc();
         } else {
@@ -67,6 +68,7 @@ class View
         // Extract template variables
         extract($template_variables, EXTR_SKIP);
         // Show the template page
+
         require_once static::$output_file;
     }
 
@@ -78,7 +80,7 @@ class View
      */
     private static function getTemplateWithUserFunc(): string
     {
-        static::$template_file = static::$template->output();
+        static::$template_file = static::$template->output(true);
         static::$template_file_contents = file_get_contents(static::$template_file);
         static::$template_file_contents = Aurora::runUserFunc(static::$template_file_contents);
 

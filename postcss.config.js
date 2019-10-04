@@ -31,6 +31,6 @@ module.exports = {
         require('postcss-extend')(),
         require('postcss-custom-properties')(),
         require('autoprefixer')(),
-        purgecss
+        // purgecss
     ]
 };

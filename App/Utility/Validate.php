@@ -41,8 +41,8 @@ class Validate
 
 
         var_dump(static::$rule_set);
-die;
-        return false;
+//die;
+        return true;
     }
 
     protected static function extractRules(): void
