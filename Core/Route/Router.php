@@ -373,17 +373,19 @@ class Router
      */
     protected function methodMatchCheck(string $request_method, $url_method): bool
     {
-        if (is_array($url_method)) {
-            foreach ($url_method as $method) {
-                if ($request_method === $method) {
-                    return true;
-                } else {
-                    continue;
+        switch ($url_method) {
+            case is_string($url_method):
+                return strtolower($request_method) === strtolower($url_method);
+            case is_array($url_method):
+                foreach ($url_method as $method) {
+                    if (strtolower($request_method) === strtolower($method)) {
+                        return true;
+                    } else {
+                        continue;
+                    }
                 }
-            }
-        } else {
-            return $request_method === $url_method;
         }
+        return false;
     }
 
     /**

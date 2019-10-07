@@ -6,7 +6,7 @@ RewriteEngine On
 RewriteOptions InheritDownBefore
 
 # Protect the POST array from getting lost in redirects
-RewriteCond %{REQUEST_METHOD} !^POST$
+#RewriteCond %{REQUEST_METHOD} !^POST$
 
 RewriteBase /kikopolis_poc/
 RewriteCond %{REQUEST_FILENAME} !-d

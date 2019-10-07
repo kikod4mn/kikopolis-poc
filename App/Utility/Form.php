@@ -51,4 +51,12 @@ HEREDOC;
 HEREDOC;
         return $field;
     }
+
+    public static function submit(string $name = 'submit', string $value ='Submit')
+    {
+        $field = <<<HEREDOC
+            <input type="submit" name="{$name}" value="{$value}">
+HEREDOC;
+        return $field;
+    }
 }

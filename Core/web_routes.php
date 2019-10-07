@@ -10,3 +10,4 @@ $router->get('/', 'home.index', []);
  */
 
 $router->get('posts/show/{id}/{slug}', 'posts.show', []);
+$router->add(['post'],'form', 'form.display', []);
