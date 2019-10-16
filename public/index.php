@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Kikopolis\App\Config\Config;
-use Kikopolis\Core\Aurora\View;
+use Kikopolis\App\Framework\Aurora\View;
 use Kikopolis\Core\Container\Container;
 
 /**

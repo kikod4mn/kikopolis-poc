@@ -2,6 +2,8 @@
 
 namespace Kikopolis\Core\Container;
 
+use App\Models\Post;
+use Kikopolis\App\Helpers\Str;
 use ReflectionClass;
 use ReflectionMethod;
 
@@ -38,12 +40,13 @@ class Container
      * @var array
      */
     private $bindings = [
-        'Config' => Kikopolis\App\Config\Config::class,
-        'Home' => App\Http\Controllers\Home::class,
-        'Posts' => App\Http\Controllers\Posts::class,
-        'User' => App\Models\User::class,
-        'Post' => App\Models\Post::class
+        'config' => Kikopolis\App\Config\Config::class
     ];
+
+    public function __construct()
+    {
+//        $this->instances = new \SplObjectStorage();
+    }
 
     /**
      * Set the class name to instances array.

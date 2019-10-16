@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Kikopolis\Core\Orion;
+namespace Kikopolis\App\Framework\Orion;
 
 use Kikopolis\App\Config\Config;
-use Kikopolis\Core\Orion\OrionTraits\ManagePropertiesTrait;
-use Kikopolis\Core\Orion\OrionTraits\ManageQueryTempTrait;
+use Kikopolis\App\Framework\Orion\OrionTraits\PropertiesTrait;
+use Kikopolis\App\Framework\Orion\OrionTraits\QueryTemporaryTrait;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
@@ -20,7 +20,7 @@ defined('_KIKOPOLIS') or die('No direct script access!');
 
 abstract class Orion
 {
-    use ManagePropertiesTrait, ManageQueryTempTrait;
+    use PropertiesTrait, QueryTemporaryTrait;
 
     public $attributes = [];
 

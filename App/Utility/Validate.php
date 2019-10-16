@@ -35,31 +35,103 @@ class Validate
 
     public static function ruleSet(array $data, array $rules): bool
     {
-        static::$rule_set = $rules;
-        static::extractRules();
-        static::extractParams();
+        self::$rule_set = $rules;
+        self::rules();
+        self::params();
 
 
-        var_dump(static::$rule_set);
-//die;
+        var_dump(self::$rule_set);
+die;
         return true;
     }
 
-    protected static function extractRules(): void
+    protected static function rules(): void
     {
-        foreach (static::$rule_set as $rule => $value) {
-            static::$rule_set[$rule] = explode('|', $value);
+        foreach (self::$rule_set as $rule => $value) {
+            self::$rule_set[$rule] = explode('|', $value);
         }
     }
 
-    protected static function extractParams(): void
+    protected static function params(): void
     {
-        foreach (static::$rule_set as $rule => $rules) {
+        foreach (self::$rule_set as $rule => $rules) {
             foreach ($rules as $key => $params) {
                 if (Str::contains($params, ':')) {
-                    static::$rule_set[$rule][$key] = explode(':', $params);
+                    self::$rule_set[$rule][$key] = explode(':', $params);
                 }
             }
         }
+    }
+
+    protected static function handle($string)
+    {
+        foreach (self::$rule_set as $rule) {
+            if (\is_array($rule)) {
+                call_user_func($rule[0], $string, $rule[1]);
+            }
+            call_user_func($rule[0], $string);
+        }
+    }
+
+    public static function enforce($rule, $subject)
+    {
+        $result = call_user_func($rule, $subject);
+    }
+
+    private static function required($subject): bool
+    {
+        return Str::hasValue($subject);
+    }
+
+    private static function min($subject, int $min): bool
+    {
+        return Str::hasLengthGreaterThan($subject, $min);
+    }
+
+    private static function max($subject, int $max): bool
+    {
+        return Str::hasLengthLessThan($subject, $max);
+    }
+
+    private static function type($subject, string $required_type): bool
+    {
+        $string = '/string/i';
+        $number = '/number/i';
+
+        switch ($required_type) {
+            case (preg_match($string, $required_type) === true):
+                return is_string($subject);
+            case (preg_match($number, $required_type) === true):
+                return is_numeric($subject);
+            default:
+                return false;
+        }
+    }
+
+    private static function include($subject, string $include): bool
+    {
+//        $symbols = '!#¤%&()=?@£$€{[]}';
+        $symbol = '';
+        $letter = '';
+        $number = '';
+        $symbols = '/[\!\#\¤\%\&\(\)\=\?\@\£\$\€\{\[\]\}]/i';
+        $letters = '/[a-z]/i';
+        $numbers = '/[0-9]/i';
+
+        switch ($include) {
+            case (preg_match($symbol, $include)):
+                return preg_match($symbols, $subject);
+            case (preg_match($letter, $include)):
+                return preg_match($letters, $subject);
+            case (preg_match($number, $include)):
+                return preg_match($numbers, $subject);
+            default:
+                return false;
+        }
+    }
+
+    private function unique($subject, $field)
+    {
+        // Get info from the db of the unique field
     }
 }

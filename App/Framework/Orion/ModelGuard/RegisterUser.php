@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Kikopolis\Core\Orion\ModelGuard;
+namespace Kikopolis\App\Framework\Orion\ModelGuard;
 
 use App\Models\User;
 

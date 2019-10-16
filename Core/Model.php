@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Kikopolis\Core\Orion;
+namespace Kikopolis\Core;
 
-use Kikopolis\Core\Orion\OrionInterfaces\ModelInterface;
+use Kikopolis\App\Framework\Orion\Interfaces\ModelInterface;
 use PDO;
 use Kikopolis\App\Config\Config;
-use Kikopolis\Core\Orion\Orion;
+use Kikopolis\App\Framework\Orion\Orion;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
@@ -28,6 +28,7 @@ class Model extends Orion
     /**
      * Model constructor.
      * @param array $attributes The attributes of a model Class. Will be mapped according to fillable array.
+     * @throws \Exception
      */
     final public function __construct($attributes = [])
     {

@@ -6,9 +6,9 @@ namespace App\Http\Controllers\Authorization;
 
 use Kikopolis\App\Utility\Validate;
 use Kikopolis\App\Utility\Hash;
-use Kikopolis\Core\Aurora\View;
+use Kikopolis\App\Framework\Aurora\View;
 use Kikopolis\Core\Http\Request;
-use Kikopolis\Core\Orion\ModelGuard\RegisterUser;
+use Kikopolis\App\Framework\Orion\ModelGuard\RegisterUser;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 

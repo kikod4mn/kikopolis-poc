@@ -1,6 +1,6 @@
 <?php
 
-namespace Kikopolis\Core\Fakers;
+namespace Kikopolis\App\Helpers\Fakers;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 

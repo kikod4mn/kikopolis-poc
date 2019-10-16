@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Kikopolis\Core\Aurora\AuroraTraits;
+namespace Kikopolis\App\Framework\Aurora\Traits;
 
 use Kikopolis\App\Config\Config;
 use Kikopolis\App\Helpers\Str;
@@ -17,7 +17,7 @@ defined('_KIKOPOLIS') or die('No direct script access!');
  * PHP Version 7.3.5
  */
 
-trait ManageFileContentsTrait
+trait FileTrait
 {
     //
 }

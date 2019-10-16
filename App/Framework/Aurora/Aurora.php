@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Kikopolis\Core\Aurora;
+namespace Kikopolis\App\Framework\Aurora;
 
 use Kikopolis\App\Config\Config;
 use Kikopolis\App\Helpers\Arr;
 use Kikopolis\App\Helpers\Str;
-use Kikopolis\Core\Aurora\AuroraTraits\ManageVariablesTrait;
-use Kikopolis\Core\Aurora\AuroraTraits\ManageFileContentsTrait;
-use Kikopolis\Core\Aurora\AuroraTraits\ManageAssetsTrait;
-use Kikopolis\Core\Aurora\AuroraTraits\ManageFunctionsTrait;
-use Kikopolis\Core\Aurora\AuroraTraits\ManageLoopsTrait;
+use Kikopolis\App\Framework\Aurora\Traits\VariableTrait;
+use Kikopolis\App\Framework\Aurora\Traits\FileTrait;
+use Kikopolis\App\Framework\Aurora\Traits\AssetTrait;
+use Kikopolis\App\Framework\Aurora\Traits\FunctionTrait;
+use Kikopolis\App\Framework\Aurora\Traits\LoopTrait;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
@@ -25,7 +25,7 @@ defined('_KIKOPOLIS') or die('No direct script access!');
 
 class Aurora
 {
-    use ManageVariablesTrait, ManageAssetsTrait, ManageFunctionsTrait, ManageLoopsTrait, ManageFileContentsTrait;
+    use VariableTrait, AssetTrait, FunctionTrait, LoopTrait, FileTrait;
     /**
      * The file name for the current template.
      * @var string
@@ -706,7 +706,7 @@ class Aurora
      */
     public function parseVarTag(string $var, string $escape = 'escape', string $needle = ''): string
     {
-        return "<?php echo \Kikopolis\Core\Aurora\Aurora::k_echo(\${$var}, '{$escape}', '{$needle}'); ?>";
+        return "<?php echo \Kikopolis\App\Framework\Aurora\Aurora::k_echo(\${$var}, '{$escape}', '{$needle}'); ?>";
     }
 
     /**

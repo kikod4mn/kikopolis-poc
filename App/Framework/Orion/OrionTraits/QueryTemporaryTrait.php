@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Kikopolis\Core\Orion\OrionTraits;
+namespace Kikopolis\App\Framework\Orion\OrionTraits;
 
 use Kikopolis\App\Helpers\Str;
 use PDO;
@@ -17,7 +17,7 @@ defined('_KIKOPOLIS') or die('No direct script access!');
  * PHP Version 7.3.5
  */
 
-trait ManageQueryTempTrait
+trait QueryTemporaryTrait
 {
     /**
      * Prepare the query with prepared statement

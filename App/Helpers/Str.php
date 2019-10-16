@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Kikopolis\App\Helpers;
 
-use Kikopolis\App\Helpers\Validate;
+use Kikopolis\App\Utility\Validate;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
@@ -64,15 +64,27 @@ class Str
 
     /**
      * Sanitize string for forbidden chars.
-     * @param string $string
+     * @param string $string String to filter.
+     * @param array $chars Array of characters to remove.
      * @return string
      */
-    public static function removeForbiddenCharsFromString(string $string): string
+    public static function removeForbiddenCharsFromString(string $string, array $chars = ['/', '\\', '.', ';', '<', '>', '`', '^']): string
     {
-        $invalid_chars = ['/', '\\', '.', ';', '<', '>', '`', '^'];
-        $string = str_replace($invalid_chars, '', $string);
+        $string = str_replace($chars, '', $string);
 
         return $string;
+    }
+
+    /**
+     * Trim the string of empty spaces and check that it is not empty.
+     * @param string $string
+     * @return bool
+     */
+    public static function hasValue(string $string)
+    {
+        $string = trim($string);
+
+        return isset($string);
     }
 
     /**
@@ -123,62 +135,57 @@ class Str
      * Check if string is alphabetical only, no numbers or extra characters allowed
      * Uses trim() to remove empty spaces from the beginning and end of the string
      * @param   string  $string
+     * @param array $extra_chars Extra chars to allow in the string. Removed before checking. DO NOT ALLOW < or > !!
      * @return bool
      */
-    public static function isStringAlphabetical(string $string): bool
+    public static function isStringAlphabetical(string $string, array $extra_chars = [' ', "'", '-', '_', '.', '!', '?']): bool
     {
         if (Validate::hasValue($string)) {
-            $array = [' ', "'", '-', '_', '.', '!', '?'];
-            $string = str_replace($array, '', $string);
+            $string = str_replace($extra_chars, '', $string);
             // Ctype returns false on empty string, this is to avoid false positive
-            if (strlen($string) == 0) {
+            if (strlen($string) === 0) {
 
                 return true;
             }
 
             return ctype_alpha($string);
         }
+
+        return false;
     }
 
     /**
      * Check if string is alphanumerical only, only letters and numbers allowed
      * Uses trim() to remove empty spaces from the beginning and end of the string
-     * @param   string  $string
+     * @param string $string
+     * @param array $extra_chars Extra chars to allow in the string. Removed before checking. DO NOT ALLOW < or > !!
      * @return bool
      */
-    public static function isStringAlphaNumerical(string $string): bool
+    public static function isStringAlphaNumerical(string $string, array $extra_chars = [' ', "'", '-', '_', '.', '!', '?']): bool
     {
         if (Validate::hasValue($string)) {
-            $array = [' ', "'", '-', '_', '.', '!', '?'];
-            $string = str_replace($array, '', $string);
+            $string = str_replace($extra_chars, '', $string);
             // Ctype returns false on empty string, this is to avoid false positive
-            if (strlen($string) == 0) {
+            if (strlen($string) === 0) {
 
                 return true;
             }
 
             return ctype_alnum($string);
         }
+
+        return false;
     }
 
     /**
-     * Check if the string is a folder path.
+     * Check if the string is a folder path. Excludes usual filepath characters from the verification.
+     * Excluded - ['/', '\\', '-', '_', '.']
      * @param string $string
      * @return bool
      */
     public static function isStringAFolder(string $string): bool
     {
-        if (Validate::hasValue($string)) {
-            $array = ['/', '\\', '-', '_', '.'];
-            $string = str_replace($array, '', $string);
-            // Ctype returns false on empty string, this is to avoid false positive
-            if (strlen($string) == 0) {
-
-                return true;
-            }
-
-            return ctype_alnum($string);
-        }
+        return static::isStringAlphaNumerical($string, ['/', '\\', '-', '_', '.']);
     }
 
     /**
@@ -196,7 +203,7 @@ class Str
      * @param $string
      * @return bool
      */
-    public static function isValidPhoneNumber($string): bool
+    public static function isValidPhoneNumber(string $string): bool
     {
         $array = ['-', '.', ' ', '_', '+'];
         $string = str_replace($string, '', $array);
@@ -207,12 +214,12 @@ class Str
     /**
      * Check if string matches a valid email address format
      * Uses trim to remove empty spaces from the beginning and end of the string
-     * @param   string  $data   The string to validate
-     * @return void
+     * @param string $email
+     * @return bool
      */
-    public static function isValidEmailAddress(string $data)
+    public static function isValidEmailAddress(string $email): bool
     {
-        return filter_var(trim($data), FILTER_VALIDATE_EMAIL);
+        return filter_var(trim($email), FILTER_VALIDATE_EMAIL);
     }
 
     /**
@@ -303,9 +310,7 @@ class Str
      */
     public static function hasLengthGreaterThan(string $string, int $min): bool
     {
-        $length = mb_strlen(trim($string));
-
-        return $length > $min;
+        return mb_strlen(trim($string)) > $min;
     }
 
     /**
@@ -317,9 +322,7 @@ class Str
      */
     public static function hasLengthLessThan(string $string, int $max): bool
     {
-        $length = mb_strlen(trim($string));
-
-        return $length < $max;
+        return mb_strlen(trim($string)) < $max;
     }
 
     /**
@@ -331,9 +334,7 @@ class Str
      */
     public static function hasLengthExact(string $string, int $exact): bool
     {
-        $length = mb_strlen(trim($string));
-
-        return $length == $exact;
+        return (int) mb_strlen(trim($string)) === $exact;
     }
 
     /**

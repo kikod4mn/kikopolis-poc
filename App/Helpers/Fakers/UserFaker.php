@@ -1,20 +1,18 @@
 <?php
 
-declare(strict_types=1);
-
-namespace Kikopolis\Core\Aurora\AuroraTraits;
+namespace Kikopolis\App\Helpers\Fakers;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
 /**
- * Traits for Aurora.
+ * User faker methods.
  * Part of the Kikopolis MVC Framework.
  * @author Kristo Leas <admin@kikopolis.com>
  * @version 0.0.0.1000
  * PHP Version 7.3.5
  */
 
-trait ManageFunctionsTrait
+class UserFaker
 {
     //
 }

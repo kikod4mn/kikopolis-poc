@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Kikopolis\Core\Aurora;
+namespace Kikopolis\App\Framework\Aurora;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 

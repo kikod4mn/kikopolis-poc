@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Kikopolis\Core\Orion\OrionInterfaces;
+namespace Kikopolis\App\Framework\Orion\Interfaces;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 

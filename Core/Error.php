@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Kikopolis\Core;
 
 use Kikopolis\App\Config\Config;
-use Kikopolis\Core\Aurora\View;
+use Kikopolis\App\Framework\Aurora\View;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 

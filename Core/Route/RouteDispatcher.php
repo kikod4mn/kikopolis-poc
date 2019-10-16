@@ -16,7 +16,8 @@ defined('_KIKOPOLIS') or die('No direct script access!');
  */
 
 $router = new Router();
-require_once Config::getAppRoot() . '/Core/web_routes.php';
+require_once Config::getAppRoot() . '/App/web_routes.php';
+require_once Config::getAppRoot() . '/App/api_routes.php';
 
 //Match the requested URL
 $router->dispatch($_SERVER['QUERY_STRING']);

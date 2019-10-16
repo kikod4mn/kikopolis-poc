@@ -101,6 +101,45 @@ class Arr
         return $array;
     }
 
+    /**
+     * Check for allowed parameters in a Post array
+     * @param   array   $post             The $_POST super global array
+     * @param   array   $allowed_params    An array of allowed parameters
+     * @return  array   $post   A filtered version of POST
+     */
+    public static function filterArray(array $post, array $allowed_params = []): array
+    {
+        $filtered_array = [];
+        foreach ($allowed_params as $field_value) {
+            if (isset($post[$field_value])) {
+                $filtered_array[$field_value] = $post[$field_value];
+            } else {
+                $filtered_array[$field_value] = null;
+            }
+        }
+
+        return $filtered_array;
+    }
+
+    /**
+     * Remove non allowed params from array.
+     * @param array $array
+     * @param array $not_allowed_params
+     * @return array
+     */
+    public static function filteredArrayMethods(array $array, array $not_allowed_params = []): array
+    {
+        $filtered_array = [];
+        foreach ($array as $key => $value) {
+            if (!in_array($value, $not_allowed_params)) {
+                $value = str_replace('Action', '', $value);
+                $filtered_array[] = $value;
+            }
+        }
+
+        return $filtered_array;
+    }
+
 
     /**
      * Check if a value is present in array.

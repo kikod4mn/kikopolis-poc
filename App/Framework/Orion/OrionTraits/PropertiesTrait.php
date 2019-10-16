@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Kikopolis\Core\Orion\OrionTraits;
+namespace Kikopolis\App\Framework\Orion\OrionTraits;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
@@ -14,7 +14,7 @@ defined('_KIKOPOLIS') or die('No direct script access!');
  * PHP Version 7.3.5
  */
 
-trait ManagePropertiesTrait
+trait PropertiesTrait
 {
     /**
      * Visible and fillable properties of the class.

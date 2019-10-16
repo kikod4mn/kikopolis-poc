@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Kikopolis\Core\Aurora\AuroraTraits;
+namespace Kikopolis\App\Framework\Aurora\Traits;
+
+use Kikopolis\App\Helpers\Arr;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
@@ -14,7 +16,7 @@ defined('_KIKOPOLIS') or die('No direct script access!');
  * PHP Version 7.3.5
  */
 
-trait ManageAssetsTrait
+trait LoopTrait
 {
     //
 }
