@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 $router->get('/', 'home.index', []);
+$router->get('', 'home.index', []);
+$router->get('home/index', 'home.index', []);
 
 /**
  * Add your routes to this list.

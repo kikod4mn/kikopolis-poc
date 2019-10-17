@@ -4,7 +4,8 @@
         "ext-json": "*",
       "ext-mbstring": "*",
       "ext-ctype": "*",
-      "ext-fileinfo": "*"
+      "ext-fileinfo": "*",
+      "ext-gd": "*"
     },
     "autoload": {
         "psr-4": {

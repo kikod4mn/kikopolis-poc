@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kikopolis\App\Helpers;
 
+use Kikopolis\App\Config\Config;
 use Kikopolis\App\Utility\Validate;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
@@ -68,7 +69,7 @@ class Str
      * @param array $chars Array of characters to remove.
      * @return string
      */
-    public static function removeForbiddenCharsFromString(string $string, array $chars = ['/', '\\', '.', ';', '<', '>', '`', '^']): string
+    public static function forbiddenChars(string $string, array $chars = ['/', '\\', '.', ';', '<', '>', '`', '^', '"', '\'']): string
     {
         $string = str_replace($chars, '', $string);
 
@@ -118,7 +119,7 @@ class Str
      * @throws \Exception random_bytes throws \Exception if no sufficient entropy was gathered.
      * @return  string
      */
-    public static function randomString(int $length = 16): string
+    public static function random(int $length = 16): string
     {
         $string = '';
         while (($len = strlen($string) < $length)) {
@@ -138,7 +139,7 @@ class Str
      * @param array $extra_chars Extra chars to allow in the string. Removed before checking. DO NOT ALLOW < or > !!
      * @return bool
      */
-    public static function isStringAlphabetical(string $string, array $extra_chars = [' ', "'", '-', '_', '.', '!', '?']): bool
+    public static function isAlphabetic(string $string, array $extra_chars = [' ', "'", '-', '_', '.', '!', '?']): bool
     {
         if (Validate::hasValue($string)) {
             $string = str_replace($extra_chars, '', $string);
@@ -161,7 +162,7 @@ class Str
      * @param array $extra_chars Extra chars to allow in the string. Removed before checking. DO NOT ALLOW < or > !!
      * @return bool
      */
-    public static function isStringAlphaNumerical(string $string, array $extra_chars = [' ', "'", '-', '_', '.', '!', '?']): bool
+    public static function isAlphaNumeric(string $string, array $extra_chars = [' ', "'", '-', '_', '.', '!', '?']): bool
     {
         if (Validate::hasValue($string)) {
             $string = str_replace($extra_chars, '', $string);
@@ -183,9 +184,9 @@ class Str
      * @param string $string
      * @return bool
      */
-    public static function isStringAFolder(string $string): bool
+    public static function isFolder(string $string): bool
     {
-        return static::isStringAlphaNumerical($string, ['/', '\\', '-', '_', '.']);
+        return static::isAlphaNumeric($string, ['/', '\\', '-', '_', '.']) && \is_dir(Config::getAppRoot() . $string);
     }
 
     /**
@@ -193,7 +194,7 @@ class Str
      * @param string $string
      * @return bool
      */
-    public static function isStringAValidDate(string $string): bool
+    public static function validDate(string $string): bool
     {
         return (bool) strtotime($string);
     }
@@ -203,7 +204,7 @@ class Str
      * @param $string
      * @return bool
      */
-    public static function isValidPhoneNumber(string $string): bool
+    public static function phoneNumber(string $string): bool
     {
         $array = ['-', '.', ' ', '_', '+'];
         $string = str_replace($string, '', $array);
@@ -217,7 +218,7 @@ class Str
      * @param string $email
      * @return bool
      */
-    public static function isValidEmailAddress(string $email): bool
+    public static function email(string $email): bool
     {
         return filter_var(trim($email), FILTER_VALIDATE_EMAIL);
     }
@@ -271,7 +272,7 @@ class Str
      * @param   string  $separator   Optionally declare a different separator.
      * @return  string
      */
-    public static function convertToSnakeCase(string $string, string $separator = '_'): string
+    public static function snake(string $string, string $separator = '_'): string
     {
         $string = preg_replace('/\s+/u', '', ucwords($string));
         $string = strtolower(preg_replace('/(.)(?=[A-Z])/u', '$1' . $separator, $string));
@@ -284,7 +285,7 @@ class Str
      * @param   string  $string
      * @return  string
      */
-    public static function convertToStudlyCase(string $string): string
+    public static function studly(string $string): string
     {
         $string = ucwords(str_replace(['-', '_'], ' ', $string));
 
@@ -296,9 +297,9 @@ class Str
      * @param   string  $string
      * @return  string
      */
-    public static function convertToCamelCase(string $string): string
+    public static function camel(string $string): string
     {
-        return lcfirst(static::convertToStudlyCase($string));
+        return lcfirst(static::studly($string));
     }
 
     /**
@@ -308,7 +309,7 @@ class Str
      * @param   int     $min    The minimum length required as an integer
      * @return boolean
      */
-    public static function hasLengthGreaterThan(string $string, int $min): bool
+    public static function hasLengthGreater(string $string, int $min): bool
     {
         return mb_strlen(trim($string)) > $min;
     }
@@ -320,7 +321,7 @@ class Str
      * @param   int     $max    The minimum length required as an integer
      * @return boolean
      */
-    public static function hasLengthLessThan(string $string, int $max): bool
+    public static function hasLengthLess(string $string, int $max): bool
     {
         return mb_strlen(trim($string)) < $max;
     }
@@ -347,10 +348,10 @@ class Str
      */
     public static function hasLength(string $string, array $options): bool
     {
-        if (isset($options['min']) && !static::hasLengthGreaterThan($string, $options['min'] - 1)) {
+        if (isset($options['min']) && !static::hasLengthGreater($string, $options['min'] - 1)) {
 
             return false;
-        } elseif (isset($options['max']) && !static::hasLengthLessThan($string, $options['max'] + 1)) {
+        } elseif (isset($options['max']) && !static::hasLengthLess($string, $options['max'] + 1)) {
 
             return false;
         } elseif (isset($options['exact']) && !static::hasLengthExact($string, $options['exact'])) {
@@ -367,7 +368,7 @@ class Str
      * @param string $string
      * @return array
      */
-    public static function parseDotSyntax(string $string): array
+    public static function dot(string $string): array
     {
         return static::contains($string, '.') ? explode('.', $string) : [$string];
     }
@@ -377,7 +378,7 @@ class Str
      * @param string $string
      * @return array
      */
-    public static function parseSlashSyntax(string $string): array
+    public static function slash(string $string): array
     {
         return static::contains($string, '/') ? explode('/', $string) : [$string];
     }
@@ -387,7 +388,7 @@ class Str
      * @param string $string
      * @return array
      */
-    public static function parseCallback(string $string): array
+    public static function callback(string $string): array
     {
         return static::contains($string, '@') ? explode('@', $string, 2) : [$string];
     }

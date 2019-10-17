@@ -17,7 +17,7 @@ defined('_KIKOPOLIS') or die('No direct script access!');
  * PHP Version 7.3.5
  */
 
-class Container
+class ContainerASD
 {
     /**
      * Array of class instances.
@@ -34,6 +34,8 @@ class Container
      * @var \ReflectionClass __construct
      */
     protected $construct;
+
+    protected $resolved = [];
 
     /**
      * An array of static bindings for the container to search.
@@ -96,8 +98,6 @@ class Container
 
             return $concrete($this, ...$parameters);
         }
-        $dependencies = [];
-        $instances = [];
         // Get a new ReflectionClass for our $concrete.
         $this->reflector = new ReflectionClass($concrete);
         // If reflector is not instantiable, meaning it is an Abstract or an Interface.
@@ -114,6 +114,7 @@ class Container
                 return $this->resolveMethod($concrete, $method);
             }
 
+            return $concrete;
             return new $concrete;
         }
         // Get constructor params.
@@ -126,8 +127,10 @@ class Container
 
             return $this->resolveMethod($concrete, $method);
         }
-
+        var_dump($instances);
         // Instantiate the class with arguments.
+        $this->resolved[] = $instances;
+        return $this->resolved;
         return $this->reflector->newInstanceArgs($instances);
     }
 
@@ -144,19 +147,16 @@ class Container
     {
         // Initialize variables
         $method = $method . 'Action';
-        $instance = null;
-        $dependencies = [];
-        $instances = [];
         // Get new ReflectionMethod instance for our $method.
         $instance = new ReflectionMethod($concrete, $method);
         // Get the $method dependencies and resolve them.
         $dependencies = $instance->getParameters();
         if ($dependencies) {
-            $instances = $this->resolve($dependencies);
+            $this->resolved[] = $this->resolve($dependencies);
         }
 
-        return $instances;
         // Instantiate the method with its parameters resolved.
+        return $dependencies;
         return $instance->invokeArgs(new $concrete, $instances);
     }
 

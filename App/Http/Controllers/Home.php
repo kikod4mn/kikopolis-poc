@@ -31,18 +31,6 @@ use Kikopolis\App\Framework\Orion\ModelGuard\RegisterUser;
 
 class Home extends Controller
 {
-    public function __construct()
-    {
-        // echo "<br>The Home Constructor<br>";
-        // echo "<h4>The Get Array</h4>";
-        // var_dump(!empty($_GET) ? $_GET : 'No get');
-        // echo "<br>";
-        // echo "<h4>The Post Array</h4>";
-        // var_dump(!empty($_POST) ? $_POST : 'No post');
-        // echo "<br>";
-        // echo File::getHumanFileSize('34000591231240');
-    }
-
     /**
      * @param Post $post
      * @param User $user
@@ -50,7 +38,7 @@ class Home extends Controller
      * @param Register $register
      * @throws \Exception
      */
-    public function index(Post $post, User $user, Testmodel $testmodel, Register $register)
+    public function indexAction(Post $post, User $user, Testmodel $testmodel, Register $register)
     {
         $lorem_ipsum = new LoremFaker();
 
@@ -100,18 +88,18 @@ class Home extends Controller
             'post' => $post->save($pst),
             'users' => $user->get(2),
             'posts' => $post->get(2),
-            $user_reg = [
-                'first_name' => 'Kiko',
-                'last_name' => 'Kikopolis',
-                'email' => 'kiko@kiko.com',
-                'password' => 'secret'
-            ],
-            'register' => $register->register([
-                'first_name' => $user_reg['first_name'],
-                'last_name' => $user_reg['last_name'],
-                'email' => $user_reg['email'],
-                'password_hash' => Hash::getHash($user_reg['password']),
-            ])
+//            $user_reg = [
+//                'first_name' => 'Kiko',
+//                'last_name' => 'Kikopolis',
+//                'email' => 'kiko@kiko.com',
+//                'password' => 'secret'
+//            ],
+//            'register' => $register->register([
+//                'first_name' => $user_reg['first_name'],
+//                'last_name' => $user_reg['last_name'],
+//                'email' => $user_reg['email'],
+//                'password_hash' => $user_reg['password'],
+//            ])
         ]);
         // echo "<br><h1>Hi, cruel world of PHP</h1><br>";
         // $string = Str::convertToSnakeCase('This to snake case');

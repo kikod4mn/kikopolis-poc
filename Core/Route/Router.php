@@ -213,10 +213,16 @@ class Router
         // Match the url
         $this->match($url);
         // Run the base controller to set the route parameters eg ID, slug etc
-        Controller::setRouteParams($this->route['params']);
+//        Controller::setRouteParams($this->route['params']);
         // Send the controller and method to the Container
         // The container will instantiate the correct method with dependencies
-        $this->container->get($this->controller, $this->method, []);
+        $args = $this->container->get($this->controller, $this->method, []);
+//        var_dump($this->controller);
+//        var_dump($this->method);
+        $controller = new $this->controller($this->route['params']);
+        if (preg_match('/action$/i', $this->method) === 0) {
+            $controller->{$this->method}(...$args);
+        }
     }
 
     /**
@@ -262,7 +268,7 @@ class Router
      */
     protected function parseAction(string $action): array
     {
-        return Str::parseDotSyntax($action);
+        return Str::dot($action);
     }
 
     /**
@@ -303,12 +309,12 @@ class Router
             throw new \Exception('Request method does not match the allowed method for the route.');
         }
         // Assign the controller and unset its array value.
-        if (!$this->controller = $this->route['options']['namespace'] . Str::convertToStudlyCase($this->route['action'][0])) {
+        if (!$this->controller = $this->route['options']['namespace'] . Str::studly($this->route['action'][0])) {
             throw new \Exception("Error setting controller property - {$this->route['action'][0]}");
         }
         unset($this->route['action'][0]);
         // Assign the method and unset its array value.
-        if (!$this->method = Str::convertToCamelCase($this->route['action'][1])) {
+        if (!$this->method = Str::camel($this->route['action'][1])) {
             throw new \Exception("Error setting method property - {$this->route['action'][0]}");
         }
         unset($this->route['action'][1]);

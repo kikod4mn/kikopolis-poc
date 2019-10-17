@@ -23,6 +23,7 @@ class FileUpload
     private $temp_name = '';
     private $temp_extension = [];
     private $extension = '';
+    private $upload_dir = '';
     private $upload_path = '';
     private $allowed_mime_types = [];
     private $mime_type = '';
@@ -1258,21 +1259,33 @@ class FileUpload
      * @param array $allowed_exts
      * @param string $upload_dir
      * @param bool $random_name
+     * @throws \Exception random_bytes throws \Exception if no sufficient entropy was gathered.
      */
     public function __construct($file, array $allowed_exts, string $upload_dir, bool $random_name = true)
     {
         $this->name = $file['name'];
         $this->size = $file['size'];
         $this->temp_name = $file['tmp_name'];
-        $this->temp_extension = explode('.', $file_name);
+        $this->temp_extension = explode('.', $file['name']);
         $this->extension = strtolower(end($tmp_ext));
         $this->allowed_mime_types = $this->setMimeTypes($allowed_exts);
         $this->mime_type = mime_content_type($file);
+        $this->upload_dir = sprintf("%s/uploads/%s/%s", Config::getUrlRoot(), $this->formatDir($upload_dir), date('M'));
         if ($random_name === true) {
-            $this->upload_path = sprintf("%s/uploads/%s/%s/%s", Config::getUrlRoot(), $upload_dir, date('M'), $this->newRandomName());
+            $this->upload_path = sprintf("%s/uploads/%s/%s/%s", Config::getUrlRoot(), $this->upload_dir, date('M'), $this->newRandomName());
         } else {
-            $this->upload_path = sprintf("%s/uploads/%s/%s/%s", Config::getUrlRoot(), $upload_dir, date('M'), $this->name);
+            $this->upload_path = sprintf("%s/uploads/%s/%s/%s", Config::getUrlRoot(), $this->upload_dir, date('M'), $this->name);
         }
+    }
+
+    /**
+     * Remove possible harmful characters from the upload directory name.
+     * @param string $dir
+     * @return string
+     */
+    private function formatDir(string $dir): string
+    {
+        return Str::forbiddenChars($dir, ['.', ';', '<', '>', '`', '^', '"', '\'']);
     }
 
     /**
@@ -1291,9 +1304,12 @@ class FileUpload
         if (\file_exists($this->upload_path)) {
             throw new \Exception("File {$this->upload_path} already exists. Please use a randomized file name or rename the file.");
         }
-        if (!is_writable($upload_dir) || !is_dir($upload_dir)) {
+        if (!is_writable($this->upload_dir)) {
             throw new \Exception('Error uploading file to directory. Check to see that the directory is writeable.');
         } else {
+            if (!file_exists($this->upload_dir) && !is_dir($this->upload_dir)) {
+                mkdir($this->upload_dir);
+            }
             if (move_uploaded_file($this->temp_name, $this->upload_path)) {
 
                 return $this->upload_path;
@@ -1308,7 +1324,7 @@ class FileUpload
      * @return bool
      */
     private function extension() {
-        foreach ($this->allowed_mime_types as $key, $mime) {
+        foreach ($this->allowed_mime_types as $key => $mime) {
             if (!$this->mime($mime)) {
 
                 return false;
@@ -1353,7 +1369,7 @@ class FileUpload
     {
         $allowed_mimes = [];
         foreach ($allowed_exts as $extension) {
-            if (in_array($extension, $this->mime_base)) {
+            if (\array_key_exists($extension, $this->mime_base)) {
                 $allowed_mimes[$extension] = $this->mime_base[$extension];
             }
         }
@@ -1361,13 +1377,22 @@ class FileUpload
         return $allowed_mimes;
     }
 
+    /**
+     * Verify the file size is under the limit set in Config.
+     * @return bool
+     */
     private function size()
     {
         return Config::FILE_UPLOAD_SIZE > $this->size;
     }
 
+    /**
+     * Return a new random filename.
+     * @return string
+     * @throws \Exception random_bytes throws \Exception if no sufficient entropy was gathered.
+     */
     private function newRandomName()
     {
-        return Str::randomString(12) . uniqid() . '.' . $this->extension;
+        return sprintf("%s%s.%s", Str::random(12), uniqid(), $this->extension);
     }
 }

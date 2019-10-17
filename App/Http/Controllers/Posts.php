@@ -11,26 +11,14 @@ use Kikopolis\App\Framework\Controllers\Controller;
 
 class Posts extends Controller
 {
-    /**
-     * Parameter bag from the GET array
-     *
-     * @var array
-     */
-    protected $params = [];
+    protected $middleware = ['auth'];
 
-    public function __construct()
-    {
-        // Get the route parameters from the base controller.
-        // This line is necessary in all controllers that utilize a parameter from the url.
-        $this->params = Controller::getRouteParams();
-    }
-
-    public function index()
+    public function indexAction()
     {
         // TODO: Implement method
     }
 
-    public function show()
+    public function showAction()
     {
         echo "<h1>The id of the post is {$this->params['id']}</h1>";
         echo "<h1>The slug of the post is {$this->params['slug']}</h1>";

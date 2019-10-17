@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Kikopolis\App\Auth;
 
+use App\Http\Controllers\Authorization\Login;
+use App\Models\User;
 use Kikopolis\App\Config\Config;
+use Kikopolis\App\Utility\Token;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
@@ -17,6 +20,17 @@ defined('_KIKOPOLIS') or die('No direct script access!');
  */
 class Auth
 {
+    public static function user(User $user)
+    {
+        if (isset($_SESSION['user_id'])) {
+            $user_test = $user->find($_SESSION['user_id']);
+            var_dump($user_test);
+            return $user_test;
+        }
+        echo "false";
+        return false;
+    }
+    
     /**
      * Remember the previously requested page to redirect after login.
      * @return void

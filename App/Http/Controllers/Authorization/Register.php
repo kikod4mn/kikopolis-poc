@@ -49,7 +49,7 @@ class Register
            'first_name' => 'required|string|max:255',
            'last_name' => 'required|string|max:255',
            'email' => 'required|string|email|max:255|unique:users',
-           'password_hash' => 'required|string|min:8|include:letter|include:number|include:symbol',
+           'password' => 'required|string|min:8|letter|number|symbol',
         ]);
     }
 

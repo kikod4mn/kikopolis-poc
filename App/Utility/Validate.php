@@ -33,16 +33,26 @@ class Validate
         return isset($data);
     }
 
-    public static function ruleSet(array $data, array $rules): bool
+    public static function ruleSet(array $data, array $rules)
     {
         self::$rule_set = $rules;
         self::rules();
         self::params();
+        return self::validate($data);
+    }
 
-
-        var_dump(self::$rule_set);
-die;
-        return true;
+    protected static function validate($data)
+    {
+        foreach ($data as $key => $value) {
+            if (\array_key_exists($key, self::$rule_set)) {
+                foreach (self::$rule_set[$key] as $rule) {
+                    if (!self::handle($rule, $value)) {
+                        throw new \Exception("Validation error for {$rule} with {$key} {$value}");
+                    }
+                }
+            }
+            return true;
+        }
     }
 
     protected static function rules(): void
@@ -63,14 +73,14 @@ die;
         }
     }
 
-    protected static function handle($string)
+    protected static function handle($rule, $string)
     {
-        foreach (self::$rule_set as $rule) {
             if (\is_array($rule)) {
-                call_user_func($rule[0], $string, $rule[1]);
+                $func = $rule[0];
+                $param = $rule[1];
+                return self::$func($string, $param);
             }
-            call_user_func($rule[0], $string);
-        }
+            return self::$rule($string);
     }
 
     public static function enforce($rule, $subject)
@@ -83,55 +93,50 @@ die;
         return Str::hasValue($subject);
     }
 
-    private static function min($subject, int $min): bool
+    private static function min($subject, $min): bool
     {
-        return Str::hasLengthGreaterThan($subject, $min);
+        return Str::hasLengthGreater($subject, (int) $min);
     }
 
-    private static function max($subject, int $max): bool
+    private static function max($subject, $max): bool
     {
-        return Str::hasLengthLessThan($subject, $max);
+        return Str::hasLengthLess($subject, (int) $max);
     }
 
-    private static function type($subject, string $required_type): bool
+    private static function string($subject)
     {
-        $string = '/string/i';
-        $number = '/number/i';
-
-        switch ($required_type) {
-            case (preg_match($string, $required_type) === true):
-                return is_string($subject);
-            case (preg_match($number, $required_type) === true):
-                return is_numeric($subject);
-            default:
-                return false;
-        }
+        return \is_string($subject);
     }
 
-    private static function include($subject, string $include): bool
+    private static function number($subject)
     {
-//        $symbols = '!#¤%&()=?@£$€{[]}';
-        $symbol = '';
-        $letter = '';
-        $number = '';
-        $symbols = '/[\!\#\¤\%\&\(\)\=\?\@\£\$\€\{\[\]\}]/i';
-        $letters = '/[a-z]/i';
         $numbers = '/[0-9]/i';
 
-        switch ($include) {
-            case (preg_match($symbol, $include)):
-                return preg_match($symbols, $subject);
-            case (preg_match($letter, $include)):
-                return preg_match($letters, $subject);
-            case (preg_match($number, $include)):
-                return preg_match($numbers, $subject);
-            default:
-                return false;
-        }
+        return \is_numeric($subject) || \preg_match($numbers, $subject);
     }
 
-    private function unique($subject, $field)
+    private static function symbol($subject)
     {
+        $symbols = '/[\!\#\¤\%\&\(\)\=\?\@\£\$\€\{\[\]\}]/i';
+
+        return \preg_match($symbols, $subject);
+    }
+
+    private static function letter($subject)
+    {
+        $letters = '/[a-z]/i';
+
+        return \preg_match($letters, $subject);
+    }
+
+    private static function email($subject)
+    {
+        return Str::email($subject);
+    }
+
+    private static function unique($subject, $field)
+    {
+        return true;
         // Get info from the db of the unique field
     }
 }

@@ -16,6 +16,16 @@ defined('_KIKOPOLIS') or die('No direct script access!');
 
 class Form
 {
+    public static function csrf()
+    {
+        $token = new Token();
+        $csrf = $token->getCsrfToken();
+        return <<<HEREDOC
+            <input type="hidden" name="csrf_token" value="{$csrf}">
+HEREDOC;
+
+    }
+
     public static function text(string $name, string $id, string $label, string $placeholder, string $class = 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline', string $args = ''): string
     {
         $field = <<<HEREDOC

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use Kikopolis\App\Framework\Controllers\Controller;
 use Kikopolis\Core\Http\Request;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
@@ -15,9 +16,11 @@ defined('_KIKOPOLIS') or die('No direct script access!');
  * @version 0.0.0.1000
  * PHP Version 7.3.5
  */
-class Form
+class Form extends Controller
 {
-    public function display(Request $request)
+    protected $middleware = ['csrf'];
+
+    public function displayAction(Request $request)
     {
         var_dump(Request::createFromGlobals());
         var_dump($request);

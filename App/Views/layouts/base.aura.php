@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="csrf-token" content="(@csrf_token())">
     <meta name="description" content="<?php echo '$template_description with ca 300, only alphanumeric chars';?>">
     <?php echo '<meta name="og:? property="og:? content="content of the tag here'; ?>
     <meta name="og:<?php echo '$template_og_property_name'; ?>" property="<?php echo '$template_og_property_name'; ?>"
@@ -22,6 +21,7 @@
         <div class="row">
             <div>
                 <form method="post" action="form">
+                    <?php echo \Kikopolis\App\Utility\Form::csrf(); ?>
                     <?php echo \Kikopolis\App\Utility\Form::text('first_name', 'first_name', 'Enter first name', 'First name'); ?>
                     <?php echo \Kikopolis\App\Utility\Form::text('last_name', 'last_name', 'Enter last name', 'Last name'); ?>
                     <?php echo \Kikopolis\App\Utility\Form::email('email', 'email', 'Enter a valid email', 'Email'); ?>

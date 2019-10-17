@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Kikopolis\App\Utility;
 
 use Kikopolis\App\Helpers\Str;
-use Kikopolis\App\Config\Config;
-use Kikopolis\App\Helpers\Validate;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
@@ -51,7 +49,7 @@ class Token
         if ($token_value !== null) {
             $this->token = $token_value;
         } else {
-            $this->token = Str::randomString(16);
+            $this->token = Str::random(16);
         }
     }
 
@@ -63,15 +61,13 @@ class Token
     public function getCsrfToken(): string
     {
         $this->createCsrfToken();
-        $this->csrf_token = $this->getTokenHash('sha256', $_SESSION['token_confirmation']);
+        $this->csrf_token = $this->getCsrfHash();
 
         return $this->csrf_token;
     }
 
     /**
      * Return a hashed token.
-     * @param string $algorithm
-     * @param string $hmac_key
      * @return string
      */
     public function getTokenHash(): string
@@ -91,15 +87,24 @@ class Token
     }
 
     /**
+     * Get csrf token hash.
+     * @return string
+     */
+    private function getCsrfHash(): string
+    {
+        return Hash::getHash($this->csrf_token);
+    }
+
+    /**
      * Create and set the CSRF token into session.
      * @throws \Exception
      * @return string
      */
     private function createCsrfToken(): string
     {
-        $this->csrf_token = Str::randomString(16);
+        $this->csrf_token = Str::random(16);
         $_SESSION['csrf_token'] = $this->csrf_token;
-        $_SESSION['token_confirmation'] = Str::randomString(16);
+        $_SESSION['token_confirmation'] = Str::random(16);
         $_SESSION['csrf_token_time'] = time();
 
         return $this->csrf_token;
@@ -135,10 +140,10 @@ class Token
             if (!$this->csrfTokenIsRecent()) {
                 throw new \Exception('Form token has expired. Please try again.');
             }
-            if (!Hash::compare($_POST['csrf_token'], $_SESSION['csrf_token'])) {
+            if (!Hash::compare($_SESSION['csrf_token'], $_POST['csrf_token'])) {
                 throw new \Exception('CSRF Tokens from form are mismatched. Stopping everything and running away scared!!!');
             } else {
-
+                echo "<h1>CSRF TOKEN IS VALID</h1>";
                 return true;
             }
         }

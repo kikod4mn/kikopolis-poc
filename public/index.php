@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Kikopolis\App\Config\Config;
 use Kikopolis\App\Framework\Aurora\View;
-use Kikopolis\Core\Container\Container;
 
 /**
  * Define constant to prevent direct access to scripts
@@ -20,7 +19,9 @@ define('_KIKOPOLIS', 1);
  */
 
 // Require the application core
-require_once '../Core/Core.php';
+//require_once '../Core/Core.php';
+require_once '../Core/Kernel/Kernel.php';
+$app = new \Kikopolis\Core\Kernel\Kernel();
 
 // Instantiate the dependency injection container
 //$container = new Container();

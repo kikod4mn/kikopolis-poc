@@ -76,7 +76,8 @@ class Aurora
         'includes' => ['\(\@includes::.+\)'],
         'asset' => ['\(\@asset\(.+\)\)'],
         'foreach' => ['\(\@for\:\:.+\)', '\(\@endfor\)'],
-        'if' => ['\(\@if\:\:(?:.+)\)', '\(\@elseif\:\:(?:.+)\)', '\(\@endif\)']
+        'if' => ['\(\@if\:\:(?:.+)\)', '\(\@elseif\:\:(?:.+)\)', '\(\@endif\)'],
+//        'php' => ['\<\?php', '\?\>']
     ];
 
     /**
@@ -176,7 +177,7 @@ class Aurora
         }
     }
 
-    // @TODO: Maybe method for setting the replaceable tag and its corresponding value.
+    // @TODO: Maybe method for setting the replaceable custom tag and its corresponding value.
     public function set($tag, $value)
     {
         $this->custom_values[$tag] = $value;
@@ -213,22 +214,22 @@ class Aurora
 
         $output = $this->prepareCurrentTemplate($this->file);
         // Parse all linked assets
-        $output = $this->parseAssets($output);
+        $output = $this->assets($output);
         // Check and parse the instruction blocks.
         // See individual methods for workflow explanation.
-        $output = $this->parseInstructions($output);
+        $output = $this->instructions($output);
         // Parse loops
-        $output = $this->parseLoops($output);
+        $output = $this->loops($output);
         // Parse the variables
-        $output = $this->parseVariables($output);
+        $output = $this->variables($output);
 
-        $output = $this->parseCsrf($output);
+        $output = $this->csrf($output);
         // Final check for any stray extends:: in the code
         if ($this->checkExtend($output) === true) {
             throw new \Exception("A template file may only extend one other template file, additionally no included files may extend another template. Only one @extends::('template-name') line per the entire compiled template is allowed and it must be in the current template being rendered. This template is {$this->file} - and it is the current view file being called. No other file may have the extends statement in its code. Check your files for a stray extends statement!!", 404);
         }
         // Remove any stray tags
-        // $output = $this->removeTags($output);
+         $output = $this->removeTags($output);
         // Generate a new cache file with plain php
         $cached_file = $this->saveToCachedFile($output);
         // If an error occurs during cache file creation, throws an Exception.
@@ -237,10 +238,14 @@ class Aurora
         }
         // var_dump($output);
         if ($return_type === 'cache') {
+
             return $cached_file;
         } else if ($return_type === 'contents') {
+
             return $output;
         }
+
+        return $cached_file;
     }
 
     /**
@@ -252,11 +257,11 @@ class Aurora
     private function prepareCurrentTemplate(string $file): string
     {
         $output = '';
-
         $output = $this->getTemplateFileContents($file);
         if ($this->checkExtend($output) === true) {
             $output = $this->mergeTemplates($output, $this->parent_file);
         }
+
         return $output;
     }
 
@@ -286,6 +291,7 @@ class Aurora
             throw new \Exception('No target section found in the parent template. Please make sure the parent template you are trying to extend has an (@section::extend) tag in the place where you wish to place the content of the called template.', 404);
         }
         $output = $this->replace($output, '(@section::extend)', $matches[0]['content']);
+
         return $output;
     }
 
@@ -308,10 +314,12 @@ class Aurora
         }
         // If there are no matches to the extends:: statement then that means we are in a template that does not extend another, return false
         if (count($matches) < 1) {
+
             return false;
         }
         // Set the parent template and parse its name.
         $this->parent_file = $matches[0][1];
+
         // Return true if no exception and an extends:: has been found.
         return true;
     }
@@ -341,6 +349,7 @@ class Aurora
             foreach (AuroraFunctionHelper::getFunctions() as $func) {
                 if ($func['name'] === $match['func']) {
                     $output = preg_replace_callback('/' . preg_quote($match['pattern']) . '/', function () use ($match, $func) {
+
                         return $func['closure'](...[$match['args']]);
                     }, $output);
                 }
@@ -369,6 +378,7 @@ class Aurora
         if (array_key_exists('1', $matches)) {
             $content = preg_replace($strip_tag, $matches[1], $content);
         }
+
         // Return finished $content.
         return $content;
     }
@@ -378,13 +388,15 @@ class Aurora
      * Defined as an array of acceptable instructions.
      * @param string $output
      * @return string
+     * @throws \Exception
      */
-    private function parseInstructions(string $output): string
+    private function instructions(string $output): string
     {
         // Save all instruction blocks to an array.
         $this->saveInstructionBlocks($output);
         // Replace all the instruction blocks that are in the array with actual content.
         $output = $this->replaceInstructionBlocks($output);
+
         // Return finished output.
         return $output;
     }
@@ -430,6 +442,7 @@ class Aurora
             $section_content = $this->stripInstructionTags($this->getTemplateFileContents($file));
             $output = $this->replace($output, $tag, $section_content);
         }
+
         return $output;
     }
 
@@ -446,6 +459,7 @@ class Aurora
         $regex = '/' . $needle . '/';
         $regex = preg_quote($regex);
         $haystack = preg_replace($regex, $replacement, $haystack, $limit);
+
         return $haystack;
     }
 
@@ -485,7 +499,7 @@ class Aurora
      * @param string $output
      * @return string
      */
-    private function parseCsrf(string $output): string
+    private function csrf(string $output): string
     {
         $regex = '/\(\@csrf\_token\(\)\)/';
         $token = '<?php echo csrf_token() ?>';
@@ -493,6 +507,7 @@ class Aurora
         foreach ($matches as $match) {
             $output = preg_replace($regex, $token, $output);
         }
+
         return $output;
     }
 
@@ -503,7 +518,7 @@ class Aurora
      * @throws \Exception
      * @return string
      */
-    private function parseLoops(string $output): string
+    private function loops(string $output): string
     {
         $output = $this->foreach($output);
         $output = $this->if($output);
@@ -531,6 +546,10 @@ class Aurora
         $middle_matches = [];
         $else_matches = [];
         $end_matches = [];
+        $needle = '';
+        $not = '';
+        $is_same_as = '';
+        $conditional = '';
         // Initialize the power of regex.
         $top_of_loop_regex = '/\(\@if\:\:((?P<not>not)\ )*((?P<needle>\w+)*(?P<is_same_as>\ is\ (\w+\ )*))*(?P<conditional>[a-zA-Z0-9_\'\"\[\]]*?)\)/';
         $middle_of_loop_regex = '/\(\@elseif\:\:((?P<not>not)\ )*((?P<needle>\w+)*(?P<is_same_as>\ is\ (\w+\ )*))*(?P<conditional>[a-zA-Z0-9_\'\"\[\]]*?)\)/';
@@ -634,6 +653,10 @@ class Aurora
         return $output;
     }
 
+//    TODO: Implement cycle loop
+//    TODO: Implement cycle loop
+//    TODO: Implement cycle loop
+//    TODO: Implement cycle loop
     private function cycle(string $output): string
     {
         return $output;
@@ -653,6 +676,8 @@ class Aurora
         $end_of_loop_regex = '';
         $top_matches = [];
         $end_matches = [];
+        $haystack = '';
+        $needle = '';
         // Initialize regex.
         $top_of_loop_regex = '/\(\@for\:\:((?P<key>.*?)\,\ )*?(?P<needle>\w*?)\ in\ (?P<haystack>.*?)\)/';
         $end_of_loop_regex = '/(\(\@endfor\))/';
@@ -704,7 +729,7 @@ class Aurora
      * @param string $needle
      * @return string
      */
-    public function parseVarTag(string $var, string $escape = 'escape', string $needle = ''): string
+    public function variableTag(string $var, string $escape = 'escape', string $needle = ''): string
     {
         return "<?php echo \Kikopolis\App\Framework\Aurora\Aurora::k_echo(\${$var}, '{$escape}', '{$needle}'); ?>";
     }
@@ -716,7 +741,7 @@ class Aurora
      * @param string $regular_expression
      * @return string
      */
-    private function parseVariables(string $output, string $regular_expression = ''): string
+    private function variables(string $output, string $regular_expression = ''): string
     {
         if ($regular_expression === '') {
             // Regex to capture each variable and its tag name sequence.
@@ -731,9 +756,7 @@ class Aurora
             $match = array_filter($match, 'is_string', ARRAY_FILTER_USE_KEY);
             $regex = '/\{\{*\!*\%*\ *' . preg_quote($match['var']) . '\ *\%*\!*\}*\}/';
             if (Str::contains($match['var'], '.')) {
-                $match['var'] = Str::parseDotSyntax($match['var']);
-            } else {
-                //
+                $match['var'] = Str::dot($match['var']);
             }
             // Check what type of vars we are dealing with.
             // Using if loop here and not switch! Suck it!
@@ -748,29 +771,30 @@ class Aurora
                 // TODO: Implement a custom white list of tags.
                 // TODO: Implement a custom white list of tags.
                 // TODO: Implement a custom white list of tags.
-                if (!is_array($match['var'])) {
-                    $var = $this->parseVarTag($match['var'], 'allow-html');
+                if (!\is_array($match['var'])) {
+                    $var = $this->variableTag($match['var'], 'allow-html');
                 } else {
-                    $var = $this->parseVarTag($match['var'][0], 'allow-html', $match['var'][1]);
+                    $var = $this->variableTag($match['var'][0], 'allow-html', $match['var'][1]);
                 }
             } else if (Str::contains($match['tag'], $this->surrounding_tags['no-escape'])) {
                 // If the developer has chosen the risk of no escape, we will echo that sucker right out. No escape here!
                 // In JavaScript, no one can hear you 'undefined'.
-                if (!is_array($match['var'])) {
-                    $var = $this->parseVarTag($match['var'], 'no-escape');
+                if (!\is_array($match['var'])) {
+                    $var = $this->variableTag($match['var'], 'no-escape');
                 } else {
-                    $var = $this->parseVarTag($match['var'][0], 'no-escape', $match['var'][1]);
+                    $var = $this->variableTag($match['var'][0], 'no-escape', $match['var'][1]);
                 }
             } else {
                 // Full escape of all tags, default strategy.
-                if (!is_array($match['var'])) {
-                    $var = $this->parseVarTag($match['var'], 'escape');
+                if (!\is_array($match['var'])) {
+                    $var = $this->variableTag($match['var'], 'escape');
                 } else {
-                    $var = $this->parseVarTag($match['var'][0], 'escape', $match['var'][1]);
+                    $var = $this->variableTag($match['var'][0], 'escape', $match['var'][1]);
                 }
             }
-            $output = preg_replace($regex, $var, $output, 1);
+            $output = \preg_replace($regex, $var, $output, 1);
         }
+
         return $output;
     }
 
@@ -783,19 +807,19 @@ class Aurora
      * @param string $output
      * @return string
      */
-    private function parseAssets(string $output): string
+    private function assets(string $output): string
     {
         $regex = '/\(\@asset\(\'(\w+)\'\,\ \'(\w+)\'\)\)/';
         // Find all assets and add them to the class assets array.
         $matches = static::findByRegex($regex, $output);
         foreach ($matches as $match) {
-            $this->assets[$match[0]] = $this->parseAssetFilename($match[1], $match[2]);
+            $this->assets[$match[0]] = $this->assetFilename($match[1], $match[2]);
         }
         // Loop through all assets and replace the asset tag with the tag that is html ready.
         foreach ($this->assets as $tag => $link) {
             $output = preg_replace('/' . preg_quote($tag) . '/', $link, $output);
         }
-        // Return the finished $output.
+
         return $output;
     }
 
@@ -810,6 +834,7 @@ class Aurora
     public static function findByRegex(string $needle, string $haystack, int $flags = PREG_SET_ORDER): array
     {
         preg_match_all($needle, $haystack, $matches, $flags);
+
         return $matches;
     }
 
@@ -836,6 +861,7 @@ class Aurora
         if (!file_exists($this->cache_root) || !is_dir($this->cache_root)) {
             mkdir($this->cache_root);
         }
+
         return (bool) file_put_contents($this->cached_file, $output);
     }
 
@@ -850,8 +876,10 @@ class Aurora
     private function checkFileTime(string $file): bool
     {
         if (time() - filemtime($file) > 12 * 3600) {
+
             return false;
         } else {
+
             return true;
         }
     }
@@ -870,6 +898,7 @@ class Aurora
     /**
      * Get the parent template contents.
      *
+     * @param string $file
      * @return string
      */
     private function getParentTemplateContents(string $file): string
@@ -888,7 +917,7 @@ class Aurora
     private function getTemplateFileContents(string $file): string
     {
         // Parse the template name.
-        $file = $this->parseFileName($file);
+        $file = $this->filename($file);
         // Check if the indicated file exists, throw Exception if it does not.
         if (!file_exists($file)) {
             throw new \Exception("Template file - {$file} - is not accessible or does not exist.", 404);
@@ -904,10 +933,10 @@ class Aurora
      * @param string $file
      * @return string
      */
-    private function parseFileName(string $file): string
+    private function filename(string $file): string
     {
         // Parse the file name with dot separators
-        $file = Str::parseDotSyntax($file);
+        $file = Str::dot($file);
         // If the view file is a first level file in the Views folder, then set the filename.
         // If it is in a subdirectory, then concatenate indexes 0 and 1 from the parseDotSyntax function array.
         $file_name = array_key_exists('1', $file) ? "{$file[0]}/{$file[1]}" : "{$file[0]}";
@@ -927,7 +956,7 @@ class Aurora
      * @param string $type
      * @return string
      */
-    private function parseAssetFilename(string $asset, string $type): string
+    private function assetFilename(string $asset, string $type): string
     {
         // Initialize variables
         $file_name = '';
@@ -1004,6 +1033,13 @@ class Aurora
         return $file_root;
     }
 
+    /**
+     * @param $var
+     * @param string $escape
+     * @param string $key
+     * @return array|string
+     * @throws \Exception
+     */
     public static function k_echo($var, $escape = 'escape', $key = '')
     {
         $var = static::k_echo_type($var, $key);
@@ -1023,9 +1059,16 @@ class Aurora
         }
     }
 
+    /**
+     * @param $var
+     * @param $key
+     * @return array|string
+     * @throws \Exception
+     */
     public static function k_echo_type($var, $key)
     {
         switch ($var) {
+            case is_string($var):
             case !empty($var) && empty($key):
                 return $var;
             case is_array($var):
@@ -1033,14 +1076,12 @@ class Aurora
             case is_object($var):
                 $var = get_object_vars($var);
                 return (string) $var[$key];
-                // return print_r($stack->$key, true);
-                // return $stack->{"$key"};
             case is_int($var):
                 return (string) $var;
-            case is_string($var):
-                return $var;
             case $var === '' || $key === '':
                 return 'Empty values passed in';
+            default:
+                throw new \Exception("Cannot determine variable {$var} type.");
         }
     }
 }

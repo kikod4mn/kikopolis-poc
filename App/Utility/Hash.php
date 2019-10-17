@@ -38,6 +38,6 @@ class Hash
      */
     public static function compare(string $string, string $hashed_string): bool
     {
-        return hash_equals($string, $hashed_string);
+        return hash_equals(self::getHash($string), $hashed_string);
     }
 }
