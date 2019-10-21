@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 $router->get('/', 'home.index', []);
 $router->get('', 'home.index', []);
-$router->get('home/index', 'home.index', []);
+$router->get('index', 'home.index', []);
+$router->get('home', 'home.index', []);
+$router->get('faq', 'home.faq', []);
+$router->get('about', 'home.about', []);
+$router->get('contact', 'home.contact', []);
 
 /**
  * Add your routes to this list.

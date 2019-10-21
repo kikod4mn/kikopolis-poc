@@ -38,6 +38,7 @@ class Validate
         self::$rule_set = $rules;
         self::rules();
         self::params();
+
         return self::validate($data);
     }
 
@@ -51,6 +52,7 @@ class Validate
                     }
                 }
             }
+
             return true;
         }
     }
@@ -80,12 +82,8 @@ class Validate
                 $param = $rule[1];
                 return self::$func($string, $param);
             }
+            
             return self::$rule($string);
-    }
-
-    public static function enforce($rule, $subject)
-    {
-        $result = call_user_func($rule, $subject);
     }
 
     private static function required($subject): bool

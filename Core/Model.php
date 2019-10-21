@@ -50,7 +50,7 @@ class Model extends Orion
      * @return object
      * @throws \Exception
      */
-    final public function get(int $limit = 0, array $columns = ['*'])
+    final public function select(int $limit = 0, array $columns = ['*'])
     {
         // Init new object to fill with models.
         $object = (object) [];
@@ -84,11 +84,6 @@ class Model extends Orion
     {
         // Resolve the class name that is using this method and use that as a plural for the table name.
         $class = $this->getCallingClassName();
-        // Get all the tables columns.
-        $this->query("DESCRIBE {$class}s");
-        $results = $this->resultSet();
-        // Build the string for the query with all table columns.
-        $columns = $this->buildValuesForSearch($results);
         // Determine the key type.
         $key_type = $this->whatIsKey($key);
         // With key type determined, switch to build the appropriate query.
@@ -100,6 +95,11 @@ class Model extends Orion
                 $this->query('SELECT * FROM ' . $class . 's WHERE email = '.$key);
                 break;
             default:
+                // Get all the tables columns.
+                $this->query("DESCRIBE {$class}s");
+                $results = $this->resultSet();
+                // Build the string for the query with all table columns.
+                $columns = $this->buildValuesForSearch($results);
                 $this->query("SELECT * FROM {$class}s WHERE CONCAT_WS('', {$columns}) LIKE '%{$key}%'");
                 break;
         }
@@ -133,4 +133,43 @@ class Model extends Orion
         return $this->getLastId();
     }
 
+    final public function update()
+    {
+
+    }
+
+    final public function delete()
+    {
+
+    }
+
+    /**
+     * Determine if the model uses timestamps.
+     * @return mixed
+     */
+    public function hasTimeStamps()
+    {
+        // TODO: Implement hasTimeStamps() method.
+    }
+
+    /**
+     * Set the timestamps of the model.
+     * On create, set the created at and updated at.
+     * On update, only set updated at.
+     * @return mixed
+     */
+    public function setTimestamps()
+    {
+        // TODO: Implement setTimestamps() method.
+    }
+
+    final public function increment()
+    {
+
+    }
+
+    final public function decrement()
+    {
+
+    }
 }

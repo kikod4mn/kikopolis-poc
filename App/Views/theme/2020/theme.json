@@ -1,0 +1,12 @@
+{
+  "nav": {
+    "bg_color": "bg-gray-900",
+    "link_color": "rgba(255,255,255,0.5)",
+    "logo_color": "#93C54B"
+  },
+  "page": {
+    "bg_primary": "#3E3F3A",
+    "bg_secondary": "#8E8C84"
+  }
+
+}

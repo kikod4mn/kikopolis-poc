@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kikopolis\App\Framework\Aurora;
 
 use Kikopolis\App\Config\Config;
+use Kikopolis\App\Framework\Corallize\Corallize;
 use Kikopolis\App\Helpers\Arr;
 use Kikopolis\App\Helpers\Str;
 use Kikopolis\App\Framework\Aurora\Traits\VariableTrait;
@@ -12,6 +13,7 @@ use Kikopolis\App\Framework\Aurora\Traits\FileTrait;
 use Kikopolis\App\Framework\Aurora\Traits\AssetTrait;
 use Kikopolis\App\Framework\Aurora\Traits\FunctionTrait;
 use Kikopolis\App\Framework\Aurora\Traits\LoopTrait;
+use Kikopolis\App\Utility\Regexp;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
@@ -222,14 +224,18 @@ class Aurora
         $output = $this->loops($output);
         // Parse the variables
         $output = $this->variables($output);
-
-        $output = $this->csrf($output);
+        // Parse the X-CSRF token.
+        $output = $this->xCsrf($output);
         // Final check for any stray extends:: in the code
         if ($this->checkExtend($output) === true) {
             throw new \Exception("A template file may only extend one other template file, additionally no included files may extend another template. Only one @extends::('template-name') line per the entire compiled template is allowed and it must be in the current template being rendered. This template is {$this->file} - and it is the current view file being called. No other file may have the extends statement in its code. Check your files for a stray extends statement!!", 404);
         }
         // Remove any stray tags
          $output = $this->removeTags($output);
+        // Check for Corallize theme variables.
+        if (self::coralTheme($output) === true) {
+            $output = Corallize::process($output);
+        }
         // Generate a new cache file with plain php
         $cached_file = $this->saveToCachedFile($output);
         // If an error occurs during cache file creation, throws an Exception.
@@ -257,7 +263,7 @@ class Aurora
     private function prepareCurrentTemplate(string $file): string
     {
         $output = '';
-        $output = $this->getTemplateFileContents($file);
+        $output = $this->templateContents($file);
         if ($this->checkExtend($output) === true) {
             $output = $this->mergeTemplates($output, $this->parent_file);
         }
@@ -277,13 +283,13 @@ class Aurora
     private function mergeTemplates(string $current_template, string $parent_template, string $regex = '', string $output = ''): string
     {
         // Get the parent template contents
-        $output = $this->getTemplateFileContents($parent_template);
+        $output = $this->templateContents($parent_template);
         // Check the parent template contents for an extends:: statement and throw an Exception if one is found.
         if ($this->checkExtend($output) === true) {
             throw new \Exception('Parent template cannot extend another template.', 404);
         }
         $regex = '/\@section\(\'extend\'\)(?P<content>.*?)\@endsection/s';
-        $matches = $this->findByRegex($regex, $current_template);
+        $matches = Regexp::findByRegex($regex, $current_template);
         if (count($matches) > 1) {
             throw new \Exception('Multiple sections in the template file, please enclose all content into one @section::(\'extend\')content@endsection', 404);
         }
@@ -307,7 +313,7 @@ class Aurora
         $regex = '';
         $regex = '/\(\@extends\:\:(?P<template>\w+\.?\w+)/';
         // preg_match_all('/\(\@extends\:\:(\w+\.?\w+)/', $output, $matches);
-        $matches = static::findByRegex($regex, $output);
+        $matches = Regexp::findByRegex($regex, $output);
         // If the count of extends:: statements is higher than 1, throw error as a template file must not extend more than one template file.
         if (count($matches) > 1) {
             throw new \Exception('A template can only extend one other template! Please make sure there is only a single extend statement in your template file.', 404);
@@ -343,7 +349,7 @@ class Aurora
     {
         $regex = '';
         $regex = '/(?P<pattern>\(\@function\:\:(?P<func>\w+)\((?P<args>.*?)\)\))/';
-        $matches = static::findByRegex($regex, $output);
+        $matches = Regexp::findByRegex($regex, $output);
         foreach ($matches as $match) {
             $match = Arr::arrayFilter($match);
             foreach (AuroraFunctionHelper::getFunctions() as $func) {
@@ -416,7 +422,7 @@ class Aurora
         foreach ($this->instructions as $instruction) {
             // preg_match_all('/\(\@' . preg_quote($instruction) . '::(\w+\.?\-?\w*?\.?\-?\w*?\.?\-?\w*?)\)/', $output, $matches, PREG_SET_ORDER);
             $regex = '/\(\@' . preg_quote($instruction) . '::(\w+\.?\-?\w*?\.?\-?\w*?\.?\-?\w*?)\)/';
-            $matches = static::findByRegex($regex, $output);
+            $matches = Regexp::findByRegex($regex, $output);
             foreach ($matches as $match) {
                 // Add the instruction blocks to the array as such
                 // $match[0] - The entire string to replace eg. '(@includes::layouts.sidebar)' - 
@@ -439,7 +445,7 @@ class Aurora
     {
         // Loop through the saved instruction blocks.
         foreach ($this->instruction_blocks as $tag => $file) {
-            $section_content = $this->stripInstructionTags($this->getTemplateFileContents($file));
+            $section_content = $this->stripInstructionTags($this->templateContents($file));
             $output = $this->replace($output, $tag, $section_content);
         }
 
@@ -477,7 +483,7 @@ class Aurora
     public function removeTags(string $output, string $regex = '', array $tags = []): string
     {
         // If no tags are passed in, use the default tags of Aurora.
-        // Otherwise, it is possbile to use this function to remove custom tags from a string.
+        // Otherwise, it is possible to use this function to remove custom tags from a string.
         if ($tags === []) {
             $tags = Arr::arrayFlatten($this->surrounding_tags);
         } else {
@@ -495,15 +501,15 @@ class Aurora
     }
 
     /**
-     * Parse CSRF token tag into the template.
+     * Parse X-CSRF token tag into the template.
      * @param string $output
      * @return string
      */
-    private function csrf(string $output): string
+    private function xCsrf(string $output): string
     {
-        $regex = '/\(\@csrf\_token\(\)\)/';
-        $token = '<?php echo csrf_token() ?>';
-        $matches = $this->findByRegex($regex, $output);
+        $regex = '/\(\@x\_csrf\_token\)/';
+        $token = '<?php echo \Kikopolis\App\Utility\Token::xCsrfTokenTag(); ?>';
+        $matches = Regexp::findByRegex($regex, $output);
         foreach ($matches as $match) {
             $output = preg_replace($regex, $token, $output);
         }
@@ -556,7 +562,7 @@ class Aurora
         $middle_of_else_regex = '/\(\@else\)/';
         $end_of_loop_regex = '/\(\@endif\)/';
         // Find the matches for top loop parts and replace them with appropriate parts.
-        $top_matches = $this->findByRegex($top_of_loop_regex, $output);
+        $top_matches = Regexp::findByRegex($top_of_loop_regex, $output);
         foreach ($top_matches as $match) {
             $not_isset = false;
             $match = Arr::arrayFilter($match);
@@ -597,7 +603,7 @@ class Aurora
             $output = preg_replace($top_of_loop_regex, $if_top, $output, 1);
         }
         // Find all the middle elseif loop parts if there are any and parse them.
-        $middle_matches = $this->findByRegex($middle_of_loop_regex, $output);
+        $middle_matches = Regexp::findByRegex($middle_of_loop_regex, $output);
         foreach ($middle_matches as $match) {
             $not_isset = false;
             $match = Arr::arrayFilter($match);
@@ -638,13 +644,13 @@ class Aurora
             $output = preg_replace($middle_of_loop_regex, $if_middle, $output, 1);
         }
         // Parse all the regular else lines.
-        $else_matches = $this->findByRegex($middle_of_else_regex, $output);
+        $else_matches = Regexp::findByRegex($middle_of_else_regex, $output);
         $else = "<?php else: ?>";
         foreach ($else_matches as $match) {
             $output = preg_replace($middle_of_else_regex, $else, $output);
         }
         // And all the ends of the loop.
-        $end_matches = $this->findByRegex($end_of_loop_regex, $output);
+        $end_matches = Regexp::findByRegex($end_of_loop_regex, $output);
         $if_bottom = "<?php endif; ?>";
         foreach ($end_matches as $match) {
             $output = preg_replace($end_of_loop_regex, $if_bottom, $output, 1);
@@ -681,8 +687,8 @@ class Aurora
         // Initialize regex.
         $top_of_loop_regex = '/\(\@for\:\:((?P<key>.*?)\,\ )*?(?P<needle>\w*?)\ in\ (?P<haystack>.*?)\)/';
         $end_of_loop_regex = '/(\(\@endfor\))/';
-        $top_matches = $this->findByRegex($top_of_loop_regex, $output);
-        $end_matches = $this->findByRegex($end_of_loop_regex, $output);
+        $top_matches = Regexp::findByRegex($top_of_loop_regex, $output);
+        $end_matches = Regexp::findByRegex($end_of_loop_regex, $output);
         // Do loop top parts
         foreach ($top_matches as $match) {
             $match = Arr::arrayFilter($match);
@@ -723,7 +729,6 @@ class Aurora
 
     /**
      * Parse the variable tag into plain php.
-     *
      * @param string $var
      * @param string $escape
      * @param string $needle
@@ -736,7 +741,6 @@ class Aurora
 
     /**
      * All heavy lifting work of determining the matches for variables and using correct strategy to parse them.
-     *
      * @param string $output
      * @param string $regular_expression
      * @return string
@@ -803,7 +807,6 @@ class Aurora
      * Only accepts local files and assumes directory structure as follows 
      * css in the /public/css/ folder
      * javascript in the /public/js/ folder
-     *
      * @param string $output
      * @return string
      */
@@ -811,7 +814,7 @@ class Aurora
     {
         $regex = '/\(\@asset\(\'(\w+)\'\,\ \'(\w+)\'\)\)/';
         // Find all assets and add them to the class assets array.
-        $matches = static::findByRegex($regex, $output);
+        $matches = Regexp::findByRegex($regex, $output);
         foreach ($matches as $match) {
             $this->assets[$match[0]] = $this->assetFilename($match[1], $match[2]);
         }
@@ -824,23 +827,7 @@ class Aurora
     }
 
     /**
-     * Return an array of matches with preg_match_all.
-     *
-     * @param string $needle
-     * @param string $haystack
-     * @param int $flags
-     * @return array
-     */
-    public static function findByRegex(string $needle, string $haystack, int $flags = PREG_SET_ORDER): array
-    {
-        preg_match_all($needle, $haystack, $matches, $flags);
-
-        return $matches;
-    }
-
-    /**
      * Save the compiled output to a cache file.
-     *
      * @param string $output
      * @return string|bool
      */
@@ -852,7 +839,6 @@ class Aurora
     /**
      * Force the file contents.
      * Create the cache directory if it does not exist.
-     *
      * @param string $output
      * @return boolean
      */
@@ -869,13 +855,13 @@ class Aurora
      * Check the file modification time.
      * Default set for 12 hours. Should be sufficient in production environments.
      * Just send in a boolean variable of true to the output() method to override any checks for a cached template.
-     *
      * @param string $file
+     * @param int $time
      * @return bool
      */
-    private function checkFileTime(string $file): bool
+    private function fileExpired(string $file, int $time = 12): bool
     {
-        if (time() - filemtime($file) > 12 * 3600) {
+        if (time() - filemtime($file) > $time * 3600) {
 
             return false;
         } else {
@@ -892,16 +878,15 @@ class Aurora
      */
     private function checkForCachedFile(string $file): bool
     {
-        return file_exists($file) && $this->checkFileTime($file) === true ? true : false;
+        return file_exists($file) && $this->fileExpired($file) === true ? true : false;
     }
 
     /**
      * Get the parent template contents.
-     *
      * @param string $file
      * @return string
      */
-    private function getParentTemplateContents(string $file): string
+    private function parentTemplateContents(string $file): string
     {
         return $this->parent_file_contents = file_get_contents($this->parent_file);
     }
@@ -909,12 +894,11 @@ class Aurora
     /**
      * Get the indicated template file contents.
      * Used for setting the base template file contents as well as all the includes.
-     *
      * @param string $file
      * @throws \Exception
      * @return string
      */
-    private function getTemplateFileContents(string $file): string
+    private function templateContents(string $file): string
     {
         // Parse the template name.
         $file = $this->filename($file);
@@ -929,7 +913,6 @@ class Aurora
     /**
      * Parse the template file name.
      * Accepts up to two levels of folder structure.
-     *
      * @param string $file
      * @return string
      */
@@ -944,14 +927,13 @@ class Aurora
         // If a third option in the array is not set however, simply use the previous file name
         $file_name = array_key_exists('2', $file) ? "{$file_name}/{$file[2]}" : "{$file_name}";
         // Add the file extension, by default, the extensions are filename.aura.php
-        $file_name = $this->assignFileRoot() . $file_name . $this->assignFileExt();
+        $file_name = $this->fileRoot() . $file_name . $this->fileExt();
         // Return the completed file name
         return $file_name;
     }
 
     /**
      * Parse the asset filename into a readily usable tag.
-     *
      * @param string $asset
      * @param string $type
      * @return string
@@ -961,7 +943,7 @@ class Aurora
         // Initialize variables
         $file_name = '';
         // Add the file root and extension.
-        $file_name = $this->assignFileRoot($type) . $asset . $this->assignFileExt($type);
+        $file_name = $this->fileRoot($type) . $asset . $this->fileExt($type);
         // Assign the completed tag to insert to html
         switch ($type) {
             case 'css':
@@ -978,11 +960,10 @@ class Aurora
     /**
      * Assign the file extension.
      * Default is .aura.php as the Aurora default file extension.
-     *
      * @param string $file_type
      * @return string
      */
-    private function assignFileExt(string $file_type = ''): string
+    private function fileExt(string $file_type = ''): string
     {
         // Initialize variables
         $file_ext = '';
@@ -1010,11 +991,10 @@ class Aurora
     /**
      * Assign the file root directory.
      * Default value is the Views folder in App directory.
-     *
      * @param string $file_type
      * @return string
      */
-    private function assignFileRoot(string $file_type = ''): string
+    private function fileRoot(string $file_type = ''): string
     {
         // Initialize variables
         $file_root = '';
@@ -1034,6 +1014,21 @@ class Aurora
     }
 
     /**
+     * Determine if the template contains Corallize theme variables.
+     * @param string $template_content
+     * @return bool
+     */
+    public static function coralTheme(string $template_content): bool
+    {
+        if (preg_match('/@coral::.*/', $template_content)) {
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param $var
      * @param string $escape
      * @param string $key
@@ -1045,7 +1040,6 @@ class Aurora
         $var = static::k_echo_type($var, $key);
         // First we determine if the $var passed in is not a string
         // and pass it back to this function recursively with the $key for echoing to template.
-
         // Different escape levels, depending on the surrounding tags of the $var.
         switch ($escape) {
 //            case 'escape':
@@ -1060,6 +1054,7 @@ class Aurora
     }
 
     /**
+     * Force different variables to a string for echoing out in a template. Also deals with objects and arrays.
      * @param $var
      * @param $key
      * @return array|string

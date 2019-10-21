@@ -43,6 +43,11 @@ class Controller extends BaseController
                 $this->middleware($mware);
             }
         }
+
+        if (method_exists(get_called_class(), '__constructor')) {
+            $this->__constructor();
+        }
+
         $this->params = $route_params;
     }
 

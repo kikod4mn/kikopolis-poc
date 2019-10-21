@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 defined('_KIKOPOLIS') or die('No direct script access!');
 
 use App\Models\Post;
+use Kikopolis\App\Framework\Aurora\View;
 use Kikopolis\App\Framework\Controllers\Controller;
 
 class Posts extends Controller
@@ -15,38 +16,39 @@ class Posts extends Controller
 
     public function indexAction()
     {
-        // TODO: Implement method
+        View::render('posts.index', []);
     }
 
     public function showAction()
     {
-        echo "<h1>The id of the post is {$this->params['id']}</h1>";
-        echo "<h1>The slug of the post is {$this->params['slug']}</h1>";
-        echo "Well done on reaching here, young padawan!!";
+        View::render('posts.show', []);
     }
 
-    public function create()
+    public function createAction()
     {
-        // TODO: Implement method
+        View::render('posts.new', []);
     }
 
-    public function save()
+    public function saveAction(Post $post)
     {
-        // TODO: Implement method
+        $post->save($_POST);
+        View::render('posts.save-success', []);
     }
 
-    public function edit()
+    public function editAction()
     {
-        // TODO: Implement method
+        View::render('posts.edit', []);
     }
 
-    public function update()
+    public function update(Post $post)
     {
-        // TODO: Implement method
+        $post->update($_POST);
+        View::render('posts.update-success', []);
     }
 
-    public function delete()
+    public function delete(Post $post)
     {
-        // TODO: Implement method
+        $post->delete();
+        View::render('posts.remove-success', []);
     }
 }
