@@ -38,7 +38,7 @@ trait PropertiesTrait
      * Private properties, not visible or accessible for the outside world.
      * @var array
      */
-    protected $hidden = ['stmt', 'errors'];
+    protected $hidden = [];
 
     /**
      * Return the fillable properties of the model.
@@ -127,7 +127,7 @@ trait PropertiesTrait
      */
     public function isFillable(string $key): bool
     {
-        return in_array($key, $this->fillable) && !in_array($this->guarded)? true : false;
+        return in_array($key, $this->fillable) && !in_array($key, $this->guarded)? true : false;
     }
 
     /**
@@ -170,10 +170,14 @@ trait PropertiesTrait
     public function fill($attributes)
     {
         foreach ($attributes as $key => $value) {
-            if(!$this->isGuarded($key)) {
+            if($this->isFillable($key)) {
                 $this->attributes[$key] = $value;
-            } else {
-                throw new \Exception("Property {$key} is not mass assignable. Add it to the fillable array and remove it from guarded.");
+            } elseif ($this->isGuarded($key)) {
+                throw new \Exception(sprintf('Property [%s] is not mass assignable. Add it to the fillable array and/or remove it from guarded on [%s].', $key, get_class($this)));
+            } elseif ($key === 'id') {
+                $this->attributes[$key] = $value;
+            } elseif ($key === 'created_at' || $key === 'updated_at') {
+                $this->attributes[$key] = $value;
             }
         }
 

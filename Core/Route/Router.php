@@ -75,7 +75,7 @@ class Router
      *
      * @var \Kikopolis\Core\Container\Container
      */
-    protected $container = '';
+    protected $container = null;
 
     /**
      * Add a route to the routing table.
@@ -191,6 +191,33 @@ class Router
         return $this;
     }
 
+    public function resource($uri, $controller, $options = [], $except = [], $only = [])
+    {
+        $routes = [
+            'index' => ['GET', $uri . '/index', $controller . '.index' , $options],
+            'show' => ['GET', $uri . '/{id}/show', $controller . '.show' , $options],
+            'edit' => ['GET', $uri . '/{id}/edit', $controller . '.edit' , $options],
+            'update' => ['POST', $uri . '/{id}/update', $controller . '.update' , $options],
+            'create' => ['GET', $uri . '/create', $controller . '.create' , $options],
+            'insert' => ['POST', $uri . '/insert', $controller . '.insert' , $options],
+            'delete' => ['DELETE', $uri . '/{id}/delete', $controller . '.delete' , $options],
+        ];
+		if ($except !== []) {
+			foreach ($except as $value) {
+				unset($routes[$value]);
+			}
+		}
+		if ($only !== [] && $except === []) {
+			foreach ($only as $value) {
+				$this->add($routes[$value]['0'], $routes[$value]['1'], $routes[$value]['2'], $routes[$value]['3']);
+			}
+		} else {
+			foreach ($routes as $route) {
+				$this->add($route['0'], $route['1'], $route['2'], $route['3']);
+			}
+		}
+    }
+
     /**
      * Dispatch the current route
      *
@@ -212,6 +239,10 @@ class Router
         $url = isset($uri) ? $this->removeQueryStringVariables(Str::u($uri)) : '/';
         // Match the url
         $this->match($url);
+        // Set the return page if it is using a get method
+        if ($this->methodMatchCheck($this->route['method'], 'GET')) {
+            $_SESSION['previous_page'] = $uri;
+        }
         // Run the base controller to set the route parameters eg ID, slug etc
 //        Controller::setRouteParams($this->route['params']);
         // Send the controller and method to the Container
@@ -220,6 +251,7 @@ class Router
 //        var_dump($this->controller);
 //        var_dump($this->method);
         $controller = new $this->controller($this->route['params']);
+        // If the method name ends in Action or action, only then will said method be called.
         if (preg_match('/action$/i', $this->method) === 0) {
             $controller->{$this->method}(...$args);
         }
@@ -253,7 +285,7 @@ class Router
         // Convert the route to a regular expression: escape forward slashes
         $url = preg_replace('/\//', '\\/', $url);
         // Convert variables e.g. {id}, {slug} to capture groups
-        $url = preg_replace('/\{([a-z]+)\}/', '(?P<\1>[a-z0-9-]+)', $url);
+        $url = preg_replace('/\{([a-z]+)\}/', '(?P<\1>[a-zA-Z0-9-_]+)', $url);
         // Add start and end delimiters, and case insensitive flag
         $url = '/^' . $url . '$/i';
         return $url;

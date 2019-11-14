@@ -27,6 +27,6 @@ class RegisterUser
     protected function saveUser(array $data)
     {
         $user = new User();
-        return $user->insert($data);
+        return $user->save($data);
     }
 }

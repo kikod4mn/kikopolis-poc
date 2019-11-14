@@ -48,10 +48,6 @@ class Arr
      */
     public static function objToArr($object): array
     {
-        // If the passed in variable is an array, return it immediately without going further.
-        if (is_array($object)) {
-            return $object;
-        }
         // Create new empty array.
         $array = [];
         // Recursively go over object properties and assign to array values.

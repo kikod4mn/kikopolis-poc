@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Authorization;
 
+use Kikopolis\App\Framework\Controllers\Controller;
+
 defined('_KIKOPOLIS') or die('No direct script access!');
 
 /**
@@ -14,7 +16,7 @@ defined('_KIKOPOLIS') or die('No direct script access!');
  * PHP Version 7.3.5
  */
 
-class ResetPassword
+class ResetPassword extends Controller
 {
     //
 }

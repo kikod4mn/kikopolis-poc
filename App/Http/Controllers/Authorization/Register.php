@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Authorization;
 
+use Kikopolis\App\Framework\Controllers\Controller;
 use Kikopolis\App\Utility\Validate;
 use Kikopolis\App\Utility\Hash;
 use Kikopolis\App\Framework\Aurora\View;
@@ -20,17 +21,21 @@ defined('_KIKOPOLIS') or die('No direct script access!');
  * PHP Version 7.3.5
  */
 
-class Register
+class Register extends Controller
 {
+    protected $middleware = ['register'];
+
     /**
      * Show registration form
      */
-    public function index()
+    public function indexAction()
     {
+        echo "Register index";
+        die();
         View::render('register.index');
     }
 
-    public function register(array $data)
+    public function registerAction(array $data)
     {
         if (!$this->validate($data)) {
             // TODO: Show the actual errors

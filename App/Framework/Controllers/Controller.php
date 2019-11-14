@@ -19,28 +19,44 @@ defined('_KIKOPOLIS') or die('No direct script access!');
 
 class Controller extends BaseController
 {
+    /**
+     * The array for specifying the controllers middleware.
+     * @var array
+     */
     protected $middleware = [];
 
     /**
      * Parameter bag from the GET array
-     *
      * @var array
      */
     protected $params = [];
 
+    /**
+     * Run before a called method-
+     */
     protected function before() {
         //
     }
 
+    /**
+     * Run after a called method.
+     */
     protected function after() {
         //
     }
 
+    /**
+     * Controller constructor.
+     * Since middleware and params are set in this, the controller is final and should not be overridden.
+     * @param array $route_params
+     */
     final public function __construct($route_params = [])
     {
         if ($this->middleware !== []) {
             foreach ($this->middleware as $mware) {
-                $this->middleware($mware);
+                if ($this->middleware($mware) === false) {
+                    throw new \Exception(sprintf("Middleware [%s] is preventing controller [%s] from running.", $mware, get_class($this)), 404);
+                }
             }
         }
 
@@ -51,6 +67,11 @@ class Controller extends BaseController
         $this->params = $route_params;
     }
 
+    /**
+     * Run the middleware init method, aptly called middleware that is used as the main method to bootstrap the middleware.
+     * @param string $middleware
+     * @return mixed
+     */
     public function middleware(string $middleware)
     {
         $middleware = Str::studly($middleware) . 'Middleware';
@@ -59,6 +80,13 @@ class Controller extends BaseController
         return $middleware::middleware();
     }
 
+    /**
+     * Handle calls into the controller.
+     * All methods that are routes are expected to have a prefix of Action.
+     * @param $name
+     * @param $args
+     * @throws \Exception
+     */
     public function __call($name, $args)
     {
         $method = $name . 'Action';
@@ -70,34 +98,4 @@ class Controller extends BaseController
             throw new \Exception("Method $method not found in controller" . get_class($this));
         }
     }
-
-//    public static function __callStatic()
-//    {
-//
-//    }
-
-//    /**
-//     * The route parameters bag from the URL.
-//     * @var array
-//     */
-//    protected static $route_params = [];
-//
-//    /**
-//     * Set the route parameters.
-//     * @param array $route_params
-//     * @return void
-//     */
-//    public static function setRouteParams(array $route_params): void
-//    {
-//        static::$route_params = $route_params;
-//    }
-//
-//    /**
-//     * Get the current route parameters.
-//     * @return array
-//     */
-//    public static function getRouteParams(): array
-//    {
-//        return static::$route_params;
-//    }
 }

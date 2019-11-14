@@ -4,6 +4,14 @@ declare(strict_types=1);
 
 namespace Kikopolis\App\Framework\Aurora;
 
+use App\Models\Framework\Content;
+use App\Models\Framework\Tag;
+use App\Models\Framework\Theme;
+use Kikopolis\App\Auth\Auth;
+use Kikopolis\App\Config\Config;
+use Kikopolis\App\Framework\Cardinal\Cardinal;
+use Kikopolis\App\Framework\Corallize\Corallize;
+
 defined('_KIKOPOLIS') or die('No direct script access!');
 
 /**
@@ -36,12 +44,27 @@ class View
      */
     private static $template_file_contents = '';
 
+	/**
+	 * @var array
+	 */
+    private static $content = [];
+
     /**
+	 * @var array
+	 */
+	private static $theme = [];
+
+	/**
+	 * @var array
+	 */
+	private static $tags = [];
+
+	/**
      * Render the template and require the file.
      * @param string $file_name
      * @param array $template_variables
      * @param bool $force_compile
-     * @return void
+     * @return mixed
      * @throws \Exception
      */
     public static function render(string $file_name, array $template_variables = [], bool $force_compile = true)
@@ -67,9 +90,50 @@ class View
         }
         // Extract template variables
         extract($template_variables, EXTR_SKIP);
-        // Show the template page
+        $flash_messages = getFlashMessages();
+        if (Config::ENABLE_CARDINAL === true) {
+			self::$content = self::getContent($file_name);
+            extract(self::$content);
+        }
+        if (Config::ENABLE_CORALLIZE === true) {
+        	Corallize::setTags(self::getTags());
+		}
+        if (Config::ENABLE_ARCHON === true) {
+			self::$theme = self::getTheme();
+			extract(self::$theme);
+		}
 
-        require_once static::$output_file;
+        return require_once static::$output_file;
+    }
+
+	private static function getContent($file_name)
+	{
+		$return = [];
+		$content = new Content();
+		$data = $content->find('page_route', $file_name);
+		if (is_string($data->content)) {
+			$return = (array) json_decode($data->content);
+		}
+
+		return $return;
+    }
+
+	private static function getTags()
+	{
+		$tags = new Tag();
+		return $tags->all();
+    }
+
+	private static function getTheme()
+	{
+		$return = [];
+		$theme = new Theme();
+		$data = $theme->find('name', Config::THEME);
+		if (is_string($data->variables)) {
+			$return = (array) json_decode($data->variables);
+		}
+
+		return $return;
     }
 
     /**

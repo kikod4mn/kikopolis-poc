@@ -22,13 +22,17 @@ class Auth
 {
     public static function user(User $user)
     {
+    	$user_test = false;
         if (isset($_SESSION['user_id'])) {
             $user_test = $user->find($_SESSION['user_id']);
-            var_dump($user_test);
-            return $user_test;
+//            var_dump($user_test);
         }
-        echo "false";
-        return false;
+
+        if ($user_test === true) {
+			return $user_test;
+		}
+
+        return true;
     }
     
     /**
@@ -60,4 +64,9 @@ class Auth
 
         return $page;
     }
+
+	public static function admin(User $user)
+	{
+		return true;
+	}
 }

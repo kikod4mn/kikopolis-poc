@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Authorization;
 
 use App\Models\User;
+use Kikopolis\App\Framework\Controllers\Controller;
 use Kikopolis\App\Utility\Token;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
@@ -17,7 +18,7 @@ defined('_KIKOPOLIS') or die('No direct script access!');
  * PHP Version 7.3.5
  */
 
-class Login
+class Login extends Controller
 {
     protected static $expired = true;
 
@@ -29,7 +30,7 @@ class Login
     public static function login(User $user, Token $token)
     {
         session_regenerate_id(true);
-        if (!$user->find($_SESSION['user_id'])) {
+        if (!$user->findByKey($_SESSION['user_id'])) {
             $cookie = self::cookieToken();
         }
         if (!isset($cookie)) {

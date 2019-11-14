@@ -40,7 +40,8 @@ class Str
      */
     public static function hWithHtml(string $string, int $flags = ENT_QUOTES, $encoding = 'UTF-8'): string
     {
-        return htmlspecialchars_decode(htmlspecialchars($string, $flags, $encoding));
+    	// @todo : write whitelist of html tags
+        return htmlspecialchars($string, $flags, $encoding);
     }
 
     /**
@@ -179,17 +180,6 @@ class Str
     }
 
     /**
-     * Check if the string is a folder path. Excludes usual filepath characters from the verification.
-     * Excluded - ['/', '\\', '-', '_', '.']
-     * @param string $string
-     * @return bool
-     */
-    public static function isFolder(string $string): bool
-    {
-        return static::isAlphaNumeric($string, ['/', '\\', '-', '_', '.']) && \is_dir(Config::getAppRoot() . $string);
-    }
-
-    /**
      * Verify the string is in a valid date format.
      * @param string $string
      * @return bool
@@ -302,6 +292,13 @@ class Str
         return lcfirst(static::studly($string));
     }
 
+    public static function toText(string $string): string
+    {
+        $string = ucfirst(strtolower($string));
+
+        return str_replace(['-', '_', '.'], ' ', $string);
+    }
+
     /**
      * Check string length as greater than
      * Uses trim() to remove empty spaces from the beginning and end of the string
@@ -373,6 +370,16 @@ class Str
         return static::contains($string, '.') ? explode('.', $string) : [$string];
     }
 
+	/**
+	 * Explode a string with dot syntax to an array.
+	 * @param string $string
+	 * @return array
+	 */
+	public static function comma(string $string): array
+	{
+		return static::contains($string, ',') ? explode(', ', $string) : [$string];
+	}
+
     /**
      * Explode a string with slash syntax to an array.
      * @param string $string
@@ -391,5 +398,18 @@ class Str
     public static function callback(string $string): array
     {
         return static::contains($string, '@') ? explode('@', $string, 2) : [$string];
+    }
+
+	public static function removeFileFromPath(string $file_path):  string
+	{
+		$array = explode('/', implode('/', explode('\\', $file_path)));
+		array_pop($array);
+		return implode(DIRECTORY_SEPARATOR, $array);
+    }
+
+	public static function correctFilePath(string $path): string
+	{
+		$array = explode('/', implode('/', explode('\\', $path)));
+		return implode(DIRECTORY_SEPARATOR, $array);
     }
 }

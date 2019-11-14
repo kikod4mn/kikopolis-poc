@@ -21,11 +21,14 @@ trait QueryTemporaryTrait
 {
     /**
      * Prepare the query with prepared statement
-     * @return void
+     * @return self
      */
     protected function query($sql)
     {
+        // If the $sql passed in is an object of QueryBuilder, use the getter to get the built query.
+//        $this->stmt = $this->db->prepare(is_object($sql) ? $sql->getQuery() : $sql);
         $this->stmt = $this->db->prepare($sql);
+        return $this;
     }
 
     /**
@@ -55,6 +58,12 @@ trait QueryTemporaryTrait
         $this->stmt->bindParam($param, $value, $type);
     }
 
+    protected function describe($table)
+    {
+        $this->query("DESCRIBE {$table}");
+        return $this->resultSet();
+    }
+
     protected function execute()
     {
         return $this->stmt->execute();
@@ -80,6 +89,14 @@ trait QueryTemporaryTrait
         $this->stmt->setFetchMode(PDO::FETCH_CLASS, get_called_class());
         $this->execute();
         return $this->stmt->fetch();
+    }
+
+    protected function bindAndExecute(array $params)
+    {
+        foreach ($params as $key => $value) {
+            $this->bind($key, $value);
+        }
+        $this->execute();
     }
 
     // Get result set as array of objects
@@ -111,6 +128,7 @@ trait QueryTemporaryTrait
     {
         switch ($key) {
             case is_int($key) || is_numeric($key):
+            case $key == (int) $key:
                 return 'id';
             case Str::contains((string) $key, '@'):
                 return 'email';

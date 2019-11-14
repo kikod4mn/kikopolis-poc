@@ -8,7 +8,7 @@ RewriteOptions InheritDownBefore
 # Protect the POST array from getting lost in redirects
 #RewriteCond %{REQUEST_METHOD} !^POST$
 
-RewriteBase /kikopolis_poc/
+RewriteBase /jnphoto-dev/
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule  ^(.+)$ index.php?$1 [NC,NE,QSA,L]

@@ -21,7 +21,7 @@ class AuthMiddleware
     public static function middleware()
     {
         $user = new User();
-        var_dump($_SESSION);
+
         return Auth::user($user);
     }
 }

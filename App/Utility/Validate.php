@@ -28,9 +28,11 @@ class Validate
      */
     public static function hasValue($data)
     {
-        $data = trim($data);
+        if (!is_null($data)) {
+            $data = trim($data);
+        }
 
-        return isset($data);
+		return !isset($var) || $var == false;
     }
 
     public static function ruleSet(array $data, array $rules)

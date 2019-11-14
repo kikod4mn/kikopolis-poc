@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Kikopolis\Core;
 
-use Kikopolis\App\Framework\Orion\Interfaces\ModelInterface;
-use PDO;
-use Kikopolis\App\Config\Config;
+use Kikopolis\App\Framework\Orion\Connection\Connection;
+use Kikopolis\App\Framework\Orion\QueryBuilder;
+use Kikopolis\App\Helpers\Str;
 use Kikopolis\App\Framework\Orion\Orion;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
@@ -25,6 +25,35 @@ class Model extends Orion
 
     const UPDATED_AT = 'updated_at';
 
+    // todo - implement id for queries
+    protected $mainId = 'id';
+
+    /**
+     * Instance of the QueryBuilder class
+     * @var QueryBuilder|null
+     */
+    protected $query_builder = null;
+
+    /**
+     * The table associated with model.
+     * @var string
+     */
+    protected $table = '';
+
+    /**
+     * Array of attributes.
+     * Filled with the attributes in the fillable array of the model.
+     * @var array
+     */
+    public $attributes = [];
+    protected $query = '';
+    protected $stmt;
+    protected $errors = [];
+    protected $db = null;
+    private $last_id;
+    protected $created_at;
+    protected $updated_at;
+
     /**
      * Model constructor.
      * @param array $attributes The attributes of a model Class. Will be mapped according to fillable array.
@@ -33,7 +62,7 @@ class Model extends Orion
     final public function __construct($attributes = [])
     {
         if (!isset($this->db)) {
-            $this->db = $this->getDb();
+            $this->db = Connection::connect();
         }
         if (method_exists(get_called_class(), '__constructor')) {
             $this->__constructor();
@@ -41,104 +70,146 @@ class Model extends Orion
         if ($attributes !== []) {
             $this->fill($attributes);
         }
+
+        $this->table = $this->getCallingClassName();
+        $this->query_builder = new QueryBuilder();
     }
 
     /**
-     * Returns all results found in the specified columns. Default is all columns.
+     * Returns all results found in the specified columns for this model. Default is all columns.
      * @param int $limit
      * @param array $columns
-     * @return object
+     * @return mixed
      * @throws \Exception
      */
-    final public function select(int $limit = 0, array $columns = ['*'])
+    final public function all(int $limit = 0, array $columns = ['*'])
     {
-        // Init new object to fill with models.
-        $object = (object) [];
-        $cols = implode(',', $columns);
-        $class = $this->getCallingClassName();
-        $sql = "SELECT {$cols} FROM {$class}s";
-        // If limit is sent in, add it to the end of the SQL query.
-        if ($limit !== 0) {
-            $sql .= " LIMIT {$limit}";
-        }
+        $this->query = $this->query_builder->select($columns)->from($this->table)->limit($limit)->create();
+        $this->query($this->query);
 
-        $this->query($sql);
+        return $this->resultSet();
+    }
 
+	/**
+	 * Get a series of results for this model, specify $key for column and $value for a value to search.
+	 * @param string $key
+	 * @param string $value
+	 * @param int    $limit
+	 * @param array  $columns
+	 * @return string
+	 * @throws \Exception
+	 */
+    final public function get(string $key, string $value, int $limit = 0, array $columns = ['*'])
+    {
+        $this->query = $this->query_builder->select($columns)->from($this->table)->limit($limit)->where($key, $value)->create();
+        $this->query($this->query);
+        $this->bind($key, $value);
         $result = $this->resultSet();
 
-        foreach ($result as $key => $value) {
-            $object->$key = $this->show($value);
-        }
-
-        return $object;
+        return $result;
     }
 
     /**
      * Find and return a database row with a provided key.
      * If the key is an int, it is assumed to be an id, if it contains an @ symbol, assumed to be an email.
-     * If it is something else, a full database search is performed and the first matching result is returned.
+     * If a key value is passed in, return that result.
      * @param $key
      * @return object
+     * @throws \Exception
      */
-    final public function find($key)
+    final public function find($key, string $value = '')
     {
-        // Resolve the class name that is using this method and use that as a plural for the table name.
-        $class = $this->getCallingClassName();
-        // Determine the key type.
+        // Determine the key type. Prioritized are integers as id or string containing an @ sign as an email.
+        // If no type is determined or it isnt the two mentioned, the entire table is searched for a match.
         $key_type = $this->whatIsKey($key);
-        // With key type determined, switch to build the appropriate query.
         switch ($key_type) {
             case 'id':
-                $this->query('SELECT * FROM ' . $class . 's WHERE id = '.$key);
+                $this->query = $this->query_builder->select()->from($this->table)->where('id', $key)->create();
+                $this->query($this->query);
+                $this->bind('id', $key);
+				$result = $this->result();
                 break;
             case 'email':
-                $this->query('SELECT * FROM ' . $class . 's WHERE email = '.$key);
+                $this->query = $this->query_builder->select()->from($this->table)->where('email', $key)->create();
+                $this->query($this->query);
+                $this->bind('email', $key);
+				$result = $this->result();
                 break;
             default:
-                // Get all the tables columns.
-                $this->query("DESCRIBE {$class}s");
-                $results = $this->resultSet();
-                // Build the string for the query with all table columns.
-                $columns = $this->buildValuesForSearch($results);
-                $this->query("SELECT * FROM {$class}s WHERE CONCAT_WS('', {$columns}) LIKE '%{$key}%'");
-                break;
+				$this->query = $this->query_builder->select()->from($this->table)->where($key, $value)->create();
+				$this->query($this->query);
+				$this->bind($key, $value);
+				$result = $this->result();
         }
-        // Store the row in a temporary variable.
-        $single = $this->result();
-        // Filter the properties and remove hidden.
-        $model = $this->show($single);
 
-        return $model;
+        return $result;
     }
 
     /**
      * Save the model to the database.
      * @param array $data
      * @return mixed $lastInsertedId
+     * @throws \Exception
      */
-    final public function save(array $data) {
-        $save = new $this($data);
-
-        $class = $this->getCallingClassName();
-
-        $bindings = $this->buildValuesForInsert($save);
-
-        $this->query('INSERT INTO '. $class . 's SET ' . $bindings);
-
-        foreach ($save->attributes as $key => $value) {
-            $this->bind(':' . $key, $value);
-        }
-        $this->execute();
-
-        return $this->getLastId();
-    }
-
-    final public function update()
+    final protected function insert(array $data)
     {
+        $insert = new $this($data);
+//        $this->query_builder->setParameters($insert->attributes);
+        $this->query = $this->query_builder->insert($this->table)->parameters($insert->attributes)->create();
+        var_dump($this->query);
+        $this->query($this->query);
+        $this->bindMany($insert->attributes);
+        if ($this->execute() !== true) {
+            Log::create("SQL_INSERT_query", $this->query);
+            Log::create("{$this->table}_attributes", $insert->attributes);
+            throw new \Exception("Error creating new entry to the database.");
+        }
 
+        return $this->lastId();
     }
 
-    final public function delete()
+    /**
+     * Update a model in the database.
+     * @param array $data
+     * @return string
+     * @throws \Exception
+     */
+    final protected function modify(array $data)
+    {
+        if ($data['id'] != (int) $data['id']) {
+            throw new \Exception("Invalid id!");
+        }
+        $update = new $this($data);
+        $this->query = $this->query_builder->update($this->table)->parameters($update->attributes)->where('id', $update->attributes['id'])->create();
+        $this->query($this->query);
+        $this->bindMany($update->attributes);
+        $result = $this->execute();
+        if ($result !== true) {
+            Log::create("SQL_UPDATE_query", $this->query);
+            Log::create("{$this->table}_attributes", $update->attributes);
+            throw new \Exception("Error updating entry {$update->attributes['id']} in the the database.");
+        }
+        $this->last_id = (int) $data['id'];
+
+        return $result;
+    }
+
+    final protected function destroy($id)
+    {
+        $this->query = $this->query_builder->delete($this->table)->where('id', $id)->create();
+        $this->query($this->query);
+        $this->bind(':id', $id);
+        $result = $this->execute();
+        if ($result !== true) {
+            Log::create("SQL_UPDATE_query", $this->query);
+            Log::create("{$this->table}_attributes", $update->attributes);
+            throw new \Exception("Error updating entry {$update->attributes['id']} in the the database.");
+        }
+
+        return $result;
+    }
+
+    final protected function extract()
     {
 
     }
@@ -147,7 +218,7 @@ class Model extends Orion
      * Determine if the model uses timestamps.
      * @return mixed
      */
-    public function hasTimeStamps()
+    final protected function hasTimeStamps()
     {
         // TODO: Implement hasTimeStamps() method.
     }
@@ -156,20 +227,76 @@ class Model extends Orion
      * Set the timestamps of the model.
      * On create, set the created at and updated at.
      * On update, only set updated at.
+     * @param string $type
      * @return mixed
      */
-    public function setTimestamps()
+    final protected function setTimestamps($type = 'create')
     {
-        // TODO: Implement setTimestamps() method.
+        if ($type === 'create') {
+            $this->created_at = time();
+            $this->updated_at = time();
+        } elseif ($type === 'update') {
+            $this->updated_at = time();
+        }
+        $class = get_class();
+        Log::create("Error setting {$class} timestamps with {$type}. Accepted are 'update' and 'create'");
+        return false;
     }
 
-    final public function increment()
+    final protected function increment()
     {
 
     }
 
-    final public function decrement()
+    final protected function decrement()
     {
 
     }
+
+    /**
+     * Retrieve the last inserted or modified id from the database.
+     * @return string
+     */
+    final public function lastId()
+    {
+        $id = 0;
+        if (isset($this->last_id)) {
+            $id = $this->last_id;
+            unset($this->last_id);
+        } else {
+            $id = $this->db->lastInsertId();
+        }
+        return $id;
+    }
+
+    /**
+     * Return the name of the calling model in plural.
+     * @return string
+     */
+    private function getCallingClassName(): string
+    {
+        $arr = explode('\\', static::class);
+        return lcfirst(end($arr)) . 's';
+    }
+
+    /**
+     * Determine the incoming key type.
+     * ID and Email are allowed only for dynamic search.
+     * @param $key
+     * @return bool|string
+     */
+    private function whatIsKey($key)
+    {
+        switch ($key) {
+            case is_int($key) || is_numeric($key):
+            case $key === (int) $key:
+                return 'id';
+            case Str::contains((string) $key, '@'):
+                return 'email';
+            default:
+                return false;
+        }
+    }
+
+
 }

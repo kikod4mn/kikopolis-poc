@@ -1,0 +1,339 @@
+.header {
+    width: 100%;
+    max-height: 65px;
+    min-height: 65px;
+    background-color: #333333;
+    color: #fdffff;
+    z-index: 10;
+    margin-bottom: 0;
+}
+
+.logo {
+    line-height: 1.8em;
+	color: #dbdbdb;
+    margin: 10px 20px;
+    font-family: "Montserrat", sans-serif;
+}
+
+.logo-text {
+    font-size: 0.7em;
+    text-transform: lowercase;
+}
+
+ul {
+    list-style-type: none;
+}
+
+.container-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-flow: row wrap;
+    background-color: rgba(0, 0, 0, 0.9);
+    transform: translateX(100%);
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 11;
+    height: 100%;
+    width: 100%;
+}
+
+.nav-close {
+    position: absolute;
+    right: 35px;
+    top: 10px;
+    color: #dbdbdb;
+    font-size: 3em;
+    cursor: pointer;
+    display: block;
+	transition: all 0.5s ease-in-out;
+}
+
+.nav-close:hover {
+    transform: scale(1.1);
+    transition: all 0.5s ease-in-out;
+    animation: xSpin 3000ms linear both;
+}
+
+.line-through-nav {
+    background-color: #565656;
+    height: 75%;
+    width: 2px;
+    box-shadow: 0 0 5px rgba(199, 199, 199, 0.3);
+}
+
+.nav-right,
+.nav-left {
+    display: flex;
+    flex-direction: column;
+    width: 20%;
+    min-width: 20rem;
+    margin: 0 35px;
+}
+
+.nav-right .list-item-nav,
+.nav-left .list-item-nav {
+    opacity: 0;
+}
+
+.nav-right .link-main-nav,
+.nav-left .link-main-nav {
+    white-space: nowrap;
+    text-transform: uppercase;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    color: #dbdbdb;
+    font: 1.3em/1.5em "Raleway", sans-serif;
+    font-weight: 500;
+    letter-spacing: 2px;
+    margin: 0.3rem 0.5rem 0.5rem;
+    padding: 10px 20px;
+    background-color: #50516031;
+    border-radius: 10px;
+	transition: all 0.5s ease-in-out;
+}
+
+.nav-right .link-main-nav {
+    justify-content: flex-start;
+}
+
+.nav-left .link-main-nav {
+    justify-content: flex-end;
+}
+
+.link-main-nav:hover {
+    color: #c8c8c8;
+    transition: all 0.3s ease-in-out;
+    animation: btnBounce 1000ms linear both;
+    background-color: #505160a6;
+}
+
+.social-section {
+    display: flex;
+    flex-direction: row;
+}
+
+.social-icon {
+    margin: 0.5rem;
+}
+
+.fab {
+    padding: 5px;
+    font-size: 30px;
+    width: 42px;
+    height: 42px;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 50%;
+    text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+}
+
+.fab:hover {
+    opacity: 0.7;
+    animation: btnBounce 1000ms linear both;
+}
+
+.fa-facebook-square {
+    background: #3b5998;
+    color: #fff;
+}
+
+.fa-twitter-square {
+    background: #55acee;
+    color: #fff;
+}
+
+.fa-instagram-square {
+    background: #eb4924;
+    color: #fff;
+}
+
+.fa-flickr-square {
+	background: #ff0084;
+	color: #fff;
+}
+
+.burger {
+    box-sizing: border-box;
+    position: absolute;
+    width: 50px;
+    height: 45px;
+    display: block;
+    cursor: pointer;
+    right: 30px;
+    top: 10px;
+    z-index: 10;
+}
+
+.burger :after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border: 1px dashed #ffbb00;
+    border-left-width: 2px;
+}
+
+.burger div {
+    width: 50px;
+    height: 6px;
+    background-color: #ededed;
+    margin: 7px;
+    transition: all 1s ease-in-out;
+}
+
+.burger div.line2 {
+    width: 20px;
+}
+
+.burger:hover .line2 {
+    width: 30px;
+    margin-left: 27px;
+}
+
+.burger:hover div {
+    background-color: #ffbb00;
+}
+
+.nav-active {
+    transform: translateX(0%);
+    transition: transform 0.3s ease-in;
+    background-color: rgba(0, 0, 0, 0.9);
+}
+
+.fill-div {
+    min-height: 100vh;
+}
+
+.img-hover {
+    transition: all 0.6s;
+}
+
+.img-hover:hover {
+    transition: all 0.6s;
+    transform: scale(1.1);
+    z-index: 999;
+}
+
+.panels-5 {
+    min-height: 100vh;
+    overflow: hidden;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    width: 100%;
+    z-index: -1;
+}
+
+.panel-5 {
+    color: white;
+    background-color: #454545;
+    background-blend-mode: multiply;
+    text-align: center;
+    align-items: center;
+    transition: font-size 0.7s cubic-bezier(0.61, -0.19, 0.7, -0.11), flex 0.7s cubic-bezier(0.61, -0.19, 0.7, -0.11), background-color 2s;
+    font-size: 20px;
+    background: center;
+    background-size: cover;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.faded {
+    background-color: #454545;
+    background-blend-mode: multiply;
+    transition: background-color 0.8s;
+}
+
+.panel-5>* {
+    margin: 0;
+    width: 100%;
+    transition: transform 0.5s;
+    flex: 1 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.panel-5>*:first-child {
+    -webkit-transform: translateY(-100%);
+    transform: translateY(-100%);
+}
+
+.panel-5.open-active>*:first-child {
+    -webkit-transform: translateY(0%);
+    transform: translateY(0%);
+}
+
+.panel-5>*:last-child {
+    -webkit-transform: translateY(100%);
+    transform: translateY(100%);
+}
+
+.panel-5.open-active>*:last-child {
+    -webkit-transform: translateY(0%);
+    transform: translateY(0%);
+}
+
+.panel-5 p {
+    text-transform: uppercase;
+    font-family: "Indie Flower", cursive;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.72), 0 0 14px rgba(0, 0, 0, 0.45);
+    font-size: 2em;
+}
+
+.panel-5 p:nth-child(2) {
+    font-size: 4em;
+}
+
+.panel-5.open {
+    font-size: 30px;
+    -webkit-box-flex: 5;
+    -ms-flex: 5;
+    flex: 5;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background-color: #ededed;
+    font-family: "Raleway", sans-serif;
+    font-size: 16px;
+    color: #2e2e2e;
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: "Montserrat", sans-serif;
+}
+
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+.header-clear {
+	/*margin-top: 65px;*/
+}
+
+footer {
+	background-color: #333333;
+}

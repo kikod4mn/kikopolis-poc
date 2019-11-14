@@ -18,7 +18,39 @@ if (!function_exists('redirect')) {
     function redirect($page)
     {
         header('location: ' . Config::getUrlRoot() . '/' . $page, true, 303);
-        exit;
+    }
+}
+
+if (!function_exists('withMessage')) {
+    function withMessage(string $message, string $type = 'alert-success', string $title = 'Notification')
+    {
+        $_SESSION['flash'][] = [
+            'title' => $title,
+            'body' => $message,
+            'type' => $type
+        ];
+    }
+}
+
+if (!function_exists('returnTo')) {
+    function returnTo(){
+    	if ($_SESSION['previous_page'] === $_SERVER['query_string']) {
+			$_SESSION['previous_page'] = 'home';
+		}
+        header('location: ' . Config::getUrlRoot() . '/' . $page, true, 303);
+    }
+}
+
+if (!function_exists('getFlashMessages')) {
+    function getFlashMessages() {
+        if (isset($_SESSION['flash'])) {
+            $messages = $_SESSION['flash'];
+            unset($_SESSION['flash']);
+
+            return $messages;
+        }
+
+        return false;
     }
 }
 
