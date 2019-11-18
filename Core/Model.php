@@ -8,6 +8,7 @@ use Kikopolis\App\Framework\Orion\Connection\Connection;
 use Kikopolis\App\Framework\Orion\QueryBuilder;
 use Kikopolis\App\Helpers\Str;
 use Kikopolis\App\Framework\Orion\Orion;
+use Kikopolis\App\Utility\Token;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
 
@@ -18,7 +19,6 @@ defined('_KIKOPOLIS') or die('No direct script access!');
  * @version 0.0.0.1000
  * PHP Version 7.3.5
  */
-
 class Model extends Orion
 {
     const CREATED_AT = 'created_at';
@@ -90,15 +90,15 @@ class Model extends Orion
         return $this->resultSet();
     }
 
-	/**
-	 * Get a series of results for this model, specify $key for column and $value for a value to search.
-	 * @param string $key
-	 * @param string $value
-	 * @param int    $limit
-	 * @param array  $columns
-	 * @return string
-	 * @throws \Exception
-	 */
+    /**
+     * Get a series of results for this model, specify $key for column and $value for a value to search.
+     * @param string $key
+     * @param string $value
+     * @param int $limit
+     * @param array $columns
+     * @return string
+     * @throws \Exception
+     */
     final public function get(string $key, string $value, int $limit = 0, array $columns = ['*'])
     {
         $this->query = $this->query_builder->select($columns)->from($this->table)->limit($limit)->where($key, $value)->create();
@@ -114,6 +114,7 @@ class Model extends Orion
      * If the key is an int, it is assumed to be an id, if it contains an @ symbol, assumed to be an email.
      * If a key value is passed in, return that result.
      * @param $key
+     * @param string $value
      * @return object
      * @throws \Exception
      */
@@ -123,23 +124,24 @@ class Model extends Orion
         // If no type is determined or it isnt the two mentioned, the entire table is searched for a match.
         $key_type = $this->whatIsKey($key);
         switch ($key_type) {
-            case 'id':
-                $this->query = $this->query_builder->select()->from($this->table)->where('id', $key)->create();
+            case $this->mainId === $key_type:
+                $this->query = $this->query_builder->select()->from($this->table)->where($this->mainId, $key)->create();
                 $this->query($this->query);
                 $this->bind('id', $key);
-				$result = $this->result();
+                $result = $this->result();
                 break;
             case 'email':
+            case is_string($key_type) && $value === '':
                 $this->query = $this->query_builder->select()->from($this->table)->where('email', $key)->create();
                 $this->query($this->query);
                 $this->bind('email', $key);
-				$result = $this->result();
+                $result = $this->result();
                 break;
             default:
-				$this->query = $this->query_builder->select()->from($this->table)->where($key, $value)->create();
-				$this->query($this->query);
-				$this->bind($key, $value);
-				$result = $this->result();
+                $this->query = $this->query_builder->select()->from($this->table)->where($key, $value)->create();
+                $this->query($this->query);
+                $this->bind($key, $value);
+                $result = $this->result();
         }
 
         return $result;
@@ -153,10 +155,12 @@ class Model extends Orion
      */
     final protected function insert(array $data)
     {
+        if (!$this->validateDataArray($data)) {
+            return false;
+        }
         $insert = new $this($data);
 //        $this->query_builder->setParameters($insert->attributes);
         $this->query = $this->query_builder->insert($this->table)->parameters($insert->attributes)->create();
-        var_dump($this->query);
         $this->query($this->query);
         $this->bindMany($insert->attributes);
         if ($this->execute() !== true) {
@@ -176,7 +180,7 @@ class Model extends Orion
      */
     final protected function modify(array $data)
     {
-        if ($data['id'] != (int) $data['id']) {
+        if ($data['id'] != (int)$data['id']) {
             throw new \Exception("Invalid id!");
         }
         $update = new $this($data);
@@ -189,7 +193,7 @@ class Model extends Orion
             Log::create("{$this->table}_attributes", $update->attributes);
             throw new \Exception("Error updating entry {$update->attributes['id']} in the the database.");
         }
-        $this->last_id = (int) $data['id'];
+        $this->last_id = (int)$data['id'];
 
         return $result;
     }
@@ -207,6 +211,30 @@ class Model extends Orion
         }
 
         return $result;
+    }
+
+    final public function validateDataArray(array $data): bool
+    {
+        return $this->validateData($data);
+    }
+
+    private function validateData(array $data): bool
+    {
+        if (!isset($data['method'])) {
+            return false;
+        }
+        if (!isset($data['csrf_token'])) {
+            $message = "Token is not set in the form. Form data is as follows - ";
+            foreach ($data as $line) {
+                $message .= PHP_EOL . "{$line}";
+            }
+            throw new \Exception($message, 404);
+        }
+        $token = new Token($data['csrf_token']);
+        if ($token->csrfTokenIsValid()) {
+            return true;
+        }
+        return false;
     }
 
     final protected function extract()
@@ -289,9 +317,9 @@ class Model extends Orion
     {
         switch ($key) {
             case is_int($key) || is_numeric($key):
-            case $key === (int) $key:
+            case $key === (int)$key:
                 return 'id';
-            case Str::contains((string) $key, '@'):
+            case Str::contains((string)$key, '@'):
                 return 'email';
             default:
                 return false;

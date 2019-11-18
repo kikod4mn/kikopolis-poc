@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kikopolis\App\Framework\Mail;
 
 use Kikopolis\App\Config\Config;
+use Kikopolis\App\Helpers\Str;
 use PHPMailer\PHPMailer\PHPMailer;
 
 defined('_KIKOPOLIS') or die('No direct script access!');
@@ -37,11 +38,11 @@ class Mail
     {
         $this->mailer->CharSet = 'UTF-8';
         $this->mailer->IsSMTP();
-        $this->mailer->Host       = Config::PHPMAILER_HOST;
+        $this->mailer->Host = Config::PHPMAILER_HOST;
         $this->mailer->SMTPSecure = Config::PHPMAILER_SMTP_SECURE;
-        $this->mailer->Port       = Config::PHPMAILER_PORT;
-        $this->mailer->SMTPDebug  = 4;
-        $this->mailer->SMTPAuth   = true;
+        $this->mailer->Port = Config::PHPMAILER_PORT;
+        $this->mailer->SMTPDebug = 4;
+        $this->mailer->SMTPAuth = true;
         $this->mailer->SMTPAutoTLS = false;
         $this->mailer->SMTPOptions = array(
             'ssl' => array(
@@ -50,13 +51,13 @@ class Mail
                 'allow_self_signed' => true,
             )
         );
-        $this->mailer->Username   = Config::PHPMAILER_UNAME;
-        $this->mailer->Password   = Config::PHPMAILER_PWD;
+        $this->mailer->Username = Config::PHPMAILER_UNAME;
+        $this->mailer->Password = Config::PHPMAILER_PWD;
         $this->mailer->SetFrom('no-reply@kikopolis.tech', 'no-reply');
 //        $this->mailer->AddReplyTo('no-reply@mycomp.com','no-reply');
-        $this->mailer->Subject    = $this->subject;
-        $this->mailer->MsgHTML($this->message);
-        $this->mailer->AddAddress($this->to);
+        $this->mailer->Subject = Str::h($this->subject);
+        $this->mailer->MsgHTML(Str::h($this->message));
+        $this->mailer->AddAddress(Str::email($this->to));
 //        $this->mailer->AddAttachment($fileName);
         return $this->mailer->send();
     }

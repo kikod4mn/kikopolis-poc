@@ -24,6 +24,7 @@ $router->get('home', 'home.index', []);
 //$router->get('posts/show/{slug}', 'posts.show', []);
 $router->get('contact', 'home.contact');
 $router->post('send-email', 'contact.send-email');
+$router->get('email-success', 'contact.send-success');
 $router->get('faq', 'home.faq');
 $router->get('docs', 'documentation.index');
-$router->get('docs/{slug}', 'docs.show');
+$router->get('docs/{slug}', 'documentation.show');

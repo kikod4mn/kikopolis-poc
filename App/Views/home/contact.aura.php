@@ -1,9 +1,11 @@
 @extends::layouts.base
 
 @extend::base
+<h1 class="block w-full text-center">Straight line to the admin! Ask away, youngling!</h1>
+<hr class="style-seven mt-3">
 <form action="@@urlroot/send-email" method="post" class="w-full mx-auto p-8">
     <?php echo \Kikopolis\App\Utility\Form::csrf(); ?>
-    <input type="hidden" value="POST">
+    <?php echo \Kikopolis\App\Utility\Form::method('POST'); ?>
     <div class="md:flex md:items-center mb-6">
         <div class="md:w-1/3">
             <label class="block font-bold md:text-right mb-1 md:mb-0 pr-4" for="subject">Subject</label>

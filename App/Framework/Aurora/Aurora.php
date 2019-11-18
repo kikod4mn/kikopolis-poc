@@ -390,6 +390,7 @@ class Aurora
         }
         $regex = '/\@extend::base(?P<content>.*?)\@endextend/s';
         $matches = Regexp::findByRegex($regex, $current_template);
+
         if (count($matches) > 1) {
             throw new \Exception('Multiple sections in the template file, please enclose all content into one extend', 404);
         }

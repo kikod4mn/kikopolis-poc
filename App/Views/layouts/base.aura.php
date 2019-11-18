@@ -18,7 +18,7 @@
 <body class="leading-normal tracking-normal text-white bg-gray-700">
 @section::layouts.header
 @section::layouts.nav
-<div class="container mx-auto">
+<div class="container mx-auto mt-5">
     @extend::template
 </div>
 @section::layouts.footer

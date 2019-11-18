@@ -15,6 +15,10 @@
 <hr class="style-two mt-3">
 <div class="w-full flex items-center flex-col mx-auto">
     <h3>Read the documentation</h3>
+    <h4>Documentation is under construction. Thank you for your patience.</h4>
+    <p class="text-orange-900 my-5 block rounded-full p-5 bg-orange-300">
+        This framework is not production ready and should not be used in production environments and products. This is a learning resource for me.
+    </p>
     <ul class="list-disc mx-auto">
         <li><a class="btn text-gray-500 hover:text-gray-200" href="@@urlroot/docs/config">Configuration options</a></li>
         <li><a class="btn text-gray-500 hover:text-gray-200" href="@@urlroot/docs/routing">Routing system and structure</a></li>

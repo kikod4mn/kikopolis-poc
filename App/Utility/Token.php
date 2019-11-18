@@ -142,10 +142,9 @@ class Token
             if (!$this->csrfTokenIsRecent()) {
                 throw new \Exception('Form token has expired. Please try again.');
             }
-            if (!Hash::compare($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+            if (!Hash::compare($_SESSION['csrf_token'], $this->token)) {
                 throw new \Exception('CSRF Tokens from form are mismatched. Stopping everything and running away scared!!!');
             } else {
-                echo "<h1>CSRF TOKEN IS VALID</h1>";
                 return true;
             }
         }

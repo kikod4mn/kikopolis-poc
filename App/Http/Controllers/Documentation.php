@@ -25,6 +25,6 @@ class Documentation extends Controller
 
     public function showAction()
     {
-        return View::render('docs.show');
+        return View::render('docs.show', ['slug' => $this->params['slug']]);
     }
 }
