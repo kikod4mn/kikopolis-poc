@@ -9,19 +9,21 @@ $router->get('home', 'home.index', []);
 /**
  * Administrative routes
  */
-$router->get('admin', 'admin.index', ['namespace' => 'Admin']);
+//$router->get('admin', 'admin.index', ['namespace' => 'Admin']);
 //$router->resource('theme', 'themes', ['namespace' => 'Admin'], ['show']);
 //$router->resource('tag', 'tags', ['namespace' => 'Admin'], ['show']);
-$router->resource('content', 'contents', ['namespace' => 'Admin'], ['show']);
+//$router->resource('content', 'contents', ['namespace' => 'Admin'], ['show']);
 
 /**
  * Add your routes to this list.
  * It is recommended not to change any routes above this line unless you know what you are doing.
  */
-$router->get('images/{slug}', 'gallery.single');
-$router->get('gallery/{category}/show', 'gallery.show', []);
-$router->get('posts/show/{id}/{slug}', 'posts.show', []);
-$router->get('posts/show/{slug}', 'posts.show', []);
-
-//var_dump($router->getRoutes());
-//die;
+//$router->get('images/{slug}', 'gallery.single');
+//$router->get('gallery/{category}/show', 'gallery.show', []);
+//$router->get('posts/show/{id}/{slug}', 'posts.show', []);
+//$router->get('posts/show/{slug}', 'posts.show', []);
+$router->get('contact', 'home.contact');
+$router->post('send-email', 'contact.send-email');
+$router->get('faq', 'home.faq');
+$router->get('docs', 'documentation.index');
+$router->get('docs/{slug}', 'docs.show');

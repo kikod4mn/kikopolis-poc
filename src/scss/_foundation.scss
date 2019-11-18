@@ -1,15 +1,11 @@
 @import "variables";
+@import "btnBounce";
 
 body {
   background: $page_background;
   font-family: $text_font;
   color: $text_primary;
-}
-
-.wrapper {
-
-  @apply mx-auto;
-  margin: 0 240px;
+  @apply text-font;
 }
 
 .heading-font {
@@ -29,21 +25,88 @@ h1, h2, h3, h4, h5, h6 {
   @apply heading-font;
 }
 
-h1 {
-  @apply text-4xl;
+.logo {
+  @apply text-gray-300;
+  text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
 }
+
+h1 {
+  @apply text-4xl heading-font;
+}
+
 h2 {
   @apply text-3xl;
 }
+
 h3 {
   @apply text-2xl;
 }
+
 h4 {
   @apply text-xl;
 }
+
 h5, h6 {
   @apply text-lg;
 }
+
+.fap {
+  @apply text-gray-300 btn_transition;
+  padding: 5px;
+  font-size: 30px;
+  width: 42px;
+  height: 42px;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 50%;
+  text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+}
+
+.fap:hover {
+  @apply text-white btn_transition;
+  animation: btnBounce 1000ms linear both;
+
+}
+
+.btn {
+  @apply btn_transition;
+}
+
+.btn:hover {
+  @apply btn_transition;
+}
+
+.btn_transition {
+  transition: all 0.4s ease-in-out;
+}
+
 a {
-  @apply text-blue-700;
+  color: $text_primary;
+}
+
+/* Flaired edges, by Tomas Theunissen */
+
+hr.style-seven {
+  overflow: visible; /* For IE */
+  height: 30px;
+  border-style: solid;
+  border-color: #9e9e9e;
+  border-width: 1px 0 0 0;
+  border-radius: 20px;
+}
+hr.style-seven:before { /* Not really supposed to work, but does */
+  display: block;
+  content: "";
+  height: 30px;
+  margin-top: -31px;
+  border-style: solid;
+  border-color: #9e9e9e;
+  border-width: 0 0 1px 0;
+  border-radius: 20px;
+}
+
+hr.style-two {
+  border: 0;
+  height: 1px;
+  background-image: linear-gradient(to right, rgba(0, 0, 0, 0), #9e9e9e, rgba(0, 0, 0, 0));
 }

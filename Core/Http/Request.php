@@ -49,4 +49,14 @@ class Request
     {
         return new static($query, $request, $attributes, $cookies, $files, $server, $content);
     }
+
+    public function query()
+    {
+        return $this->newQuery();
+    }
+
+    private function newQuery()
+    {
+        return $_POST;
+    }
 }

@@ -49,16 +49,6 @@ class View
 	 */
     private static $content = [];
 
-    /**
-	 * @var array
-	 */
-	private static $theme = [];
-
-	/**
-	 * @var array
-	 */
-	private static $tags = [];
-
 	/**
      * Render the template and require the file.
      * @param string $file_name
@@ -91,17 +81,6 @@ class View
         // Extract template variables
         extract($template_variables, EXTR_SKIP);
         $flash_messages = getFlashMessages();
-        if (Config::ENABLE_CARDINAL === true) {
-			self::$content = self::getContent($file_name);
-            extract(self::$content);
-        }
-        if (Config::ENABLE_CORALLIZE === true) {
-        	Corallize::setTags(self::getTags());
-		}
-        if (Config::ENABLE_ARCHON === true) {
-			self::$theme = self::getTheme();
-			extract(self::$theme);
-		}
 
         return require_once static::$output_file;
     }
@@ -113,24 +92,6 @@ class View
 		$data = $content->find('page_route', $file_name);
 		if (is_string($data->content)) {
 			$return = (array) json_decode($data->content);
-		}
-
-		return $return;
-    }
-
-	private static function getTags()
-	{
-		$tags = new Tag();
-		return $tags->all();
-    }
-
-	private static function getTheme()
-	{
-		$return = [];
-		$theme = new Theme();
-		$data = $theme->find('name', Config::THEME);
-		if (is_string($data->variables)) {
-			$return = (array) json_decode($data->variables);
 		}
 
 		return $return;
