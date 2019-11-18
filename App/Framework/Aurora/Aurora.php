@@ -140,6 +140,11 @@ class Aurora
     public static $must_run_user_func = false;
 
     /**
+     * @var string
+     */
+    private $output = '';
+
+    /**
      * @return bool
      */
     public function getIsCompiled(): bool
@@ -210,47 +215,47 @@ class Aurora
         // Initialize variables
         // Variable to hold the output of the rendered page and the cached file name in the end.
         // Only initialize these once we are certain that we are going to recompile the template from scratch.
-        $output = '';
+        $this->output = '';
         $cached_file = '';
 
-        $output = $this->prepareCurrentTemplate($this->file);
+        $this->output = $this->prepareCurrentTemplate($this->file);
         // Parse all linked assets
-        $output = $this->assets($output);
+        $this->output = $this->assets();
         // Check and parse the instruction blocks.
         // See individual methods for workflow explanation.
-        $output = $this->instructions($output);
+        $this->output = $this->instructions();
         // Parse loops
-        $output = $this->loops($output);
+        $this->output = $this->loops();
         // todo: Temp for @urlroot directive
-        $output = $this->urlRootPlaceholder($output);
+        $this->output = $this->urlRootPlaceholder();
         // todo: DUMP placeholder
-        $output = $this->dumpPlaceHolder($output);
+        $this->output = $this->dumpPlaceHolder();
         // todo: FORM Placeholder
-        $output = $this->formPlaceHolder($output);
+        $this->output = $this->formPlaceHolder();
         // Parse the variables
-        $output = $this->variables($output);
+        $this->output = $this->variables();
         // Parse the X-CSRF token.
-        $output = $this->xCsrf($output);
+        $this->output = $this->xCsrf();
         // Final check for any stray extends:: in the code
-        if ($this->checkExtend($output) === true) {
+        if ($this->checkExtend() === true) {
             throw new \Exception("A template file may only extend one other template file, additionally no included files may extend another template. Only one @extends::('template-name') line per the entire compiled template is allowed and it must be in the current template being rendered. This template is {$this->file} - and it is the current view file being called. No other file may have the extends statement in its code. Check your files for a stray extends statement!!", 404);
         }
         // Remove any stray tags
-        $output = $this->removeTags($output);
-//		var_dump($output);
+        $this->output = $this->removeTags();
+//		var_dump($this->output);
         // Generate a new cache file with plain php.
-        $cached_file = $this->saveToCachedFile($output);
+        $cached_file = $this->saveToCachedFile();
         // If an error occurs during cache file creation, throws an Exception.
         if ($cached_file === false) {
             throw new \Exception("Unable to create cache file - {$this->cached_file} - to  - {$this->cache_root} - directory. Please make sure the folder has sufficient rights set for a script to write to it.", 404);
         }
-        // var_dump($output);
+        // var_dump($this->output);
         if ($return_type === 'cache') {
 
             return $cached_file;
         } else if ($return_type === 'contents') {
 
-            return $output;
+            return $this->output;
         }
 
         return $cached_file;
@@ -258,27 +263,27 @@ class Aurora
 
     /**
      * Form tag parser placeholder.
-     * @param string $output
+     * @param 
      * @return string
      */
-    private function formPlaceHolder(string $output): string
+    private function formPlaceHolder(): string
     {
         $haystack = '';
         $needle = '';
         $params = [];
         $var = [];
         $regex = '/\@\@form\:\:(?P<type>\w+)\((?P<params>[\w\.\,\ ]*?)\)/';
-        $matches = Regexp::findByRegex($regex, $output);
+        $matches = Regexp::findByRegex($regex, $this->output);
         foreach ($matches as $match) {
             $params = Str::comma($match['params']);
 //			if (count($params) < 7) {
 //				throw new \Exception("Not enough args for form field in tag {$match[0]}");
 //			}
             $replace = $this->formFieldSwitch($match['type'], $params);
-            $output = preg_replace('/' . preg_quote($match[0]) . '/', $replace, $output);
+            $this->output = preg_replace('/' . preg_quote($match[0]) . '/', $replace, $this->output);
         }
 
-        return $output;
+        return $this->output;
 //			if (!is_null($params[3])) {
 //				$var = Str::dot($params[3]);
 //			}
@@ -293,10 +298,10 @@ class Aurora
 //			} else {
         /*				$replace = "<?php echo \Kikopolis\App\Utility\Form::{$match['type']}('{$params[0]}', '{$params[1]}', '{$params[2]}', {$needle}, '{$params[4]}', \Kikopolis\App\Framework\Aurora\Aurora::k_echo(\${$haystack}, 'escape', '{$needle}'), '{$params[6]}'); ?>";*/
 //			}
-//			$output = preg_replace('/' . preg_quote($match[0]) . '/', $replace, $output);
+//			$this->output = preg_replace('/' . preg_quote($match[0]) . '/', $replace, $this->output);
 //		}
 //
-//		return $output;
+//		return $this->output;
     }
 
     private function formFieldSwitch($type, $params = [])
@@ -317,36 +322,36 @@ class Aurora
 
     /**
      * var_dump tag parser placeholder.
-     * @param string $output
+     * @param 
      * @return string
      */
-    private function dumpPlaceHolder(string $output): string
+    private function dumpPlaceHolder(): string
     {
         $regex = '/\@@dump\:\:(?P<var>\w+)/';
-        $matches = Regexp::findByRegex($regex, $output);
+        $matches = Regexp::findByRegex($regex, $this->output);
         foreach ($matches as $match) {
-            $output = preg_replace('/' . preg_quote($match[0]) . '/', "<?php var_dump(\${$match['var']}); ?>", $output);
+            $this->output = preg_replace('/' . preg_quote($match[0]) . '/', "<?php var_dump(\${$match['var']}); ?>", $this->output);
         }
 
-//        var_dump($output);
-        return $output;
+//        var_dump($this->output);
+        return $this->output;
     }
 
     /**
      * @urlroot tag parser placeholder.
-     * @param string $output
+     * @param 
      * @return string
      */
-    private function urlRootPlaceholder(string $output): string
+    private function urlRootPlaceholder(): string
     {
         $regex = '/\@@urlroot/';
         $replace = "<?php echo \Kikopolis\App\Config\Config::getUrlRoot(); ?>";
-        $matches = Regexp::findByRegex($regex, $output);
+        $matches = Regexp::findByRegex($regex, $this->output);
         foreach ($matches as $match) {
-            $output = preg_replace('/' . preg_quote($match[0]) . '/', $replace, $output);
+            $this->output = preg_replace('/' . preg_quote($match[0]) . '/', $replace, $this->output);
         }
 
-        return $output;
+        return $this->output;
     }
 
     /**
@@ -357,13 +362,13 @@ class Aurora
      */
     private function prepareCurrentTemplate(string $file): string
     {
-        $output = '';
-        $output = $this->templateContents($file);
-        if ($this->checkExtend($output) === true) {
-            $output = $this->mergeTemplates($output, $this->parent_file);
+        $this->output = '';
+        $this->output = $this->templateContents($file);
+        if ($this->checkExtend() === true) {
+            $this->output = $this->mergeTemplates($this->output, $this->parent_file);
         }
 
-        return $output;
+        return $this->output;
     }
 
     /**
@@ -371,16 +376,16 @@ class Aurora
      * @param string $current_template
      * @param string $parent_template
      * @param string $regex
-     * @param string $output
+     * @param 
      * @return string
      * @throws \Exception
      */
-    private function mergeTemplates(string $current_template, string $parent_template, string $regex = '', string $output = ''): string
+    private function mergeTemplates(string $current_template, string $parent_template, string $regex = ''): string
     {
         // Get the parent template contents
-        $output = $this->templateContents($parent_template);
+        $this->output = $this->templateContents($parent_template);
         // Check the parent template contents for an extends:: statement and throw an Exception if one is found.
-        if ($this->checkExtend($output) === true) {
+        if ($this->checkExtend() === true) {
             throw new \Exception('Parent template cannot extend another template.', 404);
         }
         $regex = '/\@extend::base(?P<content>.*?)\@endextend/s';
@@ -391,24 +396,24 @@ class Aurora
         if (!array_key_exists('content', $matches[0])) {
             throw new \Exception('No target section found in the parent template. Please make sure the parent template you are trying to extend has an extend tag in the place where you wish to place the content of the called template.', 404);
         }
-        $output = $this->replace($output, '@extend::template', $matches[0]['content']);
+        $this->output = $this->replace($this->output, '@extend::template', $matches[0]['content']);
 
-        return $output;
+        return $this->output;
     }
 
     /**
      * Check the template file contents for an extends:: statement.
      * The parent template is not allowed to extend another template.
-     * @param string $output The contents of the current template
+     * @param  The contents of the current template
      * @return boolean
      * @throws \Exception
      */
-    private function checkExtend(string $output)
+    private function checkExtend()
     {
         $regex = '';
         $regex = '/\@extends\:\:(?P<template>\w+\.?\w+)/';
-        // preg_match_all('/\(\@extends\:\:(\w+\.?\w+)/', $output, $matches);
-        $matches = Regexp::findByRegex($regex, $output);
+        // preg_match_all('/\(\@extends\:\:(\w+\.?\w+)/', $this->output, $matches);
+        $matches = Regexp::findByRegex($regex, $this->output);
         // If the count of extends:: statements is higher than 1, throw error as a template file must not extend more than one template file.
         if (count($matches) > 1) {
             throw new \Exception('A template can only extend one other template! Please make sure there is only a single extend statement in your template file.', 404);
@@ -427,10 +432,10 @@ class Aurora
 
     /**
      * Run user defined functions.
-     * @param string $output
+     * @param 
      * @return string
      */
-    public static function runUserFunc(string $output): string
+    public static function runUserFunc($output): string
     {
         $regex = '';
         $regex = '/(?P<pattern>\(\@function\:\:(?P<func>\w+)\((?P<args>.*?)\)\))/';
@@ -477,27 +482,27 @@ class Aurora
     /**
      * Parse the instruction blocks.
      * Defined as an array of acceptable instructions.
-     * @param string $output
+     * @param 
      * @return string
      * @throws \Exception
      */
-    private function instructions(string $output): string
+    private function instructions(): string
     {
         // Save all instruction blocks to an array.
-        $this->saveInstructionBlocks($output);
+        $this->saveInstructionBlocks($this->output);
         // Replace all the instruction blocks that are in the array with actual content.
-        $output = $this->replaceInstructionBlocks($output);
+        $this->output = $this->replaceInstructionBlocks($this->output);
 
         // Return finished output.
-        return $output;
+        return $this->output;
     }
 
     /**
      * Save the instruction blocks to an array.
-     * @param string $output
+     * @param 
      * @return void
      */
-    private function saveInstructionBlocks(string $output): void
+    private function saveInstructionBlocks(): void
     {
         $regex = '';
         // Loop through the accepted instructions array for Aurora.
@@ -505,9 +510,9 @@ class Aurora
         // Not intended to have this modified anywhere outside the class to maintain integrity of the code and
         // to make sure all instructions are parsed correctly.
         foreach ($this->instructions as $instruction) {
-            // preg_match_all('/\(\@' . preg_quote($instruction) . '::(\w+\.?\-?\w*?\.?\-?\w*?\.?\-?\w*?)\)/', $output, $matches, PREG_SET_ORDER);
+            // preg_match_all('/\(\@' . preg_quote($instruction) . '::(\w+\.?\-?\w*?\.?\-?\w*?\.?\-?\w*?)\)/', $this->output, $matches, PREG_SET_ORDER);
             $regex = '/\@' . preg_quote($instruction) . '::([\w\.]*)/';
-            $matches = Regexp::findByRegex($regex, $output);
+            $matches = Regexp::findByRegex($regex, $this->output);
             foreach ($matches as $match) {
                 // Add the instruction blocks to the array as such
                 // $match[0] - The entire string to replace eg. '(@includes::layouts.sidebar)' -
@@ -522,19 +527,19 @@ class Aurora
 
     /**
      * Replace all the individual instruction blocks.
-     * @param string $output
+     * @param 
      * @return string
      * @throws \Exception
      */
-    private function replaceInstructionBlocks(string $output): string
+    private function replaceInstructionBlocks(): string
     {
         // Loop through the saved instruction blocks.
         foreach ($this->instruction_blocks as $tag => $file) {
             $section_content = $this->stripInstructionTags($this->templateContents($file));
-            $output = $this->replace($output, $tag, $section_content);
+            $this->output = $this->replace($this->output, $tag, $section_content);
         }
 
-        return $output;
+        return $this->output;
     }
 
     /**
@@ -547,8 +552,8 @@ class Aurora
      */
     private function replace(string $haystack, string $needle, string $replacement, int $limit = 1): string
     {
-        $regex = '/' . $needle . '/';
-        $regex = preg_quote($regex);
+        $regex = preg_quote($needle, '/');
+        $regex = '/' . $regex . '/';
         $haystack = preg_replace($regex, $replacement, $haystack, $limit);
 
         return $haystack;
@@ -561,12 +566,12 @@ class Aurora
      * raw output string TODO: so this could be checked in the View class and not here. Currently user functions and
      * the @function tag are not included in the cleanup TODO: because the existence of user functions is checked in
      * the View to allow the use of a pre-compiled cache file for speed.
-     * @param string $output
+     * @param 
      * @param string $regex
      * @param array $tags
      * @return string
      */
-    public function removeTags(string $output, string $regex = '', array $tags = []): string
+    public function removeTags(string $regex = '', array $tags = []): string
     {
         // If no tags are passed in, use the default tags of Aurora.
         // Otherwise, it is possible to use this function to remove custom tags from a string.
@@ -578,53 +583,54 @@ class Aurora
         // Loop through each tag and replace it with nothing.
         foreach ($tags as $tag) {
             $regex = "/{$tag}/";
-            while (preg_match($regex, $output)) {
-                $output = preg_replace($regex, '', $output);
+            while (preg_match($regex, $this->output)) {
+                $this->output = preg_replace($regex, '', $this->output);
             }
         }
 
-        return $output;
+        return $this->output;
     }
 
     /**
      * Parse X-CSRF token tag into the template.
-     * @param string $output
+     * @param 
      * @return string
      */
-    private function xCsrf(string $output): string
+    private function xCsrf(): string
     {
         $regex = '/@x_csrf_token/';
+        $regex2 = '@x_csrf_token';
         $token = '<?php echo \Kikopolis\App\Utility\Token::xCsrfTokenTag(); ?>';
-        $matches = Regexp::findByRegex($regex, $output);
+        $matches = Regexp::findByRegex($regex, $this->output);
         foreach ($matches as $match) {
-			$output = $this->replace($output, $regex, $token);
+			$this->output = $this->replace($this->output, $regex2, $token);
         }
 
-        return $output;
+        return $this->output;
     }
 
     /**
      * Master loop parser method.
      * Calls all other methods to parse individual loops.
-     * @param string $output
+     * @param 
      * @return string
      * @throws \Exception
      */
-    private function loops(string $output): string
+    private function loops(): string
     {
-        $output = $this->foreach($output);
-        $output = $this->if($output);
-        $output = $this->cycle($output);
+        $this->output = $this->foreach();
+        $this->output = $this->if();
+        $this->output = $this->cycle();
 
-        return $output;
+        return $this->output;
     }
 
     /**
-     * Parse all if loops into the $output.
-     * @param string $output
+     * Parse all if loops into the $this->output.
+     * @param 
      * @return string
      */
-    private function if(string $output): string
+    private function if(): string
     {
         // Initialize variables.
         $top_of_loop_regex = '';
@@ -648,7 +654,7 @@ class Aurora
         $middle_of_else_regex = '/\(\@else\)/';
         $end_of_loop_regex = '/\(\@endif\)/';
         // Find the matches for top loop parts and replace them with appropriate parts.
-        $top_matches = Regexp::findByRegex($top_of_loop_regex, $output);
+        $top_matches = Regexp::findByRegex($top_of_loop_regex, $this->output);
         foreach ($top_matches as $match) {
             $not_isset = false;
             $match = Arr::arrayFilter($match);
@@ -686,10 +692,10 @@ class Aurora
             } else {
                 $if_top .= "\${$conditional}): ?>";
             }
-            $output = preg_replace($top_of_loop_regex, $if_top, $output, 1);
+            $this->output = preg_replace($top_of_loop_regex, $if_top, $this->output, 1);
         }
         // Find all the middle elseif loop parts if there are any and parse them.
-        $middle_matches = Regexp::findByRegex($middle_of_loop_regex, $output);
+        $middle_matches = Regexp::findByRegex($middle_of_loop_regex, $this->output);
         foreach ($middle_matches as $match) {
             $not_isset = false;
             $match = Arr::arrayFilter($match);
@@ -727,40 +733,40 @@ class Aurora
             } else {
                 $if_middle .= "\${$conditional}): ?>";
             }
-            $output = preg_replace($middle_of_loop_regex, $if_middle, $output, 1);
+            $this->output = preg_replace($middle_of_loop_regex, $if_middle, $this->output, 1);
         }
         // Parse all the regular else lines.
-        $else_matches = Regexp::findByRegex($middle_of_else_regex, $output);
+        $else_matches = Regexp::findByRegex($middle_of_else_regex, $this->output);
         $else = "<?php else: ?>";
         foreach ($else_matches as $match) {
-            $output = preg_replace($middle_of_else_regex, $else, $output);
+            $this->output = preg_replace($middle_of_else_regex, $else, $this->output);
         }
         // And all the ends of the loop.
-        $end_matches = Regexp::findByRegex($end_of_loop_regex, $output);
+        $end_matches = Regexp::findByRegex($end_of_loop_regex, $this->output);
         $if_bottom = "<?php endif; ?>";
         foreach ($end_matches as $match) {
-            $output = preg_replace($end_of_loop_regex, $if_bottom, $output, 1);
+            $this->output = preg_replace($end_of_loop_regex, $if_bottom, $this->output, 1);
         }
         // Done!
-        return $output;
+        return $this->output;
     }
 
 //    TODO: Implement cycle loop
 //    TODO: Implement cycle loop
 //    TODO: Implement cycle loop
 //    TODO: Implement cycle loop
-    private function cycle(string $output): string
+    private function cycle(): string
     {
-        return $output;
+        return $this->output;
     }
 
     /**
-     * Parse all the foreach loops into the $output.
-     * @param string $output
+     * Parse all the foreach loops into the $this->output.
+     * @param 
      * @return string
      * @throws \Exception
      */
-    private function foreach(string $output): string
+    private function foreach(): string
     {
         // Initialize variables
         $foreach = '';
@@ -773,8 +779,8 @@ class Aurora
         // Initialize regex.
         $top_of_loop_regex = '/\(\@for\:\:((?P<key>.*?)\,\ )*?(?P<needle>\w*?)\ in\ (?P<haystack>.*?)\)/';
         $end_of_loop_regex = '/(\(\@endfor\))/';
-        $top_matches = Regexp::findByRegex($top_of_loop_regex, $output);
-        $end_matches = Regexp::findByRegex($end_of_loop_regex, $output);
+        $top_matches = Regexp::findByRegex($top_of_loop_regex, $this->output);
+        $end_matches = Regexp::findByRegex($end_of_loop_regex, $this->output);
         // Do loop top parts
         foreach ($top_matches as $match) {
             $match = Arr::arrayFilter($match);
@@ -793,14 +799,14 @@ class Aurora
                 <?php \${$range} = range('{$haystack[0]}', '{$haystack[1]}'); ?>
                 <?php foreach(\${$range} as \${$needle}): ?>
                 ";
-                $output = preg_replace($top_of_loop_regex, $foreach, $output, 1);
+                $this->output = preg_replace($top_of_loop_regex, $foreach, $this->output, 1);
             } elseif (isset($key) && $key !== '') {
                 $foreach = "<?php foreach(\${$haystack} as \${$key} => \${$needle}): ?>";
-                $output = preg_replace($top_of_loop_regex, $foreach, $output, 1);
+                $this->output = preg_replace($top_of_loop_regex, $foreach, $this->output, 1);
             } else {
                 $foreach = "
                 <?php foreach(\${$haystack} as \${$needle}): ?>";
-                $output = preg_replace($top_of_loop_regex, $foreach, $output, 1);
+                $this->output = preg_replace($top_of_loop_regex, $foreach, $this->output, 1);
             }
         }
         // Do loop end parts
@@ -808,9 +814,9 @@ class Aurora
             $match = Arr::arrayFilter($match);
             extract($match, EXTR_OVERWRITE);
             $foreach = "<?php endforeach ?>";
-            $output = preg_replace($end_of_loop_regex, $foreach, $output);
+            $this->output = preg_replace($end_of_loop_regex, $foreach, $this->output);
         }
-        return $output;
+        return $this->output;
     }
 
     /**
@@ -827,11 +833,11 @@ class Aurora
 
     /**
      * All heavy lifting work of determining the matches for variables and using correct strategy to parse them.
-     * @param string $output
+     * @param 
      * @param string $regular_expression
      * @return string
      */
-    private function variables(string $output, string $regular_expression = ''): string
+    private function variables(string $regular_expression = ''): string
     {
         if ($regular_expression === '') {
             // Regex to capture each variable and its tag name sequence.
@@ -840,7 +846,7 @@ class Aurora
             $regex = $regular_expression;
         }
         // Match all variables and parse in echo statements.
-        preg_match_all($regex, $output, $matches, PREG_SET_ORDER);
+        preg_match_all($regex, $this->output, $matches, PREG_SET_ORDER);
         foreach ($matches as $match) {
             $var = '';
             $match = array_filter($match, 'is_string', ARRAY_FILTER_USE_KEY);
@@ -882,10 +888,10 @@ class Aurora
                     $var = $this->variableTag($match['var'][0], 'escape', $match['var'][1]);
                 }
             }
-            $output = \preg_replace($regex, $var, $output, 1);
+            $this->output = \preg_replace($regex, $var, $this->output, 1);
         }
 
-        return $output;
+        return $this->output;
     }
 
     /**
@@ -893,34 +899,34 @@ class Aurora
      * Only accepts local files and assumes directory structure as follows
      * css in the /public/css/ folder
      * javascript in the /public/js/ folder
-     * @param string $output
+     * @param 
      * @return string
      */
-    private function assets(string $output): string
+    private function assets(): string
     {
         $regex = '/@asset\(\'(.+)\'\,\ \'(\w+)\'\)/';
         // Find all assets and add them to the class assets array.
-        $matches = Regexp::findByRegex($regex, $output);
+        $matches = Regexp::findByRegex($regex, $this->output);
         foreach ($matches as $match) {
             $this->assets[$match[0]] = $this->assetFilename($match[1], $match[2]);
         }
         // Loop through all assets and replace the asset tag with the tag that is html ready.
         foreach ($this->assets as $tag => $link) {
-            $output = $this->replace($output, $tag, $link);
+            $this->output = $this->replace($this->output, $tag, $link);
         }
 
-        return $output;
+        return $this->output;
     }
 
     /**
      * Save the compiled output to a cache file.
-     * @param string $output
+     * @param 
      * @return string|bool
      * @throws \Exception
      */
-    public function saveToCachedFile(string $output)
+    public function saveToCachedFile()
     {
-        if (FileUpload::forceFileContents($output, $this->cache_root, $this->file . '.php') === true) {
+        if (FileUpload::forceFileContents($this->output, $this->cache_root, $this->file . '.php') === true) {
             return $this->cached_file;
         }
 
