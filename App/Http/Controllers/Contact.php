@@ -30,12 +30,13 @@ class Contact extends Controller
      */
     public function sendEmailAction(Request $request, ContactModel $contact)
     {
-        if (!$contact->validateDataArray($request->query())) {
+        $msg = $request->query();
+        if (!$contact->validateDataArray($msg)) {
             throw new \Exception("Invalid form submission.");
         }
-        $msg = $request->query();
         $mail = new Mail(Config::ADMIN_EMAIL, $msg['subject'], $msg['message']);
-        if ($mail) {
+        $result = $mail->send();
+        if ($result) {
             return redirect('email-success');
         }
         withMessage('Email not sent. Please wait and try again.', 'alert-danger');

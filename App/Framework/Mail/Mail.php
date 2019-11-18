@@ -41,7 +41,7 @@ class Mail
         $this->mailer->Host = Config::PHPMAILER_HOST;
         $this->mailer->SMTPSecure = Config::PHPMAILER_SMTP_SECURE;
         $this->mailer->Port = Config::PHPMAILER_PORT;
-        $this->mailer->SMTPDebug = 4;
+        $this->mailer->SMTPDebug = 0;
         $this->mailer->SMTPAuth = true;
         $this->mailer->SMTPAutoTLS = false;
         $this->mailer->SMTPOptions = array(

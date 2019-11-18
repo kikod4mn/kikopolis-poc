@@ -206,9 +206,9 @@ class Str
      * Check if string matches a valid email address format
      * Uses trim to remove empty spaces from the beginning and end of the string
      * @param string $email
-     * @return bool
+     * @return bool|string
      */
-    public static function email(string $email): bool
+    public static function email(string $email)
     {
         return filter_var(trim($email), FILTER_VALIDATE_EMAIL);
     }
